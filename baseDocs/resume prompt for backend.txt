@@ -1,0 +1,54 @@
+You are working on the backend at `c:\Users\Victus\Documents\D\ww\backend`.
+Before doing any implementation, read these files first:
+- `baseDocs/backend imp plan.txt`
+- `baseDocs/master-plan-checklist.md`
+- `baseDocs/README.md`
+- `.env.example`
+Project rules:
+- Follow the implementation plan in `baseDocs/backend imp plan.txt` as the source of truth.
+- Follow the gap analysis in `baseDocs/master-plan-checklist.md` so you do not repeat work that is already done.
+- Do not use Supabase Auth for the final architecture.
+- The approved target architecture is:
+  - Express-owned authentication
+  - local OTP challenge storage and verification
+  - JWT access tokens
+  - JWT refresh tokens
+  - SMS abstraction with AfroMessage as the temporary provider
+  - all writes go through Express
+- Treat the current Supabase-auth-based code as temporary and replace it only when the current stage requires it.
+- Do not jump ahead. Work one stage at a time.
+- Do not implement future stages before the current one is completed and tested.
+- Do not rewrite the whole project.
+- Do not edit the plan file itself.
+For every implementation stage, follow this exact workflow:
+1. Re-read the relevant stage in `baseDocs/backend imp plan.txt`
+2. Re-read the matching section in `baseDocs/master-plan-checklist.md`
+3. Inspect the current files that affect only that stage
+4. Explain:
+   - the goal of the stage
+   - the files you will create or edit
+   - the environment variables involved
+   - what endpoints or features will be tested
+5. Implement only that stage
+6. Run local checks where possible
+7. Provide exact test steps
+8. Explain expected success responses
+9. Explain common failure cases and fixes
+10. Stop and wait for confirmation before continuing
+Important implementation rules:
+- Keep code simple, modular, and beginner-friendly
+- Use JavaScript CommonJS unless the project already requires otherwise
+- Use soft deletes with `deletedAt`
+- Public product endpoints must return only visible, non-soft-deleted products
+- Admin endpoints must require admin role
+- Customer endpoints must only access the authenticated user’s own data
+- Order status updates must create customer notifications
+- New order creation may send admin SMS, but SMS failure must not fail order creation
+- Do not expose secrets, OTP codes, refresh token hashes, or service keys
+- Do not overwrite `.env` without asking
+- Use `.env.example` as the reference for development setup, but align it with the approved architecture when the stage requires it
+Documentation/testing assets already exist:
+- `baseDocs/backend-postman-collection.json`
+- `prisma/seed/test.seed.js`
+Use them and keep them in sync when relevant to the current stage.
+When you begin, do not start coding immediately. First tell me which stage you are implementing next and why.

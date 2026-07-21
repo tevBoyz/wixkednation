@@ -1,0 +1,744 @@
+Backend Development Task Document
+Express.js API + Supabase Auth, PostgreSQL, Storage, and Realtime
+1. Backend Scope
+The backend will be built using Express.js and will act as the control layer between the Next.js frontend and Supabase.
+Architecture:
+Next.js Frontend → Express.js API → Supabase
+The backend is responsible for:
+Authentication relay to Supabase Auth
+Role-based access control
+Product CRUD
+Category CRUD
+Cart management
+Guest cart merge
+Checkout and order creation
+Order status management
+Admin SMS alerts
+Product image upload to Supabase Storage
+Product image cleanup from bucket
+Customer notifications
+Admin settings
+Soft delete rules
+Customer cancellation rules
+The frontend should not directly perform privileged Supabase actions.
+2. Backend Setup Tasks
+2.1 Initialize Backend Project
+Tasks:
+Create Express.js project.
+Configure project structure.
+Install required dependencies.
+Setup environment variable handling.
+Setup API versioning if needed.
+Setup global error handler.
+Setup request validation middleware.
+Setup authentication middleware.
+Setup admin authorization middleware.
+Setup Supabase client.
+Suggested backend folder structure:
+backend/  src/    config/      supabase.js      env.js    middleware/      auth.middleware.js      admin.middleware.js      ageGate.middleware.js      error.middleware.js      validate.middleware.js    modules/      auth/      users/      products/      categories/      cart/      orders/      notifications/      admin/      settings/      sms/      storage/    utils/      slugify.js      response.js      upload.js    app.js    server.js
+2.2 Environment Variables
+Create .env file with:
+PORT=5000NODE_ENV=developmentFRONTEND_URL=http://localhost:3000BACKEND_URL=http://localhost:5000SUPABASE_URL=SUPABASE_ANON_KEY=SUPABASE_SERVICE_ROLE_KEY=SUPABASE_STORAGE_BUCKET=product-imagesJWT_SECRET=SESSION_SECRET=SMS_PROVIDER=SMS_API_KEY=SMS_SENDER_ID=GOOGLE_CLIENT_ID=GOOGLE_CLIENT_SECRET=
+Important:
+SUPABASE_SERVICE_ROLE_KEY must only exist in the Express backend.Never expose it to the frontend.
+3. Database Setup Tasks
+Use Supabase PostgreSQL.
+Create the following tables:
+3.1 users
+Fields:
+idsupabaseUserIdnamephoneemailauthProviderrolecreatedAtupdatedAtdeletedAt
+Roles:
+customeradmin
+Auth providers:
+phonegoogle
+Tasks:
+Create users table.
+Link users table with Supabase Auth user ID.
+Add default role as customer.
+Add admin role support.
+Add soft delete field.
+3.2 addresses
+Fields:
+iduserIdlabelfullNamephoneaddressLine1addressLine2citystatecountrylatitudelongitudeisDefaultcreatedAtupdatedAtdeletedAt
+Tasks:
+Create address table.
+Link address to user.
+Support multiple addresses per user.
+Support default address.
+Use soft delete.
+3.3 categories
+Fields:
+idnameslugdescriptionisActivecreatedAtupdatedAtdeletedAt
+Tasks:
+Create category table.
+Add unique slug.
+Support soft delete.
+Support active/inactive state.
+3.4 products
+Fields:
+idnameslugdescriptionpricecategoryIdmeasurementUnitvolumeimagescoverImageIndexisVisibleisFeaturedcreatedAtupdatedAtdeletedAt
+Tasks:
+Create product table.
+Link product to category.
+Store product images as JSON array.
+Store cover image index.
+Support visibility toggle.
+Support featured products.
+Support soft delete.
+Product image JSON example:
+[  {    "id": "img_001",    "url": "https://...",    "path": "products/product-id/image.webp",    "altText": "Product image",    "size": 250000,    "mimeType": "image/webp"  }]
+3.5 carts
+Fields:
+iduserIdcreatedAtupdatedAt
+Tasks:
+Create cart table.
+One active cart per customer.
+3.6 cart_items
+Fields:
+idcartIdproductIdquantityvolumemeasurementUnitcreatedAtupdatedAt
+Tasks:
+Create cart items table.
+Link item to cart.
+Link item to product.
+Support quantity update.
+Support item removal.
+3.7 orders
+Fields:
+iduserIdorderNumberitemsdeliveryAddressstatustotalAmountpaymentMethodcreatedAtupdatedAtdeletedAt
+Tasks:
+Create orders table.
+Store item snapshot as JSON.
+Store delivery address snapshot as JSON.
+Use COD as payment method.
+Default status should be Pending.
+Use soft delete if admin deletion is added later.
+Order status values:
+PendingConfirmedOut for DeliveryDeliveredCancelled
+Payment method:
+COD
+3.8 notifications
+Fields:
+iduserIdorderIdtypetitlemessageisReadcreatedAtupdatedAt
+Tasks:
+Create notifications table.
+Link notification to user.
+Link notification to order when relevant.
+Support read/unread status.
+Enable Supabase Realtime on this table if frontend subscribes directly.
+Notification types:
+order_statusgeneral
+3.9 admin_settings
+Fields:
+idadminPhoneNumberssmsProviderConfigallowCustomerCancellationdefaultMeasurementUnitcreatedAtupdatedAt
+Tasks:
+Create settings table.
+Store multiple admin phone numbers.
+Store SMS configuration.
+Store customer cancellation toggle.
+Store default measurement unit.
+3.10 order_status_history
+Fields:
+idorderIdoldStatusnewStatuschangedBynotecreatedAt
+Tasks:
+Create order status history table.
+Record every admin status change.
+Use for auditability.
+4. Middleware Tasks
+4.1 Auth Middleware
+Tasks:
+Read access token/session from request.
+Verify with Supabase Auth.
+Fetch matching app user from users table.
+Attach user to request object.
+Expected result:
+req.user = {  id,  supabaseUserId,  role,  phone,  email}
+4.2 Admin Middleware
+Tasks:
+Check if req.user.role === "admin".
+Reject non-admin users.
+Return 403 for forbidden requests.
+4.3 Age Gate Middleware
+Tasks:
+Check age-gate session/cookie.
+Block access if missing.
+Hard block users who answered “No.”
+Apply to required routes if backend serves protected public content.
+4.4 Validation Middleware
+Tasks:
+Validate request body.
+Validate query params.
+Validate route params.
+Return 400 for invalid input.
+Use for:
+Product creation
+Category creation
+Cart item update
+Checkout
+Settings update
+SMS test
+Image upload
+5. Backend API Endpoint List
+5.1 Age Gate Endpoints
+POST /api/age-gate/verify
+Purpose:
+Save age gate response.
+Request body:
+{  "isOver21": true}
+Logic:
+If true, save approved session/cookie.
+If false, save blocked session/cookie.
+Return status.
+Auth:
+Guest
+GET /api/age-gate/status
+Purpose:
+Check current age-gate status.
+Response:
+{  "status": "approved"}
+Possible statuses:
+pendingapprovedblocked
+Auth:
+Guest
+5.2 Auth Endpoints
+POST /api/auth/otp/send
+Purpose:
+Send OTP to phone number using Supabase Auth or selected SMS flow.
+Request body:
+{  "phone": "+251..."}
+Auth:
+Guest
+POST /api/auth/otp/verify
+Purpose:
+Verify phone OTP.
+Create or update app user record.
+Return session/user.
+Request body:
+{  "phone": "+251...",  "token": "123456"}
+Auth:
+Guest
+GET /api/auth/google/start
+Purpose:
+Start Google OAuth login.
+Auth:
+Guest
+GET /api/auth/google/callback
+Purpose:
+Handle Google OAuth callback.
+Create or update app user.
+Redirect user back to frontend.
+Auth:
+Guest
+POST /api/auth/logout
+Purpose:
+Logout current user.
+Auth:
+Customer/Admin
+GET /api/auth/me
+Purpose:
+Return logged-in user.
+Auth:
+Customer/Admin
+POST /api/auth/refresh
+Purpose:
+Refresh session/token.
+Auth:
+Customer/Admin
+5.3 User Endpoints
+GET /api/users/me
+Purpose:
+Get current user profile.
+Auth:
+Customer/Admin
+PATCH /api/users/me
+Purpose:
+Update current user profile.
+Request body:
+{  "name": "Customer Name"}
+Auth:
+Customer/Admin
+GET /api/users/me/addresses
+Purpose:
+Get current user’s saved addresses.
+Auth:
+Customer
+POST /api/users/me/addresses
+Purpose:
+Add new delivery address.
+Auth:
+Customer
+PATCH /api/users/me/addresses/:addressId
+Purpose:
+Update address.
+Auth:
+Customer
+DELETE /api/users/me/addresses/:addressId
+Purpose:
+Soft delete address.
+Auth:
+Customer
+5.4 Public Category Endpoints
+GET /api/categories
+Purpose:
+Get active public categories.
+Auth:
+Guest
+GET /api/categories/:slug
+Purpose:
+Get category detail.
+Auth:
+Guest
+5.5 Public Product Endpoints
+GET /api/products
+Purpose:
+Get visible public products.
+Filters:
+categorysearchpagelimit
+Rules:
+isVisible = truedeletedAt = null
+Auth:
+Guest
+GET /api/products/featured
+Purpose:
+Get featured products for landing page.
+Rules:
+isFeatured = trueisVisible = truedeletedAt = null
+Auth:
+Guest
+GET /api/products/:slug
+Purpose:
+Get single public product detail.
+Rules:
+isVisible = truedeletedAt = null
+Auth:
+Guest
+5.6 Cart Endpoints
+GET /api/cart
+Purpose:
+Get authenticated customer’s cart.
+Auth:
+Customer
+POST /api/cart/items
+Purpose:
+Add product to cart.
+Request body:
+{  "productId": "uuid",  "quantity": 1,  "volume": 1.5,  "measurementUnit": "oz"}
+Auth:
+Customer
+PATCH /api/cart/items/:itemId
+Purpose:
+Update cart item quantity or volume.
+Auth:
+Customer
+DELETE /api/cart/items/:itemId
+Purpose:
+Remove item from cart.
+Auth:
+Customer
+DELETE /api/cart
+Purpose:
+Clear entire cart.
+Auth:
+Customer
+POST /api/cart/merge
+Purpose:
+Merge guest localStorage cart into authenticated customer cart.
+Request body:
+{  "items": [    {      "productId": "uuid",      "quantity": 2,      "volume": 1.5,      "measurementUnit": "oz"    }  ]}
+Backend must:
+Validate products.
+Ignore hidden/deleted products.
+Use current database price.
+Merge duplicate items.
+Save final cart.
+Auth:
+Customer
+5.7 Customer Order Endpoints
+POST /api/orders
+Purpose:
+Create order from cart.
+Request body:
+{  "deliveryAddressId": "uuid"}
+Backend must:
+Validate authenticated customer.
+Fetch cart.
+Validate products.
+Calculate total.
+Snapshot product details.
+Snapshot delivery address.
+Create order with Pending status.
+Set payment method to COD.
+Clear cart.
+Send SMS to admin phone numbers.
+Return confirmation.
+Auth:
+Customer
+GET /api/orders/me
+Purpose:
+Get customer’s order history.
+Auth:
+Customer
+GET /api/orders/me/:orderId
+Purpose:
+Get customer’s own order detail.
+Auth:
+Customer
+POST /api/orders/:orderId/cancel
+Purpose:
+Customer cancels own order if allowed.
+Backend must check:
+Customer owns the order.
+Admin cancellation setting is enabled.
+Order status is cancellable, usually Pending.
+Auth:
+Customer
+5.8 Notification Endpoints
+GET /api/notifications
+Purpose:
+Get current customer notifications.
+Auth:
+Customer
+PATCH /api/notifications/:id/read
+Purpose:
+Mark one notification as read.
+Auth:
+Customer
+PATCH /api/notifications/read-all
+Purpose:
+Mark all current user notifications as read.
+Auth:
+Customer
+5.9 Admin Dashboard Endpoints
+GET /api/admin/dashboard/stats
+Purpose:
+Get admin dashboard statistics.
+Response should include:
+{  "totalOrders": 0,  "pendingOrders": 0,  "confirmedOrders": 0,  "deliveredOrders": 0,  "cancelledOrders": 0,  "totalProducts": 0,  "visibleProducts": 0,  "hiddenProducts": 0,  "totalCustomers": 0}
+Auth:
+Admin
+GET /api/admin/dashboard/recent-orders
+Purpose:
+Get recent orders.
+Auth:
+Admin
+5.10 Admin Product Endpoints
+GET /api/admin/products
+Purpose:
+List all products, including hidden and soft-deleted if requested.
+Filters:
+searchcategoryIdvisibilitydeletedpagelimit
+Auth:
+Admin
+GET /api/admin/products/:id
+Purpose:
+Get one product detail.
+Auth:
+Admin
+POST /api/admin/products
+Purpose:
+Create product.
+Request body:
+{  "name": "Product Name",  "description": "Description",  "price": 100,  "categoryId": "uuid",  "measurementUnit": "oz",  "volume": 1.5,  "isVisible": true,  "isFeatured": false}
+Auth:
+Admin
+PATCH /api/admin/products/:id
+Purpose:
+Update product.
+Auth:
+Admin
+PATCH /api/admin/products/:id/visibility
+Purpose:
+Show or hide product on public catalog.
+Request body:
+{  "isVisible": true}
+Auth:
+Admin
+DELETE /api/admin/products/:id
+Purpose:
+Soft delete product by setting deletedAt.
+Auth:
+Admin
+PATCH /api/admin/products/:id/restore
+Purpose:
+Restore soft-deleted product.
+Auth:
+Admin
+5.11 Admin Product Image Endpoints
+POST /api/admin/products/:id/images
+Purpose:
+Upload product image to Supabase Storage and attach to product.
+Rules:
+Maximum 3 images per productMaximum 3MB per image after compressionAllowed: jpg, jpeg, png, webpFirst uploaded image becomes default cover
+Auth:
+Admin
+DELETE /api/admin/products/:id/images/:imageId
+Purpose:
+Remove image from product and delete file from Supabase Storage.
+Auth:
+Admin
+PATCH /api/admin/products/:id/images/:imageId/cover
+Purpose:
+Set image as cover image.
+Auth:
+Admin
+PATCH /api/admin/products/:id/images/reorder
+Purpose:
+Reorder product images.
+Auth:
+Admin
+5.12 Admin Category Endpoints
+GET /api/admin/categories
+Purpose:
+List all categories.
+Auth:
+Admin
+GET /api/admin/categories/:id
+Purpose:
+Get category detail.
+Auth:
+Admin
+POST /api/admin/categories
+Purpose:
+Create category.
+Request body:
+{  "name": "Category Name",  "description": "Description"}
+Auth:
+Admin
+PATCH /api/admin/categories/:id
+Purpose:
+Update category.
+Auth:
+Admin
+DELETE /api/admin/categories/:id
+Purpose:
+Soft delete category.
+Auth:
+Admin
+PATCH /api/admin/categories/:id/restore
+Purpose:
+Restore category.
+Auth:
+Admin
+5.13 Admin Order Endpoints
+GET /api/admin/orders
+Purpose:
+List all orders.
+Filters:
+statussearchdateFromdateTopagelimit
+Auth:
+Admin
+GET /api/admin/orders/:id
+Purpose:
+Get order detail.
+Auth:
+Admin
+PATCH /api/admin/orders/:id/status
+Purpose:
+Update order status.
+Request body:
+{  "status": "Confirmed",  "note": "Order confirmed by admin"}
+Backend must:
+Update order status.
+Save status history.
+Create customer notification.
+Trigger realtime notification through Supabase.
+Not send SMS to customer.
+Auth:
+Admin
+PATCH /api/admin/orders/:id/cancel
+Purpose:
+Admin cancels order.
+Auth:
+Admin
+5.14 Admin Customer Endpoints
+GET /api/admin/customers
+Purpose:
+List customers.
+Auth:
+Admin
+GET /api/admin/customers/:id
+Purpose:
+Get customer detail.
+Auth:
+Admin
+GET /api/admin/customers/:id/orders
+Purpose:
+Get customer order history.
+Auth:
+Admin
+5.15 Admin Settings Endpoints
+GET /api/admin/settings
+Purpose:
+Get admin settings.
+Auth:
+Admin
+PATCH /api/admin/settings
+Purpose:
+Update general settings.
+Auth:
+Admin
+PATCH /api/admin/settings/cancellation
+Purpose:
+Enable or disable customer cancellation.
+Request body:
+{  "allowCustomerCancellation": true}
+Auth:
+Admin
+POST /api/admin/settings/admin-phones
+Purpose:
+Add admin phone number.
+Request body:
+{  "phone": "+251..."}
+Auth:
+Admin
+DELETE /api/admin/settings/admin-phones/:phoneId
+Purpose:
+Remove admin phone number.
+Auth:
+Admin
+PATCH /api/admin/settings/sms
+Purpose:
+Update SMS provider config.
+Auth:
+Admin
+5.16 SMS Endpoints
+POST /api/sms/otp/send
+Purpose:
+Send login OTP if not using direct Supabase OTP endpoint.
+Auth:
+Guest
+POST /api/internal/sms/new-order-alert
+Purpose:
+Internal service call to send order alert to admins.
+Auth:
+Internal only
+POST /api/admin/sms/test
+Purpose:
+Send test SMS from admin settings.
+Auth:
+Admin
+5.17 Storage Endpoints
+POST /api/storage/upload/product-image
+Purpose:
+Upload product image to Supabase Storage.
+Auth:
+Admin
+DELETE /api/storage/delete
+Purpose:
+Delete file from Supabase Storage.
+Auth:
+Admin
+POST /api/storage/signed-url
+Purpose:
+Generate signed upload URL if using signed uploads.
+Auth:
+Admin
+6. Backend Business Logic Tasks
+6.1 Product Business Rules
+Tasks:
+Public products must only show if visible and not deleted.
+Admin can see hidden products.
+Admin can restore soft-deleted products.
+Price must be dynamic.
+Measurement unit must be dynamic.
+Product must belong to category.
+Product can have maximum 3 images.
+6.2 Image Business Rules
+Tasks:
+Validate image type.
+Validate image size.
+Reject more than 3 images.
+Upload to Supabase Storage.
+Save returned URL/path in product record.
+First image becomes cover.
+Allow cover image change.
+Delete old bucket file when image is replaced.
+Delete bucket file when image is removed.
+6.3 Cart Business Rules
+Tasks:
+Guest cart is handled on frontend.
+Customer cart is stored on backend.
+Merge guest cart after login.
+Validate products during merge.
+Ignore deleted or hidden products.
+Use current product price during checkout.
+Prevent invalid quantity.
+6.4 Order Business Rules
+Tasks:
+Order requires authenticated customer.
+Order must be created from valid cart.
+Order status starts as Pending.
+Payment method is COD.
+Product snapshot must be stored.
+Delivery address snapshot must be stored.
+Cart must be cleared after order.
+Admin SMS must be sent after order creation.
+SMS failure should be logged but should not cancel successful order.
+6.5 Notification Business Rules
+Tasks:
+Create notification when admin changes order status.
+Store notification in database.
+Customer can read own notifications only.
+Use Supabase Realtime for live update.
+No SMS to customers for order status changes.
+6.6 Customer Cancellation Business Rules
+Tasks:
+Check admin setting before allowing cancellation.
+Allow customer cancellation only for own order.
+Allow cancellation only for Pending status unless changed later.
+Hide frontend button, but also enforce in backend.
+7. Backend Testing Tasks
+7.1 Auth Tests
+OTP send works.
+OTP verify works.
+Google OAuth user creation works.
+Admin role is detected.
+Non-admin users cannot access admin endpoints.
+7.2 Product Tests
+Public only sees visible products.
+Hidden products do not show publicly.
+Soft-deleted products do not show publicly.
+Admin can create/update/soft delete/restore products.
+Product image limit works.
+7.3 Cart Tests
+Customer can add item.
+Customer can update item.
+Customer can remove item.
+Guest cart merge works.
+Deleted products are ignored during cart merge.
+7.4 Order Tests
+Customer can create order.
+Order uses COD.
+Order status starts Pending.
+Cart clears after order.
+Admin SMS is triggered.
+Customer can see own order only.
+7.5 Admin Order Tests
+Admin can update status.
+Status history is saved.
+Customer notification is created.
+Customer SMS is not sent.
+7.6 Settings Tests
+Admin can add phone number.
+Admin can remove phone number.
+Admin can enable cancellation.
+Admin can disable cancellation.
+Customer cancellation respects setting.
+8. Backend Completion Checklist
+Backend is complete when:
+All database tables are created.
+Auth relay works.
+Role-based access works.
+Admin routes are protected.
+Product CRUD works.
+Category CRUD works.
+Product image upload and cleanup work.
+Public product visibility rules work.
+Guest cart merge works.
+Checkout creates COD orders.
+Admin receives SMS on new order.
+Admin can update order status.
+Customer receives realtime notification.
+Customer can view order history.
+Customer cancellation toggle works.
+All deletes are soft deletes.
+Supabase service role key is backend-only.

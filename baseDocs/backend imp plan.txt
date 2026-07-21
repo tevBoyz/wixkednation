@@ -1,0 +1,408 @@
+You are Cursor Agent working on the backend implementation of this project.
+You must work slowly, safely, and stage by stage. Do not jump ahead. Do not implement future modules before the current stage is completed, tested, and approved by me.
+The backend plan document is available in the project root. Read it first before writing code.
+Expected reference file name may be similar to:
+baseDocs/Backend plan.txt
+============================================================ PROJECT CONTEXT ============================================================
+Frontend: Next.js
+Backend: Express.js
+Database: Supabase PostgreSQL
+ORM: Prisma
+Authentication: Express-owned JWT
+Storage: Supabase Storage through Express relay
+Notifications: Express API + frontend polling (Supabase Realtime not used)
+SMS: AfroMessage by default, but provider must be abstracted for future replacement
+Payment: Cash on Delivery only
+Architecture:
+Next.js Frontend -> Express API -> Supabase PostgreSQL / Supabase Storage
+Important strategy:
+•	Supabase Auth is not used.
+•	Express owns all authentication.
+•	Phone OTP and Google OAuth are the only authentication methods.
+•	Express generates JWT access tokens and refresh tokens.
+•	Supabase service role key must never be exposed to the frontend.
+•	Frontend must never write directly to Supabase database.
+•	Frontend must never upload directly to Supabase Storage.
+•	Customer notifications are discovered by polling Express, not Supabase Realtime.
+•	All database and storage writes must go through Express.
+•	Use JavaScript unless there is a strong reason to use TypeScript.
+•	Keep code simple, readable, beginner-friendly, and modular.
+============================================================ CRITICAL DEVELOPMENT RULES ============================================================
+You must follow these rules strictly:
+1.	Work one implementation stage at a time.
+2.	Before starting any stage, explain:
+o	the goal of the stage
+o	files you will create or edit
+o	environment variables needed
+o	what endpoint or feature will be tested
+3.	Then implement only that stage.
+4.	After implementing the stage, stop.
+5.	Provide exact test commands using curl, Postman, or browser.
+6.	Explain the expected successful response.
+7.	Explain common errors and fixes.
+8.	Ask me to run the tests.
+9.	Wait for me to report the test results.
+10.	Do not continue to the next stage until I confirm the current stage works.
+11.	If a test fails, debug only the current stage.
+12.	Do not rewrite the whole backend plan.
+13.	Use the backend plan text file as the main source of truth.
+14.	Do not make architectural changes unless I approve them.
+15.	Never expose secrets in code, console logs, API responses, frontend files, or committed files.
+16.	Never commit .env.
+17.	Every delete action must be a soft delete using deletedAt.
+18.	Public product endpoints must only return visible and non-soft-deleted products.
+19.	Public product availability text must not be returned.
+20.	Admin endpoints must require admin role.
+21.	Customer endpoints must only allow access to the authenticated user’s own data.
+22.	Order status updates must create customer notifications.
+23.	Order status updates must not send SMS to customers.
+24.	New order creation must send SMS only to configured admin phone numbers.
+25.	Admin new-order SMS failure must not fail order creation.
+26.	Payment method must remain COD only.
+27.	Product images must be uploaded through Express to Supabase Storage.
+28.	Product images must enforce max 3 images per product.
+29.	Product images must enforce max 3MB per image after compression.
+30.	Old or replaced product images must be deleted from Supabase Storage.
+31.	Guest cart is stored on the frontend and merged after login.
+32.	Customers may cancel orders in Pending, Confirmed, or OutForDelivery; Delivered cannot be cancelled. Request must include cancelledFromStatus matching current status. Admin-only reputation: +1 on Delivered, -1 on customer cancel.
+============================================================ REQUIRED WORKFLOW ============================================================
+For every stage, use this exact workflow:
+Step 1: Read relevant parts of the backend plan. Step 2: Inspect the current project files. Step 3: Explain what you are about to do. Step 4: Create or edit the required files. Step 5: Keep the code limited to the current stage. Step 6: Run local checks where possible. Step 7: Provide test commands. Step 8: Stop and wait for my test result.
+Never say “moving to the next stage” unless I explicitly say the current test passed.
+When stopping after a stage, end with:
+“Stage X is implemented. Please run the tests above and tell me the result before I continue.”
+============================================================ IMPLEMENTATION STAGES ============================================================
+Follow this implementation order.
+Stage 1: Environment setup and health check
+•	Create Express project structure
+•	package.json dependencies
+•	.env example structure
+•	src/server.js
+•	src/app.js
+•	src/config/env.js
+•	src/config/supabase.js
+•	basic health check endpoint
+•	basic error handler
+•	basic 404 handler
+•	command to run server
+•	test request to confirm API is running
+Stage 2: Supabase connection setup
+•	Confirm Supabase environment variables
+•	Confirm Supabase client setup
+•	Add storage bucket health check
+•	Do not expose service role key
+•	Test Supabase Storage access safely
+Stage 3: Prisma and Supabase PostgreSQL setup
+•	Install Prisma
+•	Create prisma/schema.prisma
+•	Add DATABASE_URL
+•	Create Prisma client config
+•	Add database health check endpoint
+•	Test DB connection
+Stage 4: Base database schema migration
+•	users
+•	auth_accounts
+•	otp_challenges
+•	refresh_tokens
+•	addresses
+•	categories
+•	products
+•	carts
+•	cart_items
+•	orders
+•	notifications
+•	admin_settings
+•	order_status_history
+•	sms_logs
+Stage 5: Seed protocol
+•	Seed admin user
+•	Seed settings
+•	Seed sample categories/products only if needed
+•	Do not use Supabase Auth users
+Stage 6: JWT token service
+•	Sign access token
+•	Sign refresh token
+•	Verify access token
+•	Verify refresh token
+•	Hash refresh token
+•	Store refresh token
+•	Rotate refresh token
+Stage 7: Auth middleware and role structure
+•	Bearer JWT middleware
+•	Attach req.user
+•	Reject deleted users
+•	Admin middleware
+•	Customer ownership rules foundation
+Stage 8: SMS provider abstraction
+•	sms.service.js
+•	providers/afromessage.provider.js
+•	providers/mock.provider.js
+•	Provider interface shape
+•	SMS logs foundation
+•	Use mock provider for local testing if AfroMessage credentials are missing
+Stage 9: Phone OTP send endpoint
+•	POST /api/auth/otp/send
+•	Normalize phone
+•	Validate phone
+•	Generate OTP
+•	Hash OTP
+•	Save OTP challenge
+•	Send through SMS abstraction
+•	Do not return OTP
+•	Do not store OTP plain
+•	Rate-limit foundation if appropriate
+Stage 10: Phone OTP verify endpoint
+•	POST /api/auth/otp/verify
+•	Verify challenge
+•	Check expiry
+•	Check attempts
+•	Create or find user
+•	Create or update phone auth account
+•	Mark phone verified
+•	Issue access and refresh token
+•	Store hashed refresh token
+•	Test /api/auth/me after verification
+Stage 11: /api/auth/me endpoint
+•	GET /api/auth/me
+•	Requires Bearer token
+•	Returns logged-in user
+•	Reject missing, invalid, expired tokens
+•	Reject deleted users
+Stage 12: Refresh and logout
+•	POST /api/auth/refresh
+•	Rotate refresh token
+•	POST /api/auth/logout
+•	Revoke current refresh token
+Stage 13: Google OAuth start/callback endpoints
+•	GET /api/auth/google/start
+•	GET /api/auth/google/callback
+•	Google OAuth profile verification
+•	Create or update local user
+•	Link auth_accounts provider google
+•	Issue tokens or secure handoff
+•	Do not use Supabase Auth
+Stage 14: Public categories endpoints
+•	GET /api/categories
+•	GET /api/categories/:slug
+•	Return only active and non-soft-deleted categories
+Stage 15: Admin category CRUD endpoints
+•	GET /api/admin/categories
+•	GET /api/admin/categories/:id
+•	POST /api/admin/categories
+•	PATCH /api/admin/categories/:id
+•	DELETE /api/admin/categories/:id soft delete
+•	PATCH /api/admin/categories/:id/restore
+Stage 16: Public products endpoints
+•	GET /api/products
+•	GET /api/products/featured
+•	GET /api/products/:slug
+•	Only visible products
+•	Exclude soft-deleted products
+•	Do not expose product availability text
+Stage 17: Admin product CRUD endpoints
+•	GET /api/admin/products
+•	GET /api/admin/products/:id
+•	POST /api/admin/products
+•	PATCH /api/admin/products/:id
+•	Admin only
+Stage 18: Product visibility endpoint
+•	PATCH /api/admin/products/:id/visibility
+•	Admin only
+•	Confirm public endpoint behavior after toggle
+Stage 19: Product soft delete and restore endpoints
+•	DELETE /api/admin/products/:id
+•	PATCH /api/admin/products/:id/restore
+•	Use deletedAt
+•	Confirm public endpoint hides soft-deleted product
+Stage 20: Product image upload to Supabase Storage
+•	POST /api/admin/products/:id/images
+•	Multer upload
+•	Sharp compression
+•	Max 3 images per product
+•	Max 3MB per image after compression
+•	Upload only through Express
+•	Store image metadata on product
+Stage 21: Product image delete and bucket cleanup
+•	DELETE /api/admin/products/:id/images/:imageId
+•	Delete file from Supabase Storage
+•	Remove image metadata
+•	Ensure bucket cleanup works
+Stage 22: Product cover image update
+•	PATCH /api/admin/products/:id/images/:imageId/cover
+•	PATCH /api/admin/products/:id/images/reorder if needed
+•	Ensure cover image is valid
+Stage 23: Cart endpoints
+•	GET /api/cart
+•	POST /api/cart/items
+•	PATCH /api/cart/items/:itemId
+•	DELETE /api/cart/items/:itemId
+•	DELETE /api/cart
+•	Customer only
+•	Validate product visibility and deletedAt
+Stage 24: Guest cart merge endpoint
+•	POST /api/cart/merge
+•	Validate frontend local cart payload
+•	Ignore hidden/deleted products
+•	Merge duplicates
+•	Use current database product details
+Stage 25: Address endpoints
+•	GET /api/users/me/addresses
+•	POST /api/users/me/addresses
+•	PATCH /api/users/me/addresses/:addressId
+•	DELETE /api/users/me/addresses/:addressId
+•	Customer can only access own addresses
+•	Soft delete
+Stage 26: Order creation endpoint
+•	POST /api/orders
+•	COD only
+•	Create order from cart
+•	Snapshot product details
+•	Snapshot delivery address
+•	Start status as Pending
+•	Clear cart
+•	Send admin SMS alert
+•	SMS failure must not fail order
+Stage 27: Customer order history endpoints
+•	GET /api/orders/me
+•	GET /api/orders/me/:orderId
+•	Customer can only view own orders
+Stage 28: Admin order list/detail endpoints
+•	GET /api/admin/orders
+•	GET /api/admin/orders/:id
+•	Admin only
+•	Add filters if planned
+Stage 29: Admin order status update endpoint
+•	PATCH /api/admin/orders/:id/status
+•	Save status history
+•	Create customer notification
+•	Do not SMS customer
+•	Customer discovers updates by polling GET /api/notifications
+Stage 30: Notification creation and read endpoints
+•	GET /api/notifications
+•	PATCH /api/notifications/:id/read
+•	PATCH /api/notifications/read-all
+•	Customer can only read own notifications
+Stage 31: Customer notification polling (no Supabase Realtime)
+•	Do not use Supabase Realtime for notifications
+•	Frontend polls Express notification endpoints
+•	Use GET /api/notifications (and unreadCount) with JWT auth
+•	Document polling interval / focus refresh strategy
+•	Express still owns all notification writes
+Stage 32: Admin settings endpoints
+•	GET /api/admin/settings
+•	PATCH /api/admin/settings
+•	POST /api/admin/settings/admin-phones
+•	DELETE /api/admin/settings/admin-phones/:phoneId
+•	PATCH /api/admin/settings/sms
+•	No customer-cancellation toggle (removed)
+Stage 33: Customer cancellation + admin reputation
+•	POST /api/orders/:orderId/cancel
+•	Customer owns order
+•	Allowed statuses: Pending, Confirmed, OutForDelivery
+•	Require cancelledFromStatus matching current status
+•	Update status to Cancelled + history/notification (stage-aware copy)
+•	Customer cancel adjusts admin-only reputation (-1)
+•	Admin Delivered status adjusts reputation (+1)
+•	GET /api/admin/customers/:id (profile + reputation)
+•	Reputation never returned on customer auth/order APIs
+Stage 34: SMS admin alert setup
+•	Finalize admin new-order SMS alert
+•	Use configured admin phone numbers
+•	Log SMS success/failure
+•	Failure must not fail order creation
+Stage 35: Test SMS endpoint
+•	POST /api/admin/sms/test
+•	Admin only
+•	Send test SMS
+•	Log SMS result
+Stage 36: Final backend testing checklist
+•	Auth tests
+•	OTP tests
+•	Google OAuth tests
+•	Admin middleware tests
+•	Product tests
+•	Cart tests
+•	Guest cart merge tests
+•	Address tests
+•	Order tests
+•	Notification tests
+•	SMS tests
+•	Storage cleanup tests
+•	Soft delete tests
+•	Security tests
+============================================================ CODING STYLE ============================================================
+Use this style:
+•	JavaScript CommonJS unless the current project already uses ESM.
+•	Simple Express route/controller/service structure.
+•	Small functions.
+•	Clear file names.
+•	No overengineering.
+•	No unnecessary abstractions except where the plan requires them, such as SMS providers.
+•	Use async/await.
+•	Use try/catch or async error wrapper consistently.
+•	Return JSON responses in a consistent shape:
+Success:
+{ “success”: true, “message”: “…”, “data”: {} }
+Error:
+{ “success”: false, “message”: “…” }
+Do not leak stack traces in production.
+============================================================ SECURITY RULES ============================================================
+Never expose or print:
+•	SUPABASE_SERVICE_ROLE_KEY
+•	DATABASE_URL
+•	JWT_ACCESS_SECRET
+•	JWT_REFRESH_SECRET
+•	GOOGLE_CLIENT_SECRET
+•	AFROMESSAGE_API_TOKEN
+•	INTERNAL_API_KEY
+•	OTP codes
+•	Refresh token hashes
+Do not store OTP plain. Do not store refresh token plain. Do not return OTP in responses. Do not reveal whether a phone number is registered during OTP send. Do not allow frontend direct database writes. Do not allow frontend direct storage uploads.
+============================================================ ENVIRONMENT VARIABLE RULES ============================================================
+Use .env for real local values.
+Create or maintain .env.example with placeholder values only.
+Never overwrite my .env without asking.
+If a required environment variable is missing, stop and tell me exactly what to add.
+Expected environment variables over the full project:
+PORT=5000 NODE_ENV=development
+FRONTEND_URL=http://localhost:3000 BACKEND_URL=http://localhost:5000
+DATABASE_URL=“postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres?schema=public”
+SUPABASE_URL=https://your-project-ref.supabase.co SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key SUPABASE_STORAGE_BUCKET=product-images
+JWT_ACCESS_SECRET=replace_with_long_random_secret JWT_REFRESH_SECRET=replace_with_another_long_random_secret JWT_ACCESS_EXPIRES_IN=15m JWT_REFRESH_EXPIRES_IN=30d
+COOKIE_SECRET=replace_with_cookie_secret
+GOOGLE_CLIENT_ID= GOOGLE_CLIENT_SECRET= GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
+SMS_PROVIDER=afromessage AFROMESSAGE_API_TOKEN= AFROMESSAGE_SENDER_ID= AFROMESSAGE_BASE_URL=https://api.afromessage.com/api
+OTP_EXPIRES_MINUTES=5 OTP_LENGTH=6 OTP_MAX_ATTEMPTS=5 OTP_RESEND_COOLDOWN_SECONDS=60
+INTERNAL_API_KEY=replace_with_internal_secret
+============================================================ TESTING REQUIREMENTS ============================================================
+At the end of every stage, provide:
+1.	npm command to run the server
+2.	curl command or Postman instructions
+3.	expected success response
+4.	expected failure response if relevant
+5.	common errors and fixes
+6.	clear stop instruction
+Example stop instruction:
+“Stage 1 is implemented. Please run the tests above and tell me the result before I continue.”
+Do not proceed until I confirm.
+============================================================ FIRST TASK ============================================================
+Start with Stage 1 only.
+Read the backend plan .txt file in the project root.
+Then inspect the current folder.
+Then implement only:
+•	Express project structure
+•	package.json dependencies
+•	.env.example
+•	.gitignore
+•	src/server.js
+•	src/app.js
+•	src/config/env.js
+•	src/config/supabase.js
+•	src/modules/health/health.routes.js
+•	src/middleware/error.middleware.js
+•	src/middleware/notFound.middleware.js
+•	basic GET / endpoint
+•	basic GET /api/health endpoint
+•	command to run the server
+•	browser/curl test request
+After Stage 1 is implemented, stop and wait for my test result.

@@ -1,0 +1,1483 @@
+# Frontend Development Task Document
+
+## Next.js Customer Website + Admin Dashboard
+
+---
+
+## 1. Frontend Scope
+
+The frontend will be built using **Next.js**.
+
+The frontend is responsible for:
+
+* Public website
+* Age gate UI
+* Product browsing
+* Product detail pages
+* Guest cart using localStorage/sessionStorage
+* Login/register UI
+* Checkout UI
+* Customer profile
+* Customer order history
+* Customer notifications
+* Admin dashboard
+* Product management UI
+* Category management UI
+* Order management UI
+* Admin settings UI
+
+The frontend must call the **Express API** for backend operations.
+
+Architecture:
+
+```txt
+Next.js Frontend → Express API → Supabase
+```
+
+The frontend should not directly perform privileged Supabase database, storage, or admin operations.
+
+---
+
+# 2. Frontend Setup Tasks
+
+## 2.1 Initialize Next.js Project
+
+Tasks:
+
+* Create Next.js project.
+* Setup app router.
+* Setup global layout.
+* Setup reusable components.
+* Setup API client.
+* Setup authentication state handling.
+* Setup protected route handling.
+* Setup admin layout.
+* Setup customer layout.
+* Setup responsive design system.
+
+Suggested frontend folder structure:
+
+```txt
+frontend/
+  app/
+    age-gate/
+    blocked/
+    login/
+    products/
+    cart/
+    checkout/
+    profile/
+    admin/
+  components/
+    common/
+    layout/
+    product/
+    cart/
+    checkout/
+    profile/
+    admin/
+  lib/
+    api.js
+    auth.js
+    cart.js
+    storage.js
+  hooks/
+    useAuth.js
+    useCart.js
+    useNotifications.js
+  store/
+    cartStore.js
+    authStore.js
+  styles/
+```
+
+---
+
+## 2.2 API Client Setup
+
+Tasks:
+
+* Create centralized API client.
+* Read backend URL from environment variable.
+* Add token/session to protected requests.
+* Handle 401 errors.
+* Handle 403 errors.
+* Handle validation errors.
+* Handle loading and error states.
+
+Frontend environment variable:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000
+```
+
+---
+
+# 3. Public Website Tasks
+
+---
+
+## 3.1 Age Gate Page
+
+Route:
+
+```txt
+/age-gate
+```
+
+Tasks:
+
+* Display age verification question:
+
+```txt
+Are you over 21?
+```
+
+* Show “Yes” and “No” buttons.
+* If user clicks “Yes,” call:
+
+```txt
+POST /api/age-gate/verify
+```
+
+* Save approved state as required.
+* Redirect to landing page.
+* If user clicks “No,” call backend with blocked status.
+* Redirect to blocked page.
+* Prevent bypassing by direct navigation where possible.
+
+---
+
+## 3.2 Blocked Page
+
+Route:
+
+```txt
+/blocked
+```
+
+Tasks:
+
+* Show hard block message.
+* Do not show navigation to public website.
+* Do not show product links.
+* Do not allow bypass from UI.
+
+---
+
+## 3.3 Landing Page
+
+Route:
+
+```txt
+/
+```
+
+Tasks:
+
+* Show hero section.
+* Show featured products.
+* Show categories.
+* Show basic brand information.
+* Add call-to-action to products page.
+* Fetch featured products from:
+
+```txt
+GET /api/products/featured
+```
+
+* Fetch categories from:
+
+```txt
+GET /api/categories
+```
+
+Only visible and non-deleted products should appear.
+
+---
+
+## 3.4 Products Page
+
+Route:
+
+```txt
+/products
+```
+
+Tasks:
+
+* Show product grid/list.
+* Show category filter.
+* Show search if required.
+* Show price.
+* Show measurement unit.
+* Show volume.
+* Show product image.
+* Show add to cart button.
+* Do not show availability text.
+* Do not show hidden products.
+* Fetch products from:
+
+```txt
+GET /api/products
+```
+
+* Fetch category-filtered products from:
+
+```txt
+GET /api/products?category=:slug
+```
+
+---
+
+## 3.5 Product Detail Page
+
+Route:
+
+```txt
+/products/:slug
+```
+
+Tasks:
+
+* Show product name.
+* Show full description.
+* Show price.
+* Show measurement unit.
+* Show volume.
+* Show category.
+* Show cover image.
+* Show image gallery.
+* Show add to cart button.
+* Fetch product from:
+
+```txt
+GET /api/products/:slug
+```
+
+If product is not found, show not-found page.
+
+---
+
+# 4. Authentication Frontend Tasks
+
+---
+
+## 4.1 Login Page
+
+Route:
+
+```txt
+/login
+```
+
+Tasks:
+
+* Show Phone OTP login option.
+* Show Google OAuth login option.
+* Do not show email/password login.
+* Support redirect back to checkout after login.
+* After successful login, restore guest cart if available.
+* After login, call cart merge endpoint if guest cart exists.
+
+---
+
+## 4.2 Phone OTP Flow
+
+Tasks:
+
+* User enters phone number.
+* Frontend calls:
+
+```txt
+POST /api/auth/otp/send
+```
+
+* User enters OTP.
+* Frontend calls:
+
+```txt
+POST /api/auth/otp/verify
+```
+
+* Save session/user state.
+* Redirect user to intended page.
+
+---
+
+## 4.3 Google OAuth Flow
+
+Tasks:
+
+* User clicks “Continue with Google.”
+* Frontend redirects to:
+
+```txt
+GET /api/auth/google/start
+```
+
+* After callback, backend redirects to frontend.
+* Frontend refreshes user state by calling:
+
+```txt
+GET /api/auth/me
+```
+
+---
+
+## 4.4 Logout
+
+Tasks:
+
+* Add logout button.
+* Call:
+
+```txt
+POST /api/auth/logout
+```
+
+* Clear frontend auth state.
+* Redirect to public site.
+
+---
+
+## 4.5 Auth State
+
+Tasks:
+
+* Create auth store or hook.
+* Store current user.
+* Track loading state.
+* Track role.
+* Protect profile routes.
+* Protect admin routes.
+* Redirect unauthenticated users to login.
+
+---
+
+# 5. Guest Cart Frontend Tasks
+
+---
+
+## 5.1 Guest Cart Storage
+
+Tasks:
+
+* Store cart in localStorage or sessionStorage.
+* Allow guest users to add products.
+* Allow guest users to update quantity.
+* Allow guest users to remove items.
+* Persist guest cart during browsing.
+
+Suggested localStorage key:
+
+```txt
+guest_cart
+```
+
+Cart item format:
+
+```json
+{
+  "productId": "uuid",
+  "name": "Product Name",
+  "image": "https://...",
+  "quantity": 1,
+  "volume": 1.5,
+  "measurementUnit": "oz",
+  "price": 100
+}
+```
+
+---
+
+## 5.2 Add to Cart
+
+Tasks:
+
+* Add item from product card.
+* Add item from product detail page.
+* If item already exists, increase quantity.
+* Show cart count in header.
+* Show success feedback.
+
+---
+
+## 5.3 Cart Page
+
+Route:
+
+```txt
+/cart
+```
+
+Tasks:
+
+* Show cart items.
+* Show product image.
+* Show product name.
+* Show price.
+* Show measurement unit and volume.
+* Show quantity controls.
+* Show remove button.
+* Show total amount.
+* Show checkout button.
+* Available to guests and customers.
+
+---
+
+## 5.4 Checkout Redirect for Guests
+
+Tasks:
+
+* If guest clicks checkout:
+
+  * Save cart locally.
+  * Redirect to `/login?redirect=/checkout`.
+* After login:
+
+  * Read local cart.
+  * Call:
+
+```txt
+POST /api/cart/merge
+```
+
+* Clear local cart after successful merge.
+* Redirect to checkout.
+
+---
+
+# 6. Customer Cart Frontend Tasks
+
+---
+
+## 6.1 Server Cart Loading
+
+Tasks:
+
+* If user is logged in, fetch cart from:
+
+```txt
+GET /api/cart
+```
+
+* Use server cart instead of guest localStorage cart.
+* Keep cart UI same for guest and customer.
+
+---
+
+## 6.2 Server Cart Updates
+
+Tasks:
+
+* Add item by calling:
+
+```txt
+POST /api/cart/items
+```
+
+* Update item by calling:
+
+```txt
+PATCH /api/cart/items/:itemId
+```
+
+* Remove item by calling:
+
+```txt
+DELETE /api/cart/items/:itemId
+```
+
+* Clear cart by calling:
+
+```txt
+DELETE /api/cart
+```
+
+---
+
+# 7. Checkout Frontend Tasks
+
+---
+
+## 7.1 Checkout Page
+
+Route:
+
+```txt
+/checkout
+```
+
+Tasks:
+
+* Require login.
+* If not logged in, redirect to login.
+* Load cart.
+* Load saved addresses.
+* Allow customer to select existing address.
+* Allow customer to add new address.
+* Show order summary.
+* Show Cash on Delivery as payment method.
+* Do not show online payment option.
+* Confirm order by calling:
+
+```txt
+POST /api/orders
+```
+
+---
+
+## 7.2 Order Confirmation Page
+
+Route:
+
+```txt
+/checkout/success/:orderId
+```
+
+Tasks:
+
+* Show order ID/order number.
+* Show ordered items.
+* Show quantities.
+* Show volumes.
+* Show prices.
+* Show delivery address.
+* Show message:
+
+```txt
+Your order is on its way. Please wait for delivery.
+```
+
+---
+
+# 8. Customer Profile Frontend Tasks
+
+---
+
+## 8.1 Profile Page
+
+Route:
+
+```txt
+/profile
+```
+
+Tasks:
+
+* Require login.
+* Show name.
+* Show phone.
+* Show email if available.
+* Allow basic profile update.
+* Fetch user from:
+
+```txt
+GET /api/users/me
+```
+
+* Update user through:
+
+```txt
+PATCH /api/users/me
+```
+
+---
+
+## 8.2 Address Management
+
+Route:
+
+```txt
+/profile/addresses
+```
+
+Tasks:
+
+* List saved addresses.
+* Add new address.
+* Edit address.
+* Remove address.
+* Set default address if supported.
+
+Use endpoints:
+
+```txt
+GET    /api/users/me/addresses
+POST   /api/users/me/addresses
+PATCH  /api/users/me/addresses/:addressId
+DELETE /api/users/me/addresses/:addressId
+```
+
+---
+
+## 8.3 Order History
+
+Route:
+
+```txt
+/profile/orders
+```
+
+Tasks:
+
+* Show customer order history.
+* Show order number.
+* Show order date.
+* Show total amount.
+* Show status.
+* Link to order detail.
+
+Fetch from:
+
+```txt
+GET /api/orders/me
+```
+
+---
+
+## 8.4 Order Detail
+
+Route:
+
+```txt
+/profile/orders/:orderId
+```
+
+Tasks:
+
+* Show order detail.
+* Show item snapshot.
+* Show delivery address.
+* Show status timeline if available.
+* Show cancellation button only if allowed.
+* Fetch from:
+
+```txt
+GET /api/orders/me/:orderId
+```
+
+---
+
+## 8.5 Customer Cancellation UI
+
+Tasks:
+
+* Show cancel button only if:
+
+  * Admin setting allows cancellation.
+  * Order status is Pending.
+* On cancel, call:
+
+```txt
+POST /api/orders/:orderId/cancel
+```
+
+* Refresh order detail after cancellation.
+
+---
+
+## 8.6 Customer Notifications
+
+Route:
+
+```txt
+/profile/notifications
+```
+
+Tasks:
+
+* Show notification list.
+* Show unread count.
+* Mark one as read.
+* Mark all as read.
+* Subscribe to realtime notifications if supported.
+
+Use endpoints:
+
+```txt
+GET   /api/notifications
+PATCH /api/notifications/:id/read
+PATCH /api/notifications/read-all
+```
+
+Realtime task:
+
+* Subscribe to Supabase Realtime notification events for current user.
+* Add new notification to UI instantly.
+* Update unread count.
+
+---
+
+# 9. Admin Frontend Tasks
+
+---
+
+## 9.1 Admin Layout
+
+Route group:
+
+```txt
+/admin
+```
+
+Tasks:
+
+* Create protected admin layout.
+* Add sidebar navigation.
+* Add topbar.
+* Show current admin user.
+* Add logout button.
+* Redirect non-admin users away.
+* Handle 403 responses.
+
+Admin sidebar items:
+
+```txt
+Dashboard
+Products
+Categories
+Orders
+Customers
+Settings
+```
+
+---
+
+## 9.2 Admin Dashboard
+
+Route:
+
+```txt
+/admin
+```
+
+Tasks:
+
+* Show dashboard cards.
+* Show recent orders.
+* Fetch stats from:
+
+```txt
+GET /api/admin/dashboard/stats
+```
+
+* Fetch recent orders from:
+
+```txt
+GET /api/admin/dashboard/recent-orders
+```
+
+Dashboard cards:
+
+* Total orders
+* Pending orders
+* Delivered orders
+* Cancelled orders
+* Total products
+* Visible products
+* Hidden products
+* Total customers
+
+---
+
+# 10. Admin Product Management Frontend Tasks
+
+---
+
+## 10.1 Product List
+
+Route:
+
+```txt
+/admin/products
+```
+
+Tasks:
+
+* Show all products.
+* Show product image.
+* Show name.
+* Show category.
+* Show price.
+* Show measurement unit.
+* Show volume.
+* Show visibility toggle.
+* Show soft-delete status.
+* Add search.
+* Add category filter.
+* Add pagination.
+* Add create product button.
+* Add edit button.
+* Add soft delete button.
+* Add restore button for deleted products.
+
+Fetch from:
+
+```txt
+GET /api/admin/products
+```
+
+---
+
+## 10.2 Product Create Page
+
+Route:
+
+```txt
+/admin/products/create
+```
+
+Tasks:
+
+* Create product form.
+* Fields:
+
+  * Name
+  * Description
+  * Price
+  * Category
+  * Measurement unit
+  * Volume
+  * Visibility
+  * Featured toggle if used
+* Fetch categories from:
+
+```txt
+GET /api/admin/categories
+```
+
+* Submit to:
+
+```txt
+POST /api/admin/products
+```
+
+* After product creation, allow image upload.
+
+---
+
+## 10.3 Product Edit Page
+
+Route:
+
+```txt
+/admin/products/:id/edit
+```
+
+Tasks:
+
+* Load product detail.
+* Edit product fields.
+* Save product update.
+* Manage images.
+* Manage cover image.
+* Manage visibility.
+
+Use endpoints:
+
+```txt
+GET   /api/admin/products/:id
+PATCH /api/admin/products/:id
+PATCH /api/admin/products/:id/visibility
+```
+
+---
+
+## 10.4 Product Visibility Toggle
+
+Tasks:
+
+* Add show/hide toggle.
+* Call:
+
+```txt
+PATCH /api/admin/products/:id/visibility
+```
+
+Important:
+
+* Public website should not show availability text.
+* Hidden product should simply disappear from public catalog.
+
+---
+
+## 10.5 Product Soft Delete and Restore
+
+Tasks:
+
+* Soft delete product by calling:
+
+```txt
+DELETE /api/admin/products/:id
+```
+
+* Restore product by calling:
+
+```txt
+PATCH /api/admin/products/:id/restore
+```
+
+* Show confirmation modal before delete.
+
+---
+
+# 11. Admin Product Image Frontend Tasks
+
+---
+
+## 11.1 Product Image Upload
+
+Tasks:
+
+* Allow image selection.
+* Enforce max 3 images.
+* Validate file type.
+* Compress image if larger than 3MB.
+* Upload through backend:
+
+```txt
+POST /api/admin/products/:id/images
+```
+
+Allowed file types:
+
+```txt
+jpg
+jpeg
+png
+webp
+```
+
+---
+
+## 11.2 Product Image Gallery Management
+
+Tasks:
+
+* Show existing product images.
+* Show current cover image.
+* Allow admin to set cover image.
+* Allow admin to delete image.
+* Allow image reorder if needed.
+
+Use endpoints:
+
+```txt
+DELETE /api/admin/products/:id/images/:imageId
+PATCH  /api/admin/products/:id/images/:imageId/cover
+PATCH  /api/admin/products/:id/images/reorder
+```
+
+---
+
+# 12. Admin Category Management Frontend Tasks
+
+---
+
+## 12.1 Category List Page
+
+Route:
+
+```txt
+/admin/categories
+```
+
+Tasks:
+
+* List categories.
+* Show name.
+* Show slug.
+* Show active status.
+* Show edit button.
+* Show soft delete button.
+* Show restore button.
+* Add create category form or modal.
+
+Fetch from:
+
+```txt
+GET /api/admin/categories
+```
+
+---
+
+## 12.2 Create Category
+
+Tasks:
+
+* Admin creates categories one by one.
+* Submit to:
+
+```txt
+POST /api/admin/categories
+```
+
+Fields:
+
+```txt
+name
+description
+```
+
+---
+
+## 12.3 Edit Category
+
+Tasks:
+
+* Edit category name.
+* Edit description.
+* Submit to:
+
+```txt
+PATCH /api/admin/categories/:id
+```
+
+---
+
+## 12.4 Soft Delete / Restore Category
+
+Tasks:
+
+* Soft delete using:
+
+```txt
+DELETE /api/admin/categories/:id
+```
+
+* Restore using:
+
+```txt
+PATCH /api/admin/categories/:id/restore
+```
+
+---
+
+# 13. Admin Order Management Frontend Tasks
+
+---
+
+## 13.1 Order List
+
+Route:
+
+```txt
+/admin/orders
+```
+
+Tasks:
+
+* List all orders.
+* Show order number.
+* Show customer name.
+* Show customer phone.
+* Show total amount.
+* Show status.
+* Show order date.
+* Filter by status.
+* Search by customer/order number.
+* Add pagination.
+
+Fetch from:
+
+```txt
+GET /api/admin/orders
+```
+
+---
+
+## 13.2 Order Detail
+
+Route:
+
+```txt
+/admin/orders/:id
+```
+
+Tasks:
+
+* Show customer details.
+* Show delivery address.
+* Show ordered items.
+* Show product snapshot.
+* Show total amount.
+* Show payment method as COD.
+* Show current status.
+* Show status update controls.
+* Show status history if available.
+
+Fetch from:
+
+```txt
+GET /api/admin/orders/:id
+```
+
+---
+
+## 13.3 Admin Order Status Update
+
+Tasks:
+
+* Admin selects new status.
+* Admin optionally adds note.
+* Submit status update to:
+
+```txt
+PATCH /api/admin/orders/:id/status
+```
+
+Supported statuses:
+
+```txt
+Pending
+Confirmed
+Out for Delivery
+Delivered
+Cancelled
+```
+
+After status update:
+
+* Refresh order detail.
+* Show success message.
+* Customer receives realtime notification.
+* Customer does not receive SMS.
+
+---
+
+## 13.4 Admin Cancel Order
+
+Tasks:
+
+* Add cancel action.
+* Confirm before cancelling.
+* Call:
+
+```txt
+PATCH /api/admin/orders/:id/cancel
+```
+
+---
+
+# 14. Admin Customer Management Frontend Tasks
+
+---
+
+## 14.1 Customer List
+
+Route:
+
+```txt
+/admin/customers
+```
+
+Tasks:
+
+* Show customer list.
+* Show name.
+* Show phone.
+* Show email.
+* Show order count if available.
+* Add search.
+* Add pagination.
+
+Fetch from:
+
+```txt
+GET /api/admin/customers
+```
+
+---
+
+## 14.2 Customer Detail
+
+Route:
+
+```txt
+/admin/customers/:id
+```
+
+Tasks:
+
+* Show customer profile.
+* Show contact info.
+* Show saved addresses if allowed.
+* Show customer order history.
+
+Use endpoints:
+
+```txt
+GET /api/admin/customers/:id
+GET /api/admin/customers/:id/orders
+```
+
+---
+
+# 15. Admin Settings Frontend Tasks
+
+---
+
+## 15.1 Settings Page
+
+Route:
+
+```txt
+/admin/settings
+```
+
+Tasks:
+
+* Show current settings.
+* Allow updating default measurement unit.
+* Allow managing admin phone numbers.
+* Allow configuring SMS provider.
+* Allow enabling/disabling customer cancellation.
+
+Fetch from:
+
+```txt
+GET /api/admin/settings
+```
+
+---
+
+## 15.2 Admin Phone Numbers
+
+Tasks:
+
+* List admin phone numbers.
+* Add phone number.
+* Remove phone number.
+
+Use endpoints:
+
+```txt
+POST   /api/admin/settings/admin-phones
+DELETE /api/admin/settings/admin-phones/:phoneId
+```
+
+---
+
+## 15.3 Customer Cancellation Toggle
+
+Tasks:
+
+* Add toggle for customer cancellation.
+* Call:
+
+```txt
+PATCH /api/admin/settings/cancellation
+```
+
+---
+
+## 15.4 SMS Settings
+
+Tasks:
+
+* Add SMS config form.
+* Save SMS config using:
+
+```txt
+PATCH /api/admin/settings/sms
+```
+
+* Add test SMS button.
+* Call:
+
+```txt
+POST /api/admin/sms/test
+```
+
+---
+
+# 16. Frontend State Management Tasks
+
+## 16.1 Auth State
+
+Tasks:
+
+* Track current user.
+* Track user role.
+* Track auth loading.
+* Refresh user on app load.
+* Clear user on logout.
+
+---
+
+## 16.2 Cart State
+
+Tasks:
+
+* Support guest cart from localStorage/sessionStorage.
+* Support customer cart from backend.
+* Show cart count globally.
+* Sync cart after login.
+* Clear guest cart after successful merge.
+
+---
+
+## 16.3 Notification State
+
+Tasks:
+
+* Track notifications.
+* Track unread count.
+* Listen for realtime notification updates.
+* Allow mark as read.
+* Allow mark all as read.
+
+---
+
+# 17. Frontend UI/UX Requirements
+
+## 17.1 Mobile First
+
+Tasks:
+
+* Build customer-facing pages mobile-first.
+* Ensure cart and checkout work well on phone screens.
+* Product cards should be touch-friendly.
+* Forms should be simple and clear.
+
+---
+
+## 17.2 Admin Usability
+
+Tasks:
+
+* Admin dashboard should be desktop-first but responsive.
+* Tables should support pagination.
+* Admin actions should show confirmation modals.
+* Status updates should be simple.
+* Product image handling should be clear.
+
+---
+
+## 17.3 Loading and Error States
+
+Tasks:
+
+* Add loading states for all API calls.
+* Add empty states.
+* Add error messages.
+* Add success messages.
+* Handle unauthorized redirects.
+* Handle forbidden admin access.
+
+---
+
+# 18. Frontend Testing Tasks
+
+## 18.1 Public Site Tests
+
+* Age gate displays first.
+* “Yes” allows access.
+* “No” blocks access.
+* Landing page loads featured products.
+* Product page loads visible products only.
+* Product detail loads correctly.
+
+---
+
+## 18.2 Auth Tests
+
+* Phone OTP send works.
+* OTP verification works.
+* Google login starts.
+* User state loads after login.
+* Logout works.
+* Guest redirected to login on checkout.
+
+---
+
+## 18.3 Cart Tests
+
+* Guest can add to cart.
+* Guest cart persists.
+* Guest can update quantity.
+* Guest can remove item.
+* Guest cart merges after login.
+* Customer cart loads from backend.
+
+---
+
+## 18.4 Checkout Tests
+
+* Guest cannot access checkout directly.
+* Customer can access checkout.
+* Address selection works.
+* COD order confirmation works.
+* Success page displays order summary.
+
+---
+
+## 18.5 Profile Tests
+
+* Customer can view profile.
+* Customer can manage addresses.
+* Customer can view order history.
+* Customer can view order detail.
+* Customer cancellation button appears only when allowed.
+
+---
+
+## 18.6 Notification Tests
+
+* Customer sees notifications.
+* Customer can mark notification as read.
+* Customer can mark all as read.
+* Realtime notification appears after admin status update.
+
+---
+
+## 18.7 Admin Tests
+
+* Non-admin cannot access admin pages.
+* Admin dashboard loads.
+* Admin can create product.
+* Admin can edit product.
+* Admin can hide product.
+* Admin can soft delete product.
+* Admin can restore product.
+* Admin can upload product image.
+* Admin can set cover image.
+* Admin can create category.
+* Admin can update category.
+* Admin can view orders.
+* Admin can update order status.
+* Admin can manage settings.
+* Admin can test SMS.
+
+---
+
+# 19. Frontend Completion Checklist
+
+Frontend is complete when:
+
+* Age gate works.
+* Blocked page works.
+* Landing page works.
+* Product listing works.
+* Product detail works.
+* Guest cart works.
+* Login works with Phone OTP and Google OAuth.
+* Guest cart merges after login.
+* Checkout works for authenticated users.
+* COD order confirmation works.
+* Profile page works.
+* Address management works.
+* Order history works.
+* Notifications page works.
+* Realtime notification UI works.
+* Admin dashboard works.
+* Product CRUD UI works.
+* Product image management works.
+* Category management works.
+* Order management works.
+* Admin settings work.
+* Customer cancellation UI respects admin setting.
+* Mobile customer UI is responsive.
+* Admin UI is usable and protected.

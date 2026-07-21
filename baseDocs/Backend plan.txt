@@ -1,0 +1,1484 @@
+UPDATED BACKEND DEVELOPMENT PLAN
+Express.js API + JWT Auth + Supabase PostgreSQL, Storage, and Realtime
+Default SMS Provider: AfroMessage
+Prepared for: Next.js frontend + Express backend + Supabase infrastructure
+
+============================================================
+1. STRATEGY CHANGE SUMMARY
+============================================================
+
+The authentication strategy is changed from Supabase Auth to Express-owned JWT authentication.
+
+Old auth strategy:
+- Supabase Auth handled phone OTP and Google OAuth.
+- Express verified Supabase access tokens.
+- users table linked to Supabase Auth user IDs.
+
+New auth strategy:
+- Express owns all authentication.
+- Express generates and verifies JWT access tokens.
+- Express handles phone OTP generation and verification.
+- Express sends OTP SMS through AfroMessage by default.
+- Express handles Google OAuth start and callback.
+- Supabase is used only for:
+  - PostgreSQL database hosting
+  - Supabase Storage bucket
+  - Supabase Realtime for notification subscriptions
+- Supabase Auth is not used.
+
+Core architecture:
+Next.js Frontend -> Express API -> Supabase PostgreSQL / Supabase Storage / Supabase Realtime
+
+Important backend rules:
+- Frontend must never write directly to Supabase database.
+- Frontend must never write directly to Supabase Storage.
+- Supabase service role key must never be exposed to frontend.
+- All authentication must go through Express.
+- Express issues JWT access tokens and refresh tokens.
+- Phone OTP and Google OAuth are the only login methods.
+- No password login.
+- SMS provider must be abstracted so AfroMessage can later be replaced with Twilio, Vonage, MessageBird, or another international provider.
+- Payment method remains Cash on Delivery only.
+- All deletes remain soft deletes.
+- Public product availability text should not be shown.
+- Admin controls product visibility.
+- Guest cart remains in frontend localStorage/sessionStorage and is merged after login.
+- Customer cancellation is allowed until Delivered (Pending, Confirmed, OutForDelivery) with cancelledFromStatus acknowledgement; no admin toggle.
+- Admin-only reputation tracks successful deliveries and customer cancels.
+- Admin new-order alerts use SMS.
+- Customer order status updates do not send SMS.
+- Order status updates create customer notifications.
+
+============================================================
+2. REVISED BACKEND STACK
+============================================================
+
+Frontend:
+- Next.js
+
+Backend:
+- Node.js
+- Express.js
+- JavaScript
+- JWT authentication
+- Prisma ORM
+- Zod or Joi validation
+- Multer for file upload
+- Sharp for image compression
+- Helmet for security headers
+- CORS
+- Morgan
+- Rate limiting
+
+Database:
+- Supabase PostgreSQL
+- Prisma migrations as the source of truth
+
+Storage:
+- Supabase Storage
+- Product images uploaded only through Express
+
+Realtime:
+- Supabase Realtime on notifications table
+- Express writes notification rows
+- Frontend subscribes to notifications table changes for the logged-in customer if RLS/realtime policy is configured safely
+
+SMS:
+- Default provider: AfroMessage
+- SMS provider interface must support replacement later
+- Uses:
+  - Customer OTP
+  - Admin new-order alerts
+  - Admin test SMS
+- Does not send customer SMS for order status changes
+
+Authentication:
+- Express-generated JWT access token
+- Express-generated refresh token
+- Refresh token stored hashed in database
+- Optional secure httpOnly cookie for refresh token
+- Access token returned to frontend and used as Bearer token
+- Refresh endpoint rotates refresh tokens
+
+Google OAuth:
+- Express handles Google OAuth start and callback
+- Google OAuth verifies Google profile
+- Express creates or updates local user
+- Express issues JWT access token and refresh token
+
+============================================================
+3. REVISED ENVIRONMENT VARIABLES
+============================================================
+
+Create backend/.env with:
+
+PORT=5000
+NODE_ENV=development
+
+FRONTEND_URL=http://localhost:3000
+BACKEND_URL=http://localhost:5000
+
+DATABASE_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres?schema=public"
+
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+SUPABASE_STORAGE_BUCKET=product-images
+
+JWT_ACCESS_SECRET=replace_with_long_random_secret
+JWT_REFRESH_SECRET=replace_with_another_long_random_secret
+JWT_ACCESS_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=30d
+
+COOKIE_SECRET=replace_with_cookie_secret
+
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_CALLBACK_URL=http://localhost:5000/api/auth/google/callback
+
+SMS_PROVIDER=afromessage
+AFROMESSAGE_API_TOKEN=
+AFROMESSAGE_SENDER_ID=
+AFROMESSAGE_BASE_URL=https://api.afromessage.com/api
+
+OTP_EXPIRES_MINUTES=5
+OTP_LENGTH=6
+OTP_MAX_ATTEMPTS=5
+OTP_RESEND_COOLDOWN_SECONDS=60
+
+INTERNAL_API_KEY=replace_with_internal_secret
+
+Important:
+- SUPABASE_SERVICE_ROLE_KEY stays only in Express.
+- DATABASE_URL stays only in Express.
+- JWT secrets stay only in Express.
+- AfroMessage token stays only in Express.
+- Frontend may only receive public API URLs and short-lived access tokens.
+
+============================================================
+4. REVISED PROJECT STRUCTURE
+============================================================
+
+backend/
+  package.json
+  .env
+  .gitignore
+  prisma/
+    schema.prisma
+    seed.js
+    seed/
+      users.seed.js
+      settings.seed.js
+      categories.seed.js
+  src/
+    app.js
+    server.js
+
+    config/
+      env.js
+      prisma.js
+      supabase.js
+
+    middleware/
+      auth.middleware.js
+      admin.middleware.js
+      customer.middleware.js
+      error.middleware.js
+      notFound.middleware.js
+      validate.middleware.js
+      rateLimit.middleware.js
+      upload.middleware.js
+
+    modules/
+      auth/
+        auth.routes.js
+        auth.controller.js
+        auth.service.js
+        auth.validation.js
+        token.service.js
+        otp.service.js
+        google.service.js
+
+      users/
+        users.routes.js
+        users.controller.js
+        users.service.js
+        users.validation.js
+
+      categories/
+        categories.routes.js
+        categories.controller.js
+        categories.service.js
+        categories.validation.js
+
+      products/
+        products.routes.js
+        products.controller.js
+        products.service.js
+        products.validation.js
+
+      cart/
+        cart.routes.js
+        cart.controller.js
+        cart.service.js
+        cart.validation.js
+
+      addresses/
+        addresses.routes.js
+        addresses.controller.js
+        addresses.service.js
+        addresses.validation.js
+
+      orders/
+        orders.routes.js
+        orders.controller.js
+        orders.service.js
+        orders.validation.js
+
+      notifications/
+        notifications.routes.js
+        notifications.controller.js
+        notifications.service.js
+
+      admin/
+        admin.routes.js
+        dashboard.controller.js
+        customers.controller.js
+
+      settings/
+        settings.routes.js
+        settings.controller.js
+        settings.service.js
+        settings.validation.js
+
+      sms/
+        sms.routes.js
+        sms.controller.js
+        sms.service.js
+        providers/
+          smsProvider.interface.js
+          afromessage.provider.js
+          mock.provider.js
+
+      storage/
+        storage.routes.js
+        storage.controller.js
+        storage.service.js
+
+    utils/
+      response.js
+      slugify.js
+      phone.js
+      crypto.js
+      orderNumber.js
+      pagination.js
+      image.js
+
+============================================================
+5. REVISED DATABASE SCHEMA PLAN
+============================================================
+
+Use Prisma as the database schema source of truth.
+
+Important schema change:
+- Remove supabaseUserId from users.
+- Add auth identities and OTP/session tables.
+- Users are local application users owned by Express.
+
+5.1 users
+
+Fields:
+- id
+- name
+- phone
+- email
+- role
+- isPhoneVerified
+- isEmailVerified
+- createdAt
+- updatedAt
+- deletedAt
+
+Roles:
+- customer
+- admin
+
+Rules:
+- phone must be unique when present.
+- email must be unique when present.
+- default role is customer.
+- all users support soft delete.
+- admin users can be seeded manually.
+
+5.2 auth_accounts
+
+Purpose:
+Tracks login providers connected to a user.
+
+Fields:
+- id
+- userId
+- provider
+- providerAccountId
+- phone
+- email
+- createdAt
+- updatedAt
+
+Providers:
+- phone
+- google
+
+Rules:
+- One user may have phone auth, Google auth, or both later if linking is added.
+- Google providerAccountId stores Google subject ID.
+- Phone providerAccountId can store normalized phone.
+
+5.3 otp_challenges
+
+Purpose:
+Stores hashed OTP challenges for phone login.
+
+Fields:
+- id
+- phone
+- otpHash
+- purpose
+- expiresAt
+- attempts
+- maxAttempts
+- consumedAt
+- createdAt
+- updatedAt
+
+Purpose values:
+- login
+- verify_phone
+
+Rules:
+- OTP code must never be stored in plain text.
+- Store only hash.
+- Expire after OTP_EXPIRES_MINUTES.
+- Limit attempts.
+- Rate limit resend.
+- Mark consumedAt after successful verification.
+
+5.4 refresh_tokens
+
+Purpose:
+Stores hashed refresh tokens for JWT session management.
+
+Fields:
+- id
+- userId
+- tokenHash
+- userAgent
+- ipAddress
+- expiresAt
+- revokedAt
+- replacedByTokenId
+- createdAt
+- updatedAt
+
+Rules:
+- Refresh token must never be stored plain.
+- Rotate refresh token on every refresh.
+- Revoke token on logout.
+- Allow logout from current device.
+- Optional later: logout all devices.
+
+5.5 addresses
+
+Fields:
+- id
+- userId
+- label
+- fullName
+- phone
+- addressLine1
+- addressLine2
+- city
+- state
+- country
+- latitude
+- longitude
+- isDefault
+- createdAt
+- updatedAt
+- deletedAt
+
+5.6 categories
+
+Fields:
+- id
+- name
+- slug
+- description
+- isActive
+- createdAt
+- updatedAt
+- deletedAt
+
+5.7 products
+
+Fields:
+- id
+- name
+- slug
+- description
+- price
+- categoryId
+- measurementUnit
+- volume
+- images
+- coverImageIndex
+- isVisible
+- isFeatured
+- createdAt
+- updatedAt
+- deletedAt
+
+Rules:
+- Public products must return only isVisible=true and deletedAt=null.
+- Product availability text must not be returned publicly.
+- Admin can see hidden and soft-deleted products.
+- Max 3 product images.
+
+5.8 carts
+
+Fields:
+- id
+- userId
+- createdAt
+- updatedAt
+
+Rules:
+- One active cart per customer.
+
+5.9 cart_items
+
+Fields:
+- id
+- cartId
+- productId
+- quantity
+- volume
+- measurementUnit
+- createdAt
+- updatedAt
+
+5.10 orders
+
+Fields:
+- id
+- userId
+- orderNumber
+- items
+- deliveryAddress
+- status
+- totalAmount
+- paymentMethod
+- createdAt
+- updatedAt
+- deletedAt
+
+Status values:
+- Pending
+- Confirmed
+- OutForDelivery
+- Delivered
+- Cancelled
+
+Payment method:
+- COD only
+
+Rules:
+- Orders are created from valid cart.
+- Order starts as Pending.
+- Product snapshot stored in items JSON.
+- Address snapshot stored in deliveryAddress JSON.
+- Cart clears after successful order.
+- SMS alert is sent only to admin phone numbers.
+- SMS failure must not cancel order creation.
+
+5.11 notifications
+
+Fields:
+- id
+- userId
+- orderId
+- type
+- title
+- message
+- isRead
+- createdAt
+- updatedAt
+
+Types:
+- order_status
+- general
+
+Rules:
+- Created when admin changes order status.
+- Customer can only read own notifications.
+- Supabase Realtime can be enabled on this table.
+
+5.12 admin_settings
+
+Fields:
+- id
+- adminPhoneNumbers
+- smsProviderConfig
+- defaultMeasurementUnit
+- createdAt
+- updatedAt
+
+Rules:
+- Store default SMS provider as afromessage.
+- Store admin phone numbers.
+- SMS provider config may store non-secret display/config metadata.
+- Secret API keys should stay in .env, not database, unless encrypted.
+- Customer cancellation is not controlled by admin_settings (toggle removed).
+
+5.13 order_status_history
+
+Fields:
+- id
+- orderId
+- oldStatus
+- newStatus
+- changedBy
+- note
+- createdAt
+
+Rules:
+- Every admin status update creates history.
+- changedBy references admin user.
+
+5.14 sms_logs
+
+Purpose:
+Audits outgoing SMS attempts.
+
+Fields:
+- id
+- provider
+- recipient
+- purpose
+- messagePreview
+- status
+- providerMessageId
+- errorMessage
+- createdAt
+
+Purposes:
+- otp
+- admin_new_order
+- test
+
+Rules:
+- Log success and failure.
+- Do not store full OTP code in logs.
+- Do not block order creation if admin SMS fails.
+
+============================================================
+6. AUTHENTICATION FLOW
+============================================================
+
+6.1 Phone OTP send
+
+Endpoint:
+POST /api/auth/otp/send
+
+Request:
+{
+  "phone": "+251911000000"
+}
+
+Backend logic:
+1. Normalize phone number.
+2. Validate E.164 Ethiopian format initially.
+3. Apply rate limiting.
+4. Generate 6-digit OTP.
+5. Hash OTP.
+6. Save OTP challenge with expiry.
+7. Send SMS using SMS service abstraction.
+8. Default provider implementation: AfroMessage.
+9. Log SMS result.
+10. Return generic success response.
+
+Response:
+{
+  "success": true,
+  "message": "OTP sent successfully if the number is valid."
+}
+
+Security:
+- Do not reveal whether phone is registered.
+- Do not return OTP in response.
+- Do not log OTP in plain text.
+- Rate limit by phone and IP.
+
+6.2 Phone OTP verify
+
+Endpoint:
+POST /api/auth/otp/verify
+
+Request:
+{
+  "phone": "+251911000000",
+  "token": "123456"
+}
+
+Backend logic:
+1. Normalize phone.
+2. Find latest active OTP challenge.
+3. Confirm not expired.
+4. Confirm not consumed.
+5. Confirm attempts < maxAttempts.
+6. Compare hashed OTP.
+7. If invalid, increment attempts.
+8. If valid, mark challenge consumed.
+9. Find user by phone.
+10. If user does not exist, create customer user.
+11. Create or update auth_accounts row for phone provider.
+12. Set isPhoneVerified=true.
+13. Issue JWT access token.
+14. Issue refresh token.
+15. Store hashed refresh token.
+16. Return user and tokens.
+
+Response:
+{
+  "success": true,
+  "message": "OTP verified successfully.",
+  "user": {
+    "id": "...",
+    "name": null,
+    "phone": "+251911000000",
+    "email": null,
+    "role": "customer"
+  },
+  "tokens": {
+    "accessToken": "...",
+    "refreshToken": "..."
+  }
+}
+
+6.3 Google OAuth start
+
+Endpoint:
+GET /api/auth/google/start
+
+Backend logic:
+1. Generate Google OAuth authorization URL.
+2. Include secure state parameter.
+3. Redirect user to Google.
+
+6.4 Google OAuth callback
+
+Endpoint:
+GET /api/auth/google/callback
+
+Backend logic:
+1. Validate OAuth state.
+2. Exchange code for Google tokens.
+3. Verify Google ID token.
+4. Extract Google subject ID, email, and name.
+5. Find auth_accounts row by provider=google and providerAccountId.
+6. If found, load user.
+7. If not found, find user by email.
+8. If still not found, create customer user.
+9. Create/update auth_accounts row.
+10. Set isEmailVerified based on Google claim.
+11. Issue JWT access token and refresh token.
+12. Redirect to frontend with short-lived auth handoff code or tokens.
+
+Recommended secure redirect:
+- Do not put long-lived refresh token in URL.
+- Better option: create one-time auth_handoff_code table.
+- Redirect to frontend with ?code=...
+- Frontend exchanges code through POST /api/auth/exchange-code.
+- For MVP, token in URL may work but is less secure.
+
+6.5 Auth me
+
+Endpoint:
+GET /api/auth/me
+
+Auth:
+Customer/Admin
+
+Backend logic:
+1. Verify Bearer JWT access token.
+2. Load user from database.
+3. Reject deleted user.
+4. Return current user.
+
+6.6 Refresh token
+
+Endpoint:
+POST /api/auth/refresh
+
+Request:
+{
+  "refreshToken": "..."
+}
+
+Backend logic:
+1. Verify refresh JWT.
+2. Hash provided refresh token.
+3. Find matching refresh_tokens row.
+4. Confirm not revoked and not expired.
+5. Revoke old refresh token.
+6. Issue new access token and refresh token.
+7. Store new refresh token hash.
+8. Link old token to replacement.
+
+6.7 Logout
+
+Endpoint:
+POST /api/auth/logout
+
+Auth:
+Customer/Admin
+
+Backend logic:
+1. Revoke current refresh token if provided.
+2. Return success.
+
+============================================================
+7. JWT MIDDLEWARE
+============================================================
+
+7.1 auth.middleware.js
+
+Tasks:
+- Read Authorization header.
+- Require Bearer token.
+- Verify using JWT_ACCESS_SECRET.
+- Extract userId and role.
+- Fetch user from database.
+- Reject missing/deleted users.
+- Attach req.user.
+
+Expected req.user:
+{
+  id,
+  role,
+  phone,
+  email,
+  name
+}
+
+7.2 admin.middleware.js
+
+Tasks:
+- Require req.user.
+- Check req.user.role === "admin".
+- Reject non-admin users with 403.
+
+7.3 customer.middleware.js
+
+Tasks:
+- Require req.user.
+- Reject deleted users.
+- Optional: block admin from customer-only checkout if desired.
+
+============================================================
+8. SMS PROVIDER STRATEGY
+============================================================
+
+Default provider:
+- AfroMessage
+
+Provider abstraction:
+- sms.service.js exposes:
+  - sendOtp(phone, code)
+  - sendAdminNewOrderAlert(phone, order)
+  - sendTestSms(phone, message)
+- sms.service.js selects provider based on SMS_PROVIDER.
+- Provider files implement a common interface.
+
+Provider files:
+- afromessage.provider.js
+- mock.provider.js
+- future: twilio.provider.js
+- future: vonage.provider.js
+- future: messagebird.provider.js
+
+AfroMessage responsibilities:
+- Send OTP SMS.
+- Send admin new-order alert.
+- Send test SMS.
+- Return normalized result:
+{
+  success: true,
+  provider: "afromessage",
+  providerMessageId: "...",
+  raw: {}
+}
+
+Failure result:
+{
+  success: false,
+  provider: "afromessage",
+  error: "..."
+}
+
+SMS rules:
+- OTP SMS failure returns OTP send failure.
+- Admin new-order SMS failure is logged but does not fail order creation.
+- Customer order status changes do not send SMS.
+- Test SMS is admin-only.
+
+============================================================
+9. SUPABASE USAGE AFTER AUTH CHANGE
+============================================================
+
+Supabase PostgreSQL:
+- Used through Prisma.
+- DATABASE_URL is backend-only.
+- Prisma migrations manage schema.
+
+Supabase Storage:
+- Used through Express only.
+- Service role key is used only in backend.
+- Frontend uploads product images to Express, not directly to Supabase.
+- Express compresses image with Sharp before upload.
+- Express uploads to product-images bucket.
+- Express stores image metadata in products.images JSON.
+- Express deletes old files when images are removed or replaced.
+
+Supabase Realtime:
+- Used for customer notifications.
+- Express creates notification row in database.
+- Frontend can subscribe to notifications table changes.
+- If using Supabase client in frontend for realtime, use anon key and configure safe RLS policies.
+- Alternative: avoid frontend Supabase client and use Express SSE/WebSocket later.
+
+Supabase Auth:
+- Not used.
+- No Supabase Auth user ID.
+- No Supabase access token.
+- Express JWT is the only API auth token.
+
+============================================================
+10. REVISED API ENDPOINT PLAN
+============================================================
+
+10.1 Health
+
+GET /api/health
+- Server health
+- Database health
+- Environment
+
+GET /api/health/prisma
+- Prisma connection test
+
+GET /api/health/storage
+- Supabase Storage bucket check
+
+10.2 Auth
+
+POST /api/auth/otp/send
+- Send phone OTP through Express + AfroMessage
+
+POST /api/auth/otp/verify
+- Verify phone OTP
+- Create/update user
+- Return JWT access token and refresh token
+
+GET /api/auth/google/start
+- Start Google OAuth
+
+GET /api/auth/google/callback
+- Handle Google OAuth callback
+- Create/update user
+- Issue tokens or auth handoff code
+
+POST /api/auth/google/exchange-code
+- Optional secure handoff exchange
+
+GET /api/auth/me
+- Return logged-in user
+
+POST /api/auth/refresh
+- Rotate refresh token
+
+POST /api/auth/logout
+- Revoke current refresh token
+
+10.3 Users
+
+GET /api/users/me
+- Get current user profile
+
+PATCH /api/users/me
+- Update current user profile
+
+10.4 Addresses
+
+GET /api/users/me/addresses
+- Get current user's addresses
+
+POST /api/users/me/addresses
+- Add address
+
+PATCH /api/users/me/addresses/:addressId
+- Update own address
+
+DELETE /api/users/me/addresses/:addressId
+- Soft delete own address
+
+10.5 Public categories
+
+GET /api/categories
+- Active, non-deleted categories only
+
+GET /api/categories/:slug
+- Active, non-deleted category detail
+
+10.6 Admin categories
+
+GET /api/admin/categories
+- List all categories
+
+GET /api/admin/categories/:id
+- Get category detail
+
+POST /api/admin/categories
+- Create category
+
+PATCH /api/admin/categories/:id
+- Update category
+
+DELETE /api/admin/categories/:id
+- Soft delete category
+
+PATCH /api/admin/categories/:id/restore
+- Restore category
+
+10.7 Public products
+
+GET /api/products
+- Visible, non-deleted products only
+- Filters: category, search, page, limit
+
+GET /api/products/featured
+- Featured, visible, non-deleted products
+
+GET /api/products/:slug
+- Single visible, non-deleted product
+
+Rules:
+- Do not expose hidden products.
+- Do not expose soft-deleted products.
+- Do not show public product availability text.
+
+10.8 Admin products
+
+GET /api/admin/products
+- List all products with filters
+
+GET /api/admin/products/:id
+- Admin product detail
+
+POST /api/admin/products
+- Create product
+
+PATCH /api/admin/products/:id
+- Update product
+
+PATCH /api/admin/products/:id/visibility
+- Show/hide product publicly
+
+DELETE /api/admin/products/:id
+- Soft delete product
+
+PATCH /api/admin/products/:id/restore
+- Restore product
+
+10.9 Product images
+
+POST /api/admin/products/:id/images
+- Upload product image
+- Admin only
+- Max 3 images per product
+- Max 3MB after compression
+- Allowed jpg, jpeg, png, webp
+- First image becomes cover
+
+DELETE /api/admin/products/:id/images/:imageId
+- Delete image from Supabase Storage
+- Remove image metadata from product
+
+PATCH /api/admin/products/:id/images/:imageId/cover
+- Set cover image
+
+PATCH /api/admin/products/:id/images/reorder
+- Reorder product images
+
+10.10 Cart
+
+GET /api/cart
+- Get customer cart
+
+POST /api/cart/items
+- Add product to cart
+
+PATCH /api/cart/items/:itemId
+- Update quantity/volume
+
+DELETE /api/cart/items/:itemId
+- Remove item
+
+DELETE /api/cart
+- Clear cart
+
+POST /api/cart/merge
+- Merge guest cart after login
+
+Rules:
+- Validate products.
+- Ignore hidden/deleted products.
+- Merge duplicates.
+- Use current DB product details.
+
+10.11 Orders
+
+POST /api/orders
+- Create COD order from cart
+- Clear cart
+- Send admin SMS alerts
+
+GET /api/orders/me
+- Customer order history
+
+GET /api/orders/me/:orderId
+- Customer own order detail
+
+POST /api/orders/:orderId/cancel
+- Customer cancellation for Pending, Confirmed, or OutForDelivery
+- Body requires cancelledFromStatus matching current status
+- Delivered orders cannot be cancelled
+- Adjusts admin-only customer reputation (-1)
+
+10.12 Admin orders
+
+GET /api/admin/orders
+- List all orders
+- Filters: status, search, dateFrom, dateTo, page, limit
+
+GET /api/admin/orders/:id
+- Admin order detail
+
+PATCH /api/admin/orders/:id/status
+- Update order status
+- Create status history
+- Create customer notification
+- Trigger realtime by inserting notification
+- Do not SMS customer
+
+PATCH /api/admin/orders/:id/cancel
+- Admin cancels order
+
+10.13 Notifications
+
+GET /api/notifications
+- Current user notifications
+
+PATCH /api/notifications/:id/read
+- Mark one notification as read
+
+PATCH /api/notifications/read-all
+- Mark all own notifications as read
+
+10.14 Admin dashboard
+
+GET /api/admin/dashboard/stats
+- totalOrders
+- pendingOrders
+- confirmedOrders
+- deliveredOrders
+- cancelledOrders
+- totalProducts
+- visibleProducts
+- hiddenProducts
+- totalCustomers
+
+GET /api/admin/dashboard/recent-orders
+- Recent orders
+
+10.15 Admin customers
+
+GET /api/admin/customers
+- List customers
+
+GET /api/admin/customers/:id
+- Customer detail + admin-only reputation + recent orders
+
+GET /api/admin/customers/:id/orders
+- Customer orders (planned / not required for current ship)
+
+10.16 Admin settings
+
+GET /api/admin/settings
+- Get settings
+
+PATCH /api/admin/settings
+- Update general settings (e.g. defaultMeasurementUnit)
+
+POST /api/admin/settings/admin-phones
+- Add admin phone number
+
+DELETE /api/admin/settings/admin-phones/:phoneId
+- Remove admin phone number
+
+PATCH /api/admin/settings/sms
+- Change SMS provider setting
+- Default remains afromessage
+
+10.17 SMS
+
+POST /api/admin/sms/test
+- Send test SMS
+- Admin only
+
+POST /api/internal/sms/new-order-alert
+- Internal only
+- Protected by INTERNAL_API_KEY
+- Optional if order service calls SMS service directly
+
+GET /api/admin/sms/logs
+- Admin SMS logs
+
+============================================================
+11. IMPLEMENTATION STAGES
+============================================================
+
+Stage 1: Environment setup and health check
+- Express project
+- package.json
+- .env
+- env config
+- app.js
+- server.js
+- error handler
+- 404 handler
+- health endpoint
+
+Stage 2: Prisma and Supabase PostgreSQL setup
+- Install Prisma
+- schema.prisma
+- DATABASE_URL
+- prisma client
+- migration protocol
+- health/prisma endpoint
+
+Stage 3: Base database schema migration
+- users
+- auth_accounts
+- otp_challenges
+- refresh_tokens
+- addresses
+- categories
+- products
+- carts
+- cart_items
+- orders
+- notifications
+- admin_settings
+- order_status_history
+- sms_logs
+
+Stage 4: Seed protocol
+- Seed admin user
+- Seed settings
+- Seed sample categories/products if needed
+- No Supabase Auth users needed
+
+Stage 5: JWT token service
+- Sign access token
+- Sign refresh token
+- Verify access token
+- Verify refresh token
+- Hash refresh token
+- Store refresh token
+- Rotate refresh token
+
+Stage 6: Auth middleware
+- Bearer JWT middleware
+- req.user attach
+- admin middleware
+- customer ownership rules
+
+Stage 7: SMS provider abstraction
+- sms.service.js
+- afromessage.provider.js
+- mock provider for local testing
+- SMS logs
+- admin test SMS endpoint
+
+Stage 8: Phone OTP send
+- Generate OTP
+- Hash OTP
+- Store challenge
+- Send via AfroMessage
+- Rate limiting
+- Test via Postman/curl
+
+Stage 9: Phone OTP verify
+- Validate OTP
+- Create/find user
+- Create auth account
+- Issue access and refresh tokens
+- Test /api/auth/me with Bearer token
+
+Stage 10: Refresh and logout
+- Refresh token rotation
+- Logout current device
+- Optional logout all devices
+
+Stage 11: Google OAuth
+- Google start
+- Google callback
+- User creation/update
+- Auth account link
+- Token issuing
+- Frontend redirect/handoff
+
+Stage 12: User profile endpoints
+- GET /api/users/me
+- PATCH /api/users/me
+
+Stage 13: Public category endpoints
+- GET /api/categories
+- GET /api/categories/:slug
+
+Stage 14: Admin category CRUD
+- Create
+- Update
+- Soft delete
+- Restore
+- List all
+
+Stage 15: Public product endpoints
+- List visible products
+- Featured products
+- Product detail
+- No availability text
+
+Stage 16: Admin product CRUD
+- Create
+- Update
+- List with filters
+- Detail
+
+Stage 17: Product visibility and soft delete
+- Toggle visibility
+- Soft delete
+- Restore
+
+Stage 18: Product image upload
+- Multer
+- Sharp compression
+- Supabase Storage upload
+- Max 3 images
+- Max 3MB after compression
+
+Stage 19: Product image delete, cleanup, and cover update
+- Delete bucket file
+- Remove image metadata
+- Update cover image
+- Reorder images
+
+Stage 20: Cart endpoints
+- Get cart
+- Add item
+- Update item
+- Remove item
+- Clear cart
+
+Stage 21: Guest cart merge
+- Validate frontend local cart payload
+- Ignore hidden/deleted products
+- Merge duplicates
+
+Stage 22: Address endpoints
+- CRUD addresses
+- Default address handling
+- Soft delete
+
+Stage 23: Order creation
+- Create COD order from cart
+- Snapshot product and address
+- Clear cart
+- Send admin SMS alert
+- SMS failure does not fail order
+
+Stage 24: Customer order history
+- Own orders only
+- Own order detail only
+
+Stage 25: Admin order list/detail
+- List orders
+- Filters
+- Detail
+
+Stage 26: Admin order status update
+- Update status
+- Save status history
+- Create notification
+- No customer SMS
+
+Stage 27: Notifications
+- List notifications
+- Mark read
+- Mark all read
+
+Stage 28: Supabase Realtime notification setup
+- Enable realtime on notifications
+- Configure safe frontend subscription
+- Validate customer receives live updates
+
+Stage 29: Admin settings
+- Admin phones
+- SMS provider setting
+- Default measurement unit
+- No cancellation toggle
+
+Stage 30: Customer cancellation + admin reputation
+- POST /api/orders/:orderId/cancel
+- Require cancelledFromStatus
+- Allow Pending, Confirmed, OutForDelivery
+- Block Delivered
+- Check owner
+- History + notification (stage-aware)
+- Admin-only reputation penalty on customer cancel
+- Admin Delivered status credits reputation
+- GET /api/admin/customers/:id
+
+Stage 31: SMS admin alert and test SMS
+- Admin new order alerts
+- Admin test SMS
+- SMS logs
+- Failure handling
+
+Stage 32: Final backend testing checklist
+- Auth tests
+- OTP tests
+- Google OAuth tests
+- Admin middleware tests
+- Product tests
+- Cart tests
+- Order tests
+- Notification tests
+- SMS tests
+- Storage cleanup tests
+- Soft delete tests
+
+============================================================
+12. TESTING CHECKLIST
+============================================================
+
+Auth:
+- OTP send returns generic success.
+- OTP SMS is delivered through AfroMessage.
+- OTP verify returns JWT access token and refresh token.
+- Wrong OTP fails.
+- Expired OTP fails.
+- Too many attempts fails.
+- /api/auth/me works with Bearer token.
+- /api/auth/me fails without token.
+- Admin endpoint fails for customer.
+- Admin endpoint works for admin.
+- Refresh rotates refresh token.
+- Logout revokes refresh token.
+- Google OAuth creates user.
+- Google OAuth returns valid session.
+
+SMS:
+- AfroMessage test SMS works.
+- OTP SMS logs success.
+- OTP SMS logs failure.
+- Admin new-order SMS failure does not cancel order.
+- SMS provider can be replaced through provider abstraction.
+
+Products:
+- Public sees only visible and non-deleted products.
+- Hidden products do not show publicly.
+- Soft-deleted products do not show publicly.
+- Admin can see hidden products.
+- Admin can restore soft-deleted products.
+- Max 3 images enforced.
+- Image size limit after compression enforced.
+- Old/replaced images are deleted from Supabase Storage.
+
+Cart:
+- Customer can add item.
+- Customer can update item.
+- Customer can remove item.
+- Guest cart merge works.
+- Hidden/deleted products are ignored during merge.
+- Checkout uses current database price.
+
+Orders:
+- Customer can create COD order.
+- Order starts Pending.
+- Cart clears after order.
+- Product snapshot is stored.
+- Address snapshot is stored.
+- Admin SMS alert is attempted.
+- Customer can see own orders only.
+- Admin can update order status.
+- Status history is saved.
+- Customer notification is created.
+- Customer SMS is not sent for status update.
+
+Settings:
+- Admin can add phone number.
+- Admin can remove phone number.
+- Admin can change SMS provider setting.
+- Customer may cancel until Delivered with cancelledFromStatus acknowledgement.
+- Admin sees customer reputation on orders and GET /api/admin/customers/:id.
+
+Security:
+- Supabase service role key is backend-only.
+- DATABASE_URL is backend-only.
+- JWT secrets are backend-only.
+- AfroMessage token is backend-only.
+- OTP is never stored plain.
+- Refresh token is never stored plain.
+- Deleted users cannot access protected routes.
+- Customer cannot access another customer's data.
+- Admin routes require admin role.
+- All deletes use deletedAt soft delete.
+
+============================================================
+13. COMPLETION DEFINITION
+============================================================
+
+Backend is complete when:
+- Prisma migrations create all required tables.
+- Express owns all authentication.
+- Phone OTP works through AfroMessage.
+- Google OAuth works through Express.
+- JWT middleware protects customer/admin routes.
+- Admin role is enforced.
+- Product CRUD works.
+- Category CRUD works.
+- Product image upload and cleanup work through Supabase Storage.
+- Public product visibility rules work.
+- Guest cart merge works.
+- Checkout creates COD orders.
+- Admin receives SMS on new order.
+- SMS provider abstraction allows AfroMessage to be replaced later.
+- Admin can update order status.
+- Customer receives realtime notification.
+- Customer can view order history.
+- Customer can cancel until Delivered with cancelledFromStatus.
+- Admin-only reputation updates on Delivered and customer cancel.
+- All deletes are soft deletes.
+- Supabase Auth is not used.
+- Supabase service role key is backend-only.

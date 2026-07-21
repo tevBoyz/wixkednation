@@ -1,0 +1,1392 @@
+>>> EXECUTION SOURCE OF TRUTH: baseDocs/Frontend plan/frontend imp plan.txt <<<
+>>> Checklist: master-plan-checklist.md | API map: api-integration.md | QA: final-testing-checklist.md <<<
+>>> API contract: baseDocs/backend-postman-collection.json | Handoff: inbetween.md <<<
+>>> This file is reference/design detail only. Follow frontend imp plan.txt stage-by-stage. Do not execute from here directly. <<<
+
+UPDATED FRONTEND DEVELOPMENT PLAN
+Next.js Storefront + Admin Dashboard + Express JWT API Integration
+Prepared for: Kedame Gebeya E-commerce Platform
+Frontend: Next.js + TypeScript + Tailwind CSS + shadcn/ui
+Backend: Express.js + JWT + Supabase PostgreSQL, Storage, and Realtime
+
+============================================================
+1. FRONTEND STRATEGY SUMMARY
+============================================================
+
+This document defines the implementation plan for the complete frontend application.
+It is intended to be placed in the root of the frontend project and used by Cursor Agent as the primary development execution guide together with:
+- The Frontend SRD / Frontend Development Task Document.
+- The backend Postman collection.
+- Any approved design reference or starter template.
+
+The SRD remains the main source of truth. This document must not replace or rewrite the SRD. It converts the SRD into a staged frontend implementation sequence.
+
+Core architecture:
+Next.js Frontend -> Express API -> Supabase PostgreSQL / Supabase Storage / Supabase Realtime
+
+Important frontend rules:
+- The frontend must never connect directly to Supabase PostgreSQL.
+- The frontend must never upload directly to Supabase Storage.
+- The Supabase service role key must never exist in the frontend project.
+- All protected application requests must go through the Express API.
+- Authentication is owned by Express using JWT access and refresh tokens.
+- Supported login methods are phone OTP and Google OAuth only.
+- No password login interface must be created.
+- Public product availability text must not be displayed.
+- Only visible, non-deleted products returned by the API may be rendered publicly.
+- Guest cart data must be stored locally and merged into the server cart after login.
+- Payment method is Cash on Delivery only.
+- Customer order cancellation must obey the backend cancellation setting.
+- Customer order status changes are shown through in-app notifications, not customer SMS.
+- Admin product deletion is a soft-delete operation controlled by the backend.
+- The UI must work on mobile, tablet, and desktop.
+- The application must support light mode and dark mode.
+- The implementation must be accessible, keyboard-friendly, and production-ready.
+
+============================================================
+2. CURSOR AGENT OPERATING RULES
+============================================================
+
+Cursor must follow these rules throughout implementation:
+
+1. Read the Frontend SRD before changing code.
+2. Read the backend Postman collection before implementing API calls.
+3. Treat the backend's actual request and response formats as authoritative.
+4. Work on only one implementation stage at a time.
+5. Do not begin the next stage until the current stage is tested successfully.
+6. At the end of each stage, stop and report:
+   - Files created.
+   - Files modified.
+   - Packages installed.
+   - Environment variables used.
+   - Commands executed.
+   - Browser test steps.
+   - API test steps.
+   - Expected results.
+   - Any assumptions.
+   - Any unresolved errors.
+7. Wait for the developer to confirm test results before proceeding.
+8. Do not silently skip incomplete features.
+9. Do not mock a backend endpoint that already exists.
+10. Temporary mock data may be used only when an endpoint is explicitly unavailable, and it must be clearly isolated and marked for removal.
+11. Reuse shared components rather than duplicating page-specific implementations.
+12. Keep server and client components intentionally separated.
+13. Do not place secrets in NEXT_PUBLIC variables.
+14. Do not expose access tokens in logs, URLs, analytics, or rendered HTML.
+15. Run lint and TypeScript checks after every meaningful stage.
+16. Preserve existing working features when adding new stages.
+17. Ask for clarification only when the SRD and API collection materially conflict; otherwise choose the safest implementation and document the assumption.
+
+Required stage response format:
+
+STAGE [NUMBER] COMPLETE
+
+Files created:
+- ...
+
+Files modified:
+- ...
+
+Packages installed:
+- ...
+
+Environment variables:
+- ...
+
+Tests performed:
+- ...
+
+Expected behavior:
+- ...
+
+Known issues or assumptions:
+- ...
+
+STOP: Wait for developer confirmation before Stage [NEXT NUMBER].
+
+============================================================
+3. FRONTEND STACK
+============================================================
+
+Framework:
+- Next.js using App Router
+- TypeScript
+- React
+
+Styling and UI:
+- Tailwind CSS
+- shadcn/ui
+- Radix UI primitives through shadcn/ui
+- lucide-react icons
+- next-themes for light and dark mode
+
+Forms and validation:
+- React Hook Form
+- Zod
+- @hookform/resolvers
+
+Data access and caching:
+- Central API client using fetch or Axios
+- TanStack Query is recommended for server state, caching, retries, and mutations
+- Native fetch may be used for server components where appropriate
+
+Application state:
+- React Context or Zustand for lightweight client state
+- Guest cart persisted in localStorage
+- Auth state synchronized through the API client and /api/auth/me
+
+Notifications and UX:
+- Sonner or shadcn toast
+- Skeleton loading states
+- Empty states
+- Error boundaries
+- Confirmation dialogs
+
+Images:
+- next/image
+- Remote image host configuration for backend-provided Supabase public/signed image URLs
+- No direct storage upload from the browser to Supabase
+
+Testing:
+- ESLint
+- TypeScript compiler
+- Vitest or Jest for unit tests
+- React Testing Library
+- Playwright for critical end-to-end flows
+
+Recommended package group:
+- @tanstack/react-query
+- react-hook-form
+- zod
+- @hookform/resolvers
+- zustand
+- sonner
+- lucide-react
+- next-themes
+- clsx
+- tailwind-merge
+- date-fns
+
+============================================================
+4. FRONTEND ENVIRONMENT VARIABLES
+============================================================
+
+Create .env.local:
+
+NEXT_PUBLIC_API_URL=http://localhost:5000
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+Optional only if the approved realtime design uses a browser Supabase client:
+
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+
+Important:
+- Never add SUPABASE_SERVICE_ROLE_KEY to the frontend.
+- Never add DATABASE_URL to the frontend.
+- Never add JWT_ACCESS_SECRET or JWT_REFRESH_SECRET to the frontend.
+- Never add AfroMessage credentials to the frontend.
+- Never add INTERNAL_API_KEY to the frontend.
+- Only NEXT_PUBLIC variables may be read in browser code.
+- NEXT_PUBLIC values must contain public configuration only.
+- Production values must use HTTPS URLs.
+
+Recommended validation:
+- Create src/config/env.ts.
+- Validate required public environment variables during startup.
+- Fail clearly when NEXT_PUBLIC_API_URL is missing.
+- Remove trailing slashes before constructing endpoint URLs.
+
+============================================================
+5. RECOMMENDED PROJECT STRUCTURE
+============================================================
+
+frontend/
+  .env.local
+  .env.example
+  .gitignore
+  components.json
+  next.config.ts
+  package.json
+  tsconfig.json
+  postcss.config.mjs
+  eslint.config.mjs
+
+  public/
+    images/
+    icons/
+
+  src/
+    app/
+      layout.tsx
+      page.tsx
+      loading.tsx
+      error.tsx
+      not-found.tsx
+
+      (store)/
+        layout.tsx
+        products/
+          page.tsx
+          [slug]/
+            page.tsx
+        categories/
+          [slug]/
+            page.tsx
+        cart/
+          page.tsx
+        checkout/
+          page.tsx
+        order-success/
+          [orderId]/
+            page.tsx
+
+      (auth)/
+        login/
+          page.tsx
+        verify-otp/
+          page.tsx
+        auth/
+          callback/
+            page.tsx
+
+      account/
+        layout.tsx
+        page.tsx
+        profile/
+          page.tsx
+        addresses/
+          page.tsx
+        orders/
+          page.tsx
+          [orderId]/
+            page.tsx
+        notifications/
+          page.tsx
+
+      admin/
+        layout.tsx
+        page.tsx
+        products/
+          page.tsx
+          new/
+            page.tsx
+          [id]/
+            page.tsx
+          [id]/edit/
+            page.tsx
+        categories/
+          page.tsx
+        orders/
+          page.tsx
+          [id]/
+            page.tsx
+        customers/
+          page.tsx
+          [id]/
+            page.tsx
+        settings/
+          page.tsx
+        sms/
+          page.tsx
+
+    components/
+      ui/
+      layout/
+        site-header.tsx
+        site-footer.tsx
+        mobile-navigation.tsx
+        admin-sidebar.tsx
+        account-sidebar.tsx
+      common/
+        app-logo.tsx
+        theme-toggle.tsx
+        page-header.tsx
+        loading-screen.tsx
+        empty-state.tsx
+        error-state.tsx
+        confirmation-dialog.tsx
+        pagination.tsx
+      auth/
+        phone-login-form.tsx
+        otp-verification-form.tsx
+        google-login-button.tsx
+        auth-guard.tsx
+        admin-guard.tsx
+      products/
+        product-card.tsx
+        product-grid.tsx
+        product-gallery.tsx
+        product-filters.tsx
+        product-search.tsx
+        product-form.tsx
+        product-image-manager.tsx
+      cart/
+        cart-sheet.tsx
+        cart-item.tsx
+        cart-summary.tsx
+        add-to-cart-button.tsx
+      checkout/
+        address-selector.tsx
+        checkout-summary.tsx
+        cod-payment-card.tsx
+      orders/
+        order-card.tsx
+        order-status-badge.tsx
+        order-timeline.tsx
+      notifications/
+        notification-menu.tsx
+        notification-item.tsx
+      admin/
+        stats-card.tsx
+        data-table.tsx
+        status-filter.tsx
+
+    config/
+      env.ts
+      navigation.ts
+      constants.ts
+
+    lib/
+      api/
+        client.ts
+        errors.ts
+        endpoints.ts
+        auth.api.ts
+        users.api.ts
+        categories.api.ts
+        products.api.ts
+        cart.api.ts
+        addresses.api.ts
+        orders.api.ts
+        notifications.api.ts
+        admin.api.ts
+        settings.api.ts
+        sms.api.ts
+      auth/
+        token-storage.ts
+        session.ts
+        guards.ts
+      cart/
+        guest-cart.ts
+        cart-merge.ts
+      realtime/
+        notifications.ts
+      query/
+        query-client.ts
+        query-keys.ts
+      utils.ts
+      format.ts
+      phone.ts
+
+    providers/
+      app-providers.tsx
+      query-provider.tsx
+      theme-provider.tsx
+      auth-provider.tsx
+      cart-provider.tsx
+      notification-provider.tsx
+
+    hooks/
+      use-auth.ts
+      use-cart.ts
+      use-products.ts
+      use-orders.ts
+      use-notifications.ts
+      use-media-query.ts
+      use-debounce.ts
+
+    schemas/
+      auth.schema.ts
+      profile.schema.ts
+      address.schema.ts
+      product.schema.ts
+      category.schema.ts
+      checkout.schema.ts
+      settings.schema.ts
+
+    types/
+      api.ts
+      auth.ts
+      user.ts
+      category.ts
+      product.ts
+      cart.ts
+      address.ts
+      order.ts
+      notification.ts
+      settings.ts
+
+============================================================
+6. API CLIENT AND AUTHENTICATION STRATEGY
+============================================================
+
+6.1 API client
+
+Create a single API client responsible for:
+- Base URL configuration.
+- JSON serialization.
+- FormData uploads.
+- Authorization headers.
+- API error normalization.
+- Access token refresh.
+- Request retry after refresh.
+- Logout when refresh fails.
+- Avoiding infinite refresh loops.
+
+The API client must support:
+- Public requests.
+- Authenticated customer requests.
+- Admin requests.
+- Multipart product image requests.
+- Query parameters.
+- Abort signals when appropriate.
+
+6.2 Token handling
+
+Preferred security approach:
+- Refresh token in a secure httpOnly cookie controlled by Express.
+- Access token held in memory and refreshed when required.
+
+Fallback if the backend currently returns both tokens in JSON:
+- Store the access token in memory where practical.
+- Persist only what is necessary for page reload recovery.
+- Do not use insecure token handling without documenting the risk.
+- Never put refresh tokens in URLs.
+
+The implementation must match the backend's actual behavior from the Postman collection.
+
+6.3 Session bootstrap
+
+On application startup:
+1. Attempt to restore the existing session.
+2. Call GET /api/auth/me when an access token is available.
+3. If access token is expired, call POST /api/auth/refresh once.
+4. Retry /api/auth/me.
+5. Store the returned user in auth state.
+6. Merge guest cart after successful customer login.
+7. Redirect admin users to the correct admin experience only when requested; do not force redirect from every public page.
+
+6.4 Route protection
+
+Customer protected routes:
+- /account
+- /account/profile
+- /account/addresses
+- /account/orders
+- /account/orders/:id
+- /account/notifications
+- /checkout
+
+Admin protected routes:
+- /admin
+- /admin/products
+- /admin/categories
+- /admin/orders
+- /admin/customers
+- /admin/settings
+- /admin/sms
+
+Protection rules:
+- Unauthenticated users are redirected to login with a return URL.
+- Authenticated customers cannot access admin routes.
+- Admin UI is not considered a security boundary; the backend must still enforce role authorization.
+- Loading state must be shown while session restoration is in progress.
+
+============================================================
+7. UX AND DESIGN SYSTEM RULES
+============================================================
+
+Visual direction:
+- Clean, sharp, modern e-commerce interface.
+- Light theme is the primary presentation.
+- Dark mode must be fully supported.
+- Strong spacing, restrained color usage, readable typography, and clear product imagery.
+- Avoid excessive gradients, glass effects, oversized shadows, and clutter.
+
+Responsive behavior:
+- Mobile-first implementation.
+- Product grids adapt from one column to multiple columns.
+- Navigation becomes compact on mobile.
+- Admin tables must remain usable through horizontal scrolling or card conversion.
+- Forms must not overflow on small screens.
+- Buttons must have touch-friendly sizes.
+
+Accessibility:
+- Semantic headings.
+- Labels for all inputs.
+- Visible focus states.
+- Keyboard-operable menus and dialogs.
+- Sufficient color contrast in both themes.
+- Alternative text for meaningful images.
+- aria-live or equivalent feedback for async form submissions where appropriate.
+- Do not communicate status using color alone.
+
+Loading and errors:
+- Use route loading files for major routes.
+- Use component skeletons for lists and cards.
+- Use actionable errors instead of raw server messages.
+- Preserve form data when a recoverable request fails.
+- Distinguish empty state from loading and error states.
+
+============================================================
+8. DOMAIN RULES TO ENFORCE IN THE UI
+============================================================
+
+Products:
+- Never render public availability text.
+- Hidden and deleted products should not appear in public views.
+- Admin can manage visibility.
+- Admin image manager supports a maximum of three images.
+- Cover image and image order must be manageable.
+
+Cart:
+- Guest cart is local.
+- Authenticated cart is server-based.
+- Guest cart merges after login.
+- Product IDs, quantity, volume, and measurement unit must match API expectations.
+- Current backend product pricing is authoritative at checkout.
+
+Orders:
+- Cash on Delivery is the only payment option.
+- Order starts as Pending.
+- Customer sees only own orders.
+- Admin can update order status.
+- Customer cancellation button is shown only when the backend says cancellation is allowed and the order is eligible.
+- Do not claim cancellation succeeded until API confirmation.
+
+Notifications:
+- Status changes create in-app notifications.
+- Unread count must update after read actions.
+- Realtime is optional until safely configured.
+- Polling or query invalidation may be used as an interim fallback.
+
+Admin:
+- Admin can manage categories, products, images, orders, customers, settings, and SMS tests/logs.
+- Destructive actions require confirmation.
+- Soft-delete wording should use user-friendly labels such as Archive/Delete while explaining recoverability where relevant.
+- Restore actions must be supported for categories and products when provided by the API.
+
+============================================================
+9. IMPLEMENTATION STAGES
+============================================================
+
+Stage 1: Project inspection, environment setup, and backend health
+- Inspect the existing Next.js project before scaffolding.
+- Confirm App Router and TypeScript configuration.
+- Create .env.local and .env.example.
+- Add environment validation.
+- Add a temporary development health page or diagnostic component.
+- Call GET /api/health.
+- Confirm frontend at port 3000 can reach backend at port 5000.
+- Confirm CORS behavior.
+- Run npm install, npm run dev, npm run lint, and TypeScript check.
+
+Acceptance tests:
+- Home page loads.
+- Health request succeeds.
+- Missing API URL produces a clear startup error.
+- Browser console has no CORS or hydration errors.
+
+Stage 2: shadcn/ui and foundational packages
+- Initialize shadcn/ui.
+- Install required UI primitives.
+- Install React Hook Form, Zod, TanStack Query, Zustand, Sonner, next-themes, and date-fns.
+- Confirm Tailwind content scanning.
+- Create cn utility.
+- Add a component test page temporarily if needed.
+
+Acceptance tests:
+- Button, input, dialog, dropdown, sheet, card, table, badge, skeleton, and toast render correctly.
+- Build and lint pass.
+
+Stage 3: Theme, design tokens, typography, and dark mode
+- Define CSS variables for light and dark themes.
+- Configure typography.
+- Create ThemeProvider.
+- Create theme toggle.
+- Define container widths, spacing, radii, and reusable surface styles.
+- Confirm no flash of incorrect theme where possible.
+
+Acceptance tests:
+- Theme persists after reload.
+- All base components remain readable in both modes.
+- No hard-coded colors break dark mode.
+
+Stage 4: Application providers and global error handling
+- Create AppProviders.
+- Add QueryClientProvider.
+- Add AuthProvider placeholder.
+- Add CartProvider placeholder.
+- Add toast provider.
+- Add global error and not-found pages.
+- Add API error normalization types.
+
+Acceptance tests:
+- Providers mount without hydration errors.
+- Test toast works.
+- Test error boundary renders a recovery action.
+
+Stage 5: Shared storefront layout
+- Create site header.
+- Create desktop navigation.
+- Create mobile navigation/sheet.
+- Create search entry point.
+- Create cart icon with count.
+- Create account/auth menu.
+- Create footer.
+- Add responsive store layout.
+
+Acceptance tests:
+- Navigation works on mobile and desktop.
+- Header remains usable in both themes.
+- No inaccessible menu controls.
+
+Stage 6: Age gate or required entry confirmation
+- Implement the SRD-defined age/entry gate if required.
+- Persist acceptance locally.
+- Prevent content interaction until accepted.
+- Add decline behavior required by the SRD.
+- Avoid repeatedly showing after valid acceptance.
+
+Acceptance tests:
+- Gate appears for first-time visitor.
+- Acceptance persists.
+- Decline path behaves as specified.
+- Keyboard focus remains inside dialog.
+
+Stage 7: Central API client
+- Create typed request wrapper.
+- Support public and authenticated requests.
+- Support JSON and FormData.
+- Normalize backend errors.
+- Add request timeout/abort behavior where appropriate.
+- Prevent duplicate refresh requests.
+
+Acceptance tests:
+- Public health call works through client.
+- Backend validation errors are rendered cleanly.
+- Network errors do not crash pages.
+
+Stage 8: API types and endpoint modules
+- Define common API response types.
+- Define user, product, category, cart, address, order, notification, settings, and pagination types.
+- Implement endpoint files based on Postman collection.
+- Do not guess property names when collection examples exist.
+
+Acceptance tests:
+- TypeScript passes.
+- Endpoint modules can call health/categories/products where available.
+
+Stage 9: Phone login screen
+- Create login route.
+- Build Ethiopian phone input and normalization UX.
+- Validate with Zod.
+- Call POST /api/auth/otp/send.
+- Add loading, resend guidance, and generic success message.
+- Save only the minimum temporary phone state needed for OTP verification.
+
+Acceptance tests:
+- Valid phone submits.
+- Invalid phone is blocked client-side.
+- Backend rate-limit and SMS errors are shown safely.
+- No OTP value appears in logs.
+
+Stage 10: OTP verification
+- Create OTP route/form.
+- Support six-digit entry.
+- Call POST /api/auth/otp/verify.
+- Start resend cooldown.
+- Handle expired/wrong/attempt-limit responses.
+- Store session according to backend token strategy.
+- Fetch current user.
+- Redirect to return URL.
+
+Acceptance tests:
+- Correct OTP logs in.
+- Incorrect OTP shows error.
+- Refresh preserves session where supported.
+- Protected route becomes accessible.
+
+Stage 11: Google OAuth
+- Add Google sign-in button.
+- Redirect to GET /api/auth/google/start.
+- Create callback/handoff page.
+- Exchange one-time code through the backend when supported.
+- Handle cancelled/failed OAuth.
+- Remove sensitive query data from browser history after exchange.
+
+Acceptance tests:
+- Google login creates/restores user session.
+- Refresh token is not exposed in URL.
+- Failed OAuth returns to a usable login page.
+
+Stage 12: Auth session restoration, refresh, and logout
+- Implement session bootstrap.
+- Implement access token refresh.
+- Implement single retry after 401.
+- Implement POST /api/auth/logout.
+- Clear local auth state and sensitive storage.
+- Add loading screen during restoration.
+
+Acceptance tests:
+- Expired access token refreshes once.
+- Invalid refresh logs out cleanly.
+- Logout removes protected access.
+- No infinite request loop.
+
+Stage 13: Auth and admin guards
+- Build reusable AuthGuard and AdminGuard.
+- Preserve requested return URL.
+- Add unauthorized page/state.
+- Protect account, checkout, and admin routes.
+
+Acceptance tests:
+- Guest is redirected from protected routes.
+- Customer is denied admin routes.
+- Admin accesses admin routes.
+
+Stage 14: Public category integration
+- Call GET /api/categories.
+- Build category navigation/cards.
+- Build /categories/[slug].
+- Handle missing category.
+
+Acceptance tests:
+- Active categories render.
+- Empty state is clear.
+- Invalid slug shows not found.
+
+Stage 15: Public product list
+- Build /products.
+- Call GET /api/products.
+- Add pagination.
+- Add category filter.
+- Add search.
+- Add responsive product grid.
+- Debounce search input.
+- Keep filter state in URL query parameters.
+
+Acceptance tests:
+- Results update by search/category/page.
+- Reload preserves URL filters.
+- No public availability text appears.
+- Empty and error states work.
+
+Stage 16: Featured products and homepage
+- Call GET /api/products/featured.
+- Build hero section according to approved design.
+- Build featured product section.
+- Build category discovery section.
+- Add trust/service sections specified by SRD.
+- Keep marketing copy editable and structured.
+
+Acceptance tests:
+- Homepage is responsive.
+- Featured products use API data.
+- Broken images have fallback behavior.
+
+Stage 17: Product detail page
+- Build /products/[slug].
+- Call GET /api/products/:slug.
+- Build image gallery.
+- Show name, description, price, measurement unit, volume options, and other allowed details.
+- Add quantity selector.
+- Add to cart.
+- Create metadata/SEO fields.
+
+Acceptance tests:
+- Valid product renders.
+- Missing/hidden product shows not found.
+- Add-to-cart payload matches API/local cart format.
+- Availability text is absent.
+
+Stage 18: Guest cart state
+- Create guest-cart utility and schema.
+- Persist cart in localStorage.
+- Add, update, remove, and clear guest items.
+- Merge duplicate product variants correctly.
+- Validate stored data and recover from corrupt storage.
+
+Acceptance tests:
+- Cart survives reload.
+- Duplicate item behavior is correct.
+- Corrupt localStorage is handled safely.
+- Cart count updates globally.
+
+Stage 19: Cart interface
+- Build cart sheet and /cart page.
+- Render cart items.
+- Update quantity/volume.
+- Remove items.
+- Clear cart with confirmation.
+- Calculate display subtotal using known product data while stating backend is authoritative.
+
+Acceptance tests:
+- Guest cart UI works.
+- Mobile layout is usable.
+- Empty cart state works.
+
+Stage 20: Authenticated server cart
+- Implement GET /api/cart.
+- Implement POST /api/cart/items.
+- Implement PATCH /api/cart/items/:itemId.
+- Implement DELETE /api/cart/items/:itemId.
+- Implement DELETE /api/cart.
+- Switch cart data source based on authentication state.
+
+Acceptance tests:
+- Logged-in cart persists across devices/session reloads.
+- Server errors roll back optimistic UI when used.
+- Hidden/deleted products are handled using backend response.
+
+Stage 21: Guest cart merge after login
+- Call POST /api/cart/merge after successful login.
+- Send validated local cart payload.
+- Clear guest cart only after successful merge.
+- Refetch server cart.
+- Handle ignored or unavailable products clearly.
+- Prevent repeated merge loops.
+
+Acceptance tests:
+- Guest items appear in server cart after login.
+- Duplicate items merge correctly.
+- Failed merge retains local cart for retry.
+
+Stage 22: Account layout and profile
+- Build account navigation.
+- Call GET /api/users/me.
+- Build profile form.
+- Call PATCH /api/users/me.
+- Display phone/email verification state where useful.
+
+Acceptance tests:
+- Current profile renders.
+- Valid updates persist.
+- Validation errors display beside fields.
+
+Stage 23: Address management
+- Call GET /api/users/me/addresses.
+- Build address list.
+- Add address form.
+- Edit address form.
+- Soft-delete address with confirmation.
+- Support default address selection according to backend model.
+
+Acceptance tests:
+- User manages own addresses.
+- Default address behavior is correct.
+- Deleted address disappears after API confirmation.
+
+Stage 24: Checkout foundation
+- Protect /checkout.
+- Require non-empty authenticated cart.
+- Refetch cart before checkout.
+- Build checkout steps/sections.
+- Select or add delivery address.
+- Display Cash on Delivery as the only payment method.
+- Build order summary.
+
+Acceptance tests:
+- Guest is redirected to login and returned to checkout.
+- Empty cart cannot proceed.
+- COD is the only displayed method.
+
+Stage 25: Order creation
+- Call POST /api/orders.
+- Disable repeated submission.
+- Show clear progress state.
+- Handle validation or changed-product errors.
+- Clear/refetch cart only after success.
+- Redirect to order-success page.
+
+Acceptance tests:
+- Order is created once.
+- Double-click cannot create duplicate client requests.
+- Success page shows order reference.
+- Failure keeps checkout state recoverable.
+
+Stage 26: Customer order history
+- Build /account/orders.
+- Call GET /api/orders/me.
+- Add status filters if supported.
+- Add pagination if supported.
+- Create order cards/table.
+
+Acceptance tests:
+- Customer sees own orders.
+- Status badges match supported statuses.
+- Empty state works.
+
+Stage 27: Customer order detail
+- Build /account/orders/[orderId].
+- Call GET /api/orders/me/:orderId.
+- Show item snapshots, totals, delivery address snapshot, COD method, dates, and status timeline.
+- Do not rely on current product data for historical snapshots.
+
+Acceptance tests:
+- Own order renders.
+- Unauthorized/not-found response is handled safely.
+- Snapshot information remains visible even if product changed.
+
+Stage 28: Customer cancellation
+- Determine cancellation permission from settings/order response as defined by the API.
+- Show cancel action only when eligible.
+- Call POST /api/orders/:orderId/cancel.
+- Require confirmation.
+- Refetch order after success.
+
+Acceptance tests:
+- Button is hidden/disabled when cancellation is not allowed.
+- Pending eligible order can be cancelled.
+- Backend rejection is shown accurately.
+
+Stage 29: Notification list and read actions
+- Call GET /api/notifications.
+- Build notification menu and page.
+- Call PATCH /api/notifications/:id/read.
+- Call PATCH /api/notifications/read-all.
+- Maintain unread count.
+- Link order notifications to relevant order detail.
+
+Acceptance tests:
+- Notifications render.
+- Mark-one and mark-all update the UI.
+- User cannot access another user's notifications.
+
+Stage 30: Realtime notifications
+- Confirm approved realtime method.
+- Preferred: safely configured Supabase anon client and RLS for notifications.
+- Alternative: polling/query invalidation until Express SSE/WebSocket exists.
+- Subscribe only for the logged-in user.
+- Insert realtime events into query cache.
+- Clean up subscription on logout/unmount.
+
+Acceptance tests:
+- New order-status notification appears without manual reload.
+- Another user's notifications never appear.
+- Reconnect does not duplicate events.
+
+Stage 31: Admin shell and navigation
+- Create admin layout.
+- Create responsive sidebar/header.
+- Add breadcrumbs.
+- Add admin account menu and logout.
+- Protect all admin pages.
+- Add consistent page headers and action areas.
+
+Acceptance tests:
+- Admin shell works on mobile and desktop.
+- Customer cannot access shell.
+- Navigation highlights active route.
+
+Stage 32: Admin dashboard
+- Call GET /api/admin/dashboard/stats.
+- Call GET /api/admin/dashboard/recent-orders.
+- Build statistic cards.
+- Build recent orders table/list.
+- Add links to management pages.
+
+Acceptance tests:
+- Dashboard data matches API.
+- Loading/empty/error states work.
+- Large values do not break layout.
+
+Stage 33: Admin category list
+- Call GET /api/admin/categories.
+- Show active, hidden/inactive, and deleted states where returned.
+- Add search/filter if supported.
+- Add create, edit, delete, and restore actions.
+
+Acceptance tests:
+- All admin-visible categories render.
+- Destructive actions require confirmation.
+- List refreshes after mutation.
+
+Stage 34: Admin category create and edit
+- Build reusable category form.
+- Call POST /api/admin/categories.
+- Call PATCH /api/admin/categories/:id.
+- Validate name, slug, description, and active state based on API.
+
+Acceptance tests:
+- Create works.
+- Edit works.
+- Duplicate/validation errors are displayed.
+
+Stage 35: Admin category soft delete and restore
+- Call DELETE /api/admin/categories/:id.
+- Call PATCH /api/admin/categories/:id/restore.
+- Explain relationship constraints when deletion fails.
+
+Acceptance tests:
+- Soft-deleted category leaves public views.
+- Restore returns it according to active state.
+
+Stage 36: Admin product list
+- Call GET /api/admin/products.
+- Add search, category, visibility, deletion status, and pagination filters supported by API.
+- Build responsive data table.
+- Add quick visibility action.
+- Add create/edit links.
+
+Acceptance tests:
+- Hidden and deleted products are visible to admin where API allows.
+- Filters and pagination work.
+- Public visibility is clearly indicated.
+
+Stage 37: Admin product create
+- Build reusable product form.
+- Call POST /api/admin/products.
+- Include name, slug, description, price, category, measurement unit, volume, visibility, and featured state according to API.
+- Do not add public availability field.
+- Redirect to edit/image management after creation.
+
+Acceptance tests:
+- Valid product is created.
+- Price and numeric validation work.
+- Backend validation messages map to fields.
+
+Stage 38: Admin product edit
+- Call GET /api/admin/products/:id.
+- Prepopulate product form.
+- Call PATCH /api/admin/products/:id.
+- Preserve image data while editing non-image fields.
+
+Acceptance tests:
+- Existing data loads.
+- Updates persist.
+- Unsaved changes warning is added where appropriate.
+
+Stage 39: Admin product image upload
+- Build image manager.
+- Call POST /api/admin/products/:id/images using FormData.
+- Validate jpg/jpeg/png/webp.
+- Validate client-side size before upload while allowing backend to enforce final compressed size.
+- Enforce maximum of three images in UI.
+- Show upload progress if supported.
+
+Acceptance tests:
+- Valid image uploads through Express.
+- Direct Supabase upload is not used.
+- Fourth image is blocked or backend error is handled.
+- Invalid file type shows clear error.
+
+Stage 40: Admin product image cover, reorder, and delete
+- Call DELETE /api/admin/products/:id/images/:imageId.
+- Call PATCH /api/admin/products/:id/images/:imageId/cover.
+- Call PATCH /api/admin/products/:id/images/reorder.
+- Add drag-and-drop reorder only if stable and accessible; otherwise use explicit controls.
+- Confirm deletion.
+
+Acceptance tests:
+- Cover image changes.
+- Reordering persists.
+- Deleted image disappears after API confirmation.
+- Remaining cover behavior is correct.
+
+Stage 41: Admin product visibility, soft delete, and restore
+- Call PATCH /api/admin/products/:id/visibility.
+- Call DELETE /api/admin/products/:id.
+- Call PATCH /api/admin/products/:id/restore.
+- Add confirmation and status feedback.
+
+Acceptance tests:
+- Hidden product disappears publicly.
+- Deleted product disappears publicly.
+- Restored product follows its visibility state.
+
+Stage 42: Admin order list
+- Call GET /api/admin/orders.
+- Add status, search, date range, and pagination filters.
+- Store filters in URL.
+- Build responsive table/cards.
+
+Acceptance tests:
+- Filters match backend query format.
+- Refresh preserves filters.
+- Status/date display is formatted correctly.
+
+Stage 43: Admin order detail
+- Call GET /api/admin/orders/:id.
+- Show customer, item snapshots, address snapshot, totals, payment method, timestamps, status history, and notes when available.
+- Add customer link.
+
+Acceptance tests:
+- Full order detail renders.
+- Missing order is handled.
+- Historical snapshots are used.
+
+Stage 44: Admin order status update
+- Call PATCH /api/admin/orders/:id/status.
+- Show only valid status options according to SRD/backend.
+- Add optional note when supported.
+- Confirm cancellation or final-state changes when appropriate.
+- Refetch order and lists.
+
+Acceptance tests:
+- Status updates.
+- History updates.
+- Customer notification is created by backend.
+- UI does not claim customer SMS was sent.
+
+Stage 45: Admin customer list
+- Call GET /api/admin/customers.
+- Add search and pagination if supported.
+- Show core profile and order summary fields returned by API.
+- Link to customer detail.
+
+Acceptance tests:
+- Customers render.
+- Search works according to API.
+- Sensitive data not returned by API is not guessed or displayed.
+
+Stage 46: Admin customer detail
+- Call GET /api/admin/customers/:id.
+- Call GET /api/admin/customers/:id/orders.
+- Show profile, verification state, account dates, and orders.
+- Handle deleted customer state if returned.
+
+Acceptance tests:
+- Customer detail and order list render.
+- Pagination works where supported.
+
+Stage 47: Admin settings
+- Call GET /api/admin/settings.
+- Call PATCH /api/admin/settings.
+- Call PATCH /api/admin/settings/cancellation.
+- Manage default measurement unit and other general settings returned by API.
+- Keep secret SMS credentials out of forms.
+
+Acceptance tests:
+- Settings load and update.
+- Cancellation toggle affects customer UI after refetch.
+- No secret values are exposed.
+
+Stage 48: Admin phone numbers and SMS provider settings
+- Call POST /api/admin/settings/admin-phones.
+- Call DELETE /api/admin/settings/admin-phones/:phoneId.
+- Call PATCH /api/admin/settings/sms.
+- Display provider name/config metadata only.
+- Explain that secret provider credentials remain backend environment variables.
+
+Acceptance tests:
+- Admin phone can be added/removed.
+- Provider selection updates.
+- Secret token fields do not exist in frontend.
+
+Stage 49: Admin SMS test and logs
+- Call POST /api/admin/sms/test.
+- Call GET /api/admin/sms/logs.
+- Build test form.
+- Build logs table with provider, recipient, purpose, status, preview, and error data returned by API.
+- Never display OTP codes.
+
+Acceptance tests:
+- Admin can send test SMS.
+- Customer cannot access page.
+- Logs show success/failure without OTP leakage.
+
+Stage 50: SEO, metadata, and share previews
+- Add site metadata.
+- Add page-specific titles/descriptions.
+- Add product metadata.
+- Add canonical URLs where appropriate.
+- Add Open Graph/Twitter metadata.
+- Add robots and sitemap strategy.
+- Ensure admin/account/auth routes are not indexed.
+- Add structured data only when accurate.
+
+Acceptance tests:
+- Metadata renders in page source.
+- Private/admin routes are excluded from indexing.
+- Product URLs have correct canonical data.
+
+Stage 51: Accessibility, performance, and responsive QA
+- Audit keyboard navigation.
+- Audit focus order.
+- Audit color contrast in both themes.
+- Audit image sizing and lazy loading.
+- Reduce unnecessary client components.
+- Remove duplicate queries.
+- Add route-level loading states.
+- Test slow network and mobile viewport.
+- Run Lighthouse or equivalent checks.
+
+Acceptance tests:
+- No critical accessibility violations.
+- No major layout shifts.
+- Core pages are usable on narrow screens.
+- Production build passes.
+
+Stage 52: Final frontend test suite and production readiness
+- Add/complete unit tests for utilities and validation.
+- Add component tests for auth/cart/forms.
+- Add Playwright tests for critical flows:
+  1. Public browsing.
+  2. Phone OTP login using safe test setup.
+  3. Guest cart and merge.
+  4. Checkout and COD order.
+  5. Customer order history.
+  6. Admin product creation/edit/visibility.
+  7. Admin order status update.
+  8. Notification read flow.
+- Run lint.
+- Run TypeScript check.
+- Run unit tests.
+- Run end-to-end tests.
+- Run production build.
+- Remove temporary mocks, diagnostic pages, debug logs, and test credentials.
+- Produce final environment and deployment checklist.
+
+Acceptance tests:
+- npm run lint passes.
+- TypeScript passes without ignored production errors.
+- Test suite passes.
+- npm run build passes.
+- Production environment uses HTTPS API URL.
+- No frontend bundle contains backend secrets.
+
+============================================================
+10. TESTING CHECKLIST
+============================================================
+
+Environment and API:
+- Frontend reaches GET /api/health.
+- CORS accepts the frontend origin.
+- API base URL changes by environment.
+- Backend errors are normalized.
+
+Authentication:
+- OTP send works.
+- OTP verification works.
+- Wrong OTP fails safely.
+- Expired OTP fails safely.
+- Resend cooldown works.
+- Google OAuth works.
+- Session restoration works.
+- Refresh rotation flow works with backend behavior.
+- Logout works.
+- Customer cannot access admin routes.
+- Guest cannot access protected customer routes.
+
+Products and categories:
+- Public categories render.
+- Public product list renders.
+- Search/filter/pagination work.
+- Featured products render.
+- Product detail renders.
+- Hidden products are not shown publicly.
+- Deleted products are not shown publicly.
+- Availability text is never displayed.
+
+Cart:
+- Guest can add/update/remove items.
+- Guest cart persists locally.
+- Authenticated cart works through API.
+- Guest cart merges after login.
+- Failed merge retains guest data.
+- Hidden/deleted items are handled safely.
+- Checkout refetches authoritative cart data.
+
+Checkout and orders:
+- Checkout requires authentication.
+- Checkout requires a valid cart.
+- Address selection works.
+- COD is the only payment method.
+- Order is created once.
+- Cart clears/refetches after success.
+- Customer sees own orders only.
+- Order detail uses snapshots.
+- Cancellation respects settings and status.
+
+Notifications:
+- Notifications list works.
+- Mark one read works.
+- Mark all read works.
+- Unread count is accurate.
+- Realtime/polling update works.
+- Cross-user notification leakage does not occur.
+
+Admin:
+- Dashboard works.
+- Category CRUD works.
+- Category restore works.
+- Product CRUD works.
+- Product image upload works through Express.
+- Maximum three images is enforced.
+- Cover selection and reorder work.
+- Product visibility works.
+- Product soft delete and restore work.
+- Order filtering works.
+- Order status update works.
+- Customer list/detail works.
+- Settings work.
+- Admin phone management works.
+- SMS test and logs work.
+
+Security:
+- No service role key exists in frontend files or bundle.
+- No database URL exists in frontend files or bundle.
+- No JWT signing secret exists in frontend files or bundle.
+- No AfroMessage token exists in frontend files or bundle.
+- No internal API key exists in frontend files or bundle.
+- Tokens are not logged.
+- Refresh token is not placed in URL.
+- Admin UI never replaces backend authorization.
+- Uploaded images go through Express only.
+
+Quality:
+- Light mode works.
+- Dark mode works.
+- Mobile layout works.
+- Tablet layout works.
+- Desktop layout works.
+- Keyboard navigation works.
+- Loading, empty, and error states exist.
+- No raw unhandled API errors are shown.
+- No console errors remain in normal flows.
+- Production build succeeds.
+
+============================================================
+11. DEFINITION OF FRONTEND COMPLETION
+============================================================
+
+The frontend is complete when:
+- The Next.js application uses the approved design system.
+- Light and dark themes work across all pages.
+- Public users can browse categories and products.
+- Public product availability text is not shown.
+- Phone OTP login works through Express.
+- Google OAuth works through Express.
+- JWT session handling, refresh, and logout work.
+- Guest cart persists locally.
+- Guest cart merges after login.
+- Authenticated cart works through Express.
+- Customer profile and addresses work.
+- Customer can place a Cash on Delivery order.
+- Customer can view own orders and order details.
+- Customer cancellation obeys the backend setting.
+- Customer notifications work, including the approved live-update method.
+- Admin dashboard works.
+- Admin category management works.
+- Admin product management works.
+- Product images are uploaded only through Express.
+- Admin product visibility, soft delete, and restore work.
+- Admin order list, detail, and status update work.
+- Admin customer views work.
+- Admin settings and SMS management views work.
+- Responsive and accessibility checks pass.
+- Lint, TypeScript, tests, and production build pass.
+- No backend secret is exposed in source code, environment files, logs, URLs, or frontend bundle.
+- All temporary mocks and diagnostic code are removed.
+
+============================================================
+12. INITIAL CURSOR INSTRUCTION
+============================================================
+
+Use this exact instruction when starting the Cursor Agent:
+
+Read the Frontend SRD, this Frontend Development Plan, and the backend Postman collection before changing any code. Treat the SRD as the primary functional source of truth and the Postman collection as the API contract. Inspect the existing project and begin only with Stage 1. Do not implement future stages. For Stage 1, show all files you will create or edit, provide the complete code changes, list environment variables and commands, then give exact browser/API testing steps and expected results. Run lint and TypeScript checks. Stop after Stage 1 and wait for my test results and approval before continuing.
+
+END OF FRONTEND DEVELOPMENT PLAN
