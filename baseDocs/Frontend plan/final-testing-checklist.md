@@ -38,12 +38,12 @@ Mark each item: `[ ]` not tested · `[x]` pass · `[!]` fail (note in comments)
 
 ## 3. Public catalog
 
-- [ ] Homepage shows featured products (Stage 16)
-- [ ] `/products` lists visible products only (Stage 15)
-- [ ] No availability/stock text on product cards or detail (Stage 15, 17)
-- [ ] Category filter works; URL reflects filter (Stage 15)
-- [ ] Product detail `/products/[slug]` loads gallery, price, unit, volume (Stage 17)
-- [ ] Hidden/deleted products return 404 on public routes (Stage 17)
+- [x] Homepage shows featured products (Stage 16) — confirmed 2026-07-22
+- [x] `/products` lists visible products only (Stage 15) — confirmed 2026-07-21
+- [x] No availability/stock text on product cards (Stage 15) — confirmed 2026-07-21; detail Stage 17 confirmed 2026-07-22
+- [x] Category filter works; URL reflects filter (Stage 15) — confirmed 2026-07-21
+- [x] Product detail `/products/[slug]` loads gallery, price, unit, volume (Stage 17) — confirmed 2026-07-22
+- [x] Hidden/deleted products return 404 on public routes (Stage 17) — confirmed 2026-07-22
 
 ---
 
@@ -91,8 +91,9 @@ Mark each item: `[ ]` not tested · `[x]` pass · `[!]` fail (note in comments)
 
 - [ ] Logged-in cart loads from `GET /api/cart` (Stage 20)
 - [ ] Add/update/remove syncs to server (Stage 20)
-- [ ] Guest items merge after login via `POST /api/cart/merge` (Stage 21)
-- [ ] Local guest cart cleared only after successful merge (Stage 21)
+- [ ] Guest items merge after login via `POST /api/cart/merge` (Stage 21) — implemented; leave open until Stage 24 E2E
+- [ ] Local guest cart cleared only after successful merge (Stage 21) — implemented; re-confirm with Stage 24
+- [ ] **Deferred Stage 21 E2E:** guest → Checkout → login → land on `/checkout` with merged cart (confirm when Stage 24 done)
 
 ---
 
@@ -112,6 +113,7 @@ Mark each item: `[ ]` not tested · `[x]` pass · `[!]` fail (note in comments)
 - [ ] Empty cart cannot checkout (Stage 24)
 - [ ] Address selection from saved addresses (Stage 24)
 - [ ] **COD only** — no online payment options (Stage 24)
+- [ ] **Stage 21 follow-up:** guest cart → Checkout → login → return to `/checkout` with merged items (then mark Stage 21 `done`)
 - [ ] `POST /api/orders` with `{ addressId, paymentMethod: "COD" }` succeeds (Stage 25)
 - [ ] Double-submit does not create duplicate orders (Stage 25)
 - [ ] Success page shows order reference (Stage 25)

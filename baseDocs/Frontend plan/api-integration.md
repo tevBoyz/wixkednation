@@ -2,7 +2,7 @@
 
 Maps UI routes, hooks, and API modules to [`../backend-postman-collection.json`](../backend-postman-collection.json).
 
-**Status:** stub — fill in **Implemented** column as stages complete and you confirm tests.
+**Status:** living map — Stages 1–20 confirmed. Stage 21 merge implemented but left partial until Stage 24 checkout redirect re-test.
 
 Auth header (where noted): `Authorization: Bearer <accessToken>`
 
@@ -18,7 +18,7 @@ Response shapes:
 | Method | Path | Auth | Frontend page/hook | Stage | Implemented |
 |--------|------|------|-------------------|-------|-------------|
 | GET | `/` | none | — | — | — |
-| GET | `/api/health` | none | home diagnostic, `health.ts` | 1, 7 | yes (2026-07-21 Stage 1) |
+| GET | `/api/health` | none | home diagnostic, `health.ts` via `client.ts` | 1, 7 | yes (2026-07-21 Stage 7 client) |
 | GET | `/api/health/supabase` | none | optional admin diag | — | — |
 | GET | `/api/health/prisma` | none | optional admin diag | — | — |
 | GET | `/api/health/storage` | none | optional admin diag | — | — |
@@ -29,8 +29,8 @@ Response shapes:
 
 | Method | Path | Auth | Frontend page/hook | Stage | Implemented |
 |--------|------|------|-------------------|-------|-------------|
-| POST | `/api/age-gate/verify` | none | `/age-gate`, `ageGate.api.ts` | 6 | — |
-| POST | `/api/age-gate/block` | none | `/age-gate` decline, `ageGate.api.ts` | 6 | — |
+| POST | `/api/age-gate/verify` | none | `/age-gate`, `age-gate.ts` | 6 | yes (2026-07-21 Stage 6) |
+| POST | `/api/age-gate/block` | none | `/age-gate` decline, `age-gate.ts` | 6 | yes (2026-07-21 Stage 6) |
 
 ---
 
@@ -38,15 +38,15 @@ Response shapes:
 
 | Method | Path | Auth | Frontend page/hook | Stage | Implemented |
 |--------|------|------|-------------------|-------|-------------|
-| POST | `/api/auth/otp/send` | none | `/login`, `auth.api.ts` | 9 | — |
-| POST | `/api/auth/otp/verify` | none | `/verify-otp`, `auth.api.ts` | 10 | — |
-| POST | `/api/auth/refresh` | none | API client interceptor, `auth.api.ts` | 12 | — |
-| POST | `/api/auth/logout` | none | header logout, `auth.api.ts` | 12 | — |
-| GET | `/api/auth/google/start` | none | Google button redirect | 11 | — |
-| GET | `/api/auth/google/callback` | none | backend only (browser OAuth) | 11 | — |
-| POST | `/api/auth/exchange-code` | none | `/auth/google/callback`, `auth.api.ts` | 11 | — |
+| POST | `/api/auth/otp/send` | none | `/login`, `auth.api.ts` | 9 | yes (2026-07-21 Stage 9) |
+| POST | `/api/auth/otp/verify` | none | `/verify-otp`, `auth.api.ts` | 10 | yes (2026-07-21 Stage 10) |
+| POST | `/api/auth/refresh` | none | API client interceptor, `session.ts` | 12 | yes (2026-07-21 Stage 12) |
+| POST | `/api/auth/logout` | none | header logout, `auth.api.ts` | 12 | yes (2026-07-21 Stage 12) |
+| GET | `/api/auth/google/start` | none | Google button redirect | 11 | yes (2026-07-21 Stage 11) |
+| GET | `/api/auth/google/callback` | none | backend only (browser OAuth) | 11 | yes |
+| POST | `/api/auth/exchange-code` | none | `/auth/google/callback`, `auth.api.ts` | 11 | yes (2026-07-21 Stage 11) |
 | GET | `/api/auth/me` | Bearer | legacy bootstrap fallback | 12 | — |
-| GET | `/api/auth/admin-check` | admin | optional AdminGuard verify | 13 | — |
+| GET | `/api/auth/admin-check` | admin | `AdminGuard` verify | 13 | yes (2026-07-21 Stage 13) |
 
 ---
 
@@ -54,7 +54,7 @@ Response shapes:
 
 | Method | Path | Auth | Frontend page/hook | Stage | Implemented |
 |--------|------|------|-------------------|-------|-------------|
-| GET | `/api/users/me` | Bearer | `useAuth`, `/account/profile` | 12, 22 | — |
+| GET | `/api/users/me` | Bearer | `useAuth` bootstrap, `/account/profile` | 12, 22 | yes (2026-07-21 Stage 12 bootstrap) |
 | PATCH | `/api/users/me` | Bearer | profile form | 22 | — |
 
 ---
@@ -63,11 +63,11 @@ Response shapes:
 
 | Method | Path | Auth | Frontend page/hook | Stage | Implemented |
 |--------|------|------|-------------------|-------|-------------|
-| GET | `/api/categories` | none | header nav, homepage | 14, 16 | — |
-| GET | `/api/categories/:slug` | none | `/categories/[slug]` | 14 | — |
-| GET | `/api/products` | none | `/products` | 15 | — |
-| GET | `/api/products/featured` | none | homepage | 16 | — |
-| GET | `/api/products/:slug` | none | `/products/[slug]` | 17 | — |
+| GET | `/api/categories` | none | header nav, `/categories`, homepage | 14, 16 | yes (2026-07-21 Stage 14) |
+| GET | `/api/categories/:slug` | none | `/categories/[slug]` | 14 | yes (2026-07-21 Stage 14) |
+| GET | `/api/products` | none | `/products` | 15 | yes (2026-07-21 Stage 15) |
+| GET | `/api/products/featured` | none | homepage | 16 | yes (2026-07-21 Stage 16) |
+| GET | `/api/products/:slug` | none | `/products/[slug]` | 17 | yes (2026-07-21 Stage 17) |
 
 ---
 
@@ -75,12 +75,12 @@ Response shapes:
 
 | Method | Path | Auth | Frontend page/hook | Stage | Implemented |
 |--------|------|------|-------------------|-------|-------------|
-| GET | `/api/cart` | customer | cart page (logged in), checkout | 20, 24 | — |
-| POST | `/api/cart/items` | customer | add to cart (logged in) | 20 | — |
-| PATCH | `/api/cart/items/:itemId` | customer | cart qty update | 20 | — |
-| DELETE | `/api/cart/items/:itemId` | customer | remove item | 20 | — |
-| DELETE | `/api/cart` | customer | clear cart | 20 | — |
-| POST | `/api/cart/merge` | customer | post-login merge | 21 | — |
+| GET | `/api/cart` | customer | cart page (logged in), checkout | 20, 24 | yes (2026-07-22 Stage 20) |
+| POST | `/api/cart/items` | customer | add to cart (logged in) | 20 | yes (2026-07-22 Stage 20) |
+| PATCH | `/api/cart/items/:itemId` | customer | cart qty update | 20 | yes (2026-07-22 Stage 20) |
+| DELETE | `/api/cart/items/:itemId` | customer | remove item | 20 | yes (2026-07-22 Stage 20) |
+| DELETE | `/api/cart` | customer | clear cart | 20 | yes (2026-07-22 Stage 20) |
+| POST | `/api/cart/merge` | customer | post-login merge | 21 | yes (2026-07-22 Stage 21) |
 
 Guest cart: **localStorage only** — no API (Stages 18–19).
 

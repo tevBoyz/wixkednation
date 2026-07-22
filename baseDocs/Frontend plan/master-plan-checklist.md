@@ -7,7 +7,10 @@ Status values:
 - `partial` — started but incomplete or failing tests
 - `missing` — not started
 
-**Sync note:** Created 2026-07-21. Stage 1 confirmed done 2026-07-21.
+**Sync note:** Created 2026-07-21. Stages 1–20 confirmed done 2026-07-22. Stage 21 merge implemented 2026-07-22 — left `partial` until checkout redirect can be re-verified in Stage 24.
+
+**Follow-up (do not skip):** When Stage 24 (Checkout foundation) is done, remind the user to confirm Stage 21 end-to-end: guest cart → Checkout → login → land on `/checkout` with merged cart → then mark Stage 21 `done`.
+
 
 API source of truth: [`../backend-postman-collection.json`](../backend-postman-collection.json) (72 routes)
 
@@ -22,124 +25,128 @@ API source of truth: [`../backend-postman-collection.json`](../backend-postman-c
 - Confirmed: 2026-07-21
 
 ### Stage 2: shadcn/ui and foundational packages
-- Status: `missing`
+- Status: `done`
 - Endpoints: none
-- Key files (planned): `components/ui/*`, `src/lib/utils.ts`
-- Your confirmation required: yes
+- Key files: `components.json`, `src/components/ui/*`, `src/lib/utils.ts`, `src/app/dev/ui/page.tsx`
+- Confirmed: 2026-07-21
 
 ### Stage 3: Theme, typography, dark mode
-- Status: `missing`
+- Status: `done`
 - Endpoints: none
-- Key files (planned): `src/components/theme-provider.tsx`, `globals.css`
-- Your confirmation required: yes
+- Key files: `src/components/theme-provider.tsx`, `src/components/theme-toggle.tsx`, `globals.css`
+- Confirmed: 2026-07-21
 
 ### Stage 4: Application providers and global error handling
-- Status: `missing`
+- Status: `done`
 - Endpoints: none
-- Key files (planned): `src/components/providers.tsx`, `app/error.tsx`
-- Your confirmation required: yes
+- Key files: `src/components/providers/*`, `src/lib/api/errors.ts`, `app/error.tsx`, `app/not-found.tsx`
+- Confirmed: 2026-07-21
 
 ### Stage 5: Shared storefront layout
-- Status: `missing`
+- Status: `done`
 - Endpoints: none
-- Key files (planned): `src/components/layout/header.tsx`, `footer.tsx`
-- Your confirmation required: yes
+- Key files: `src/app/(store)/layout.tsx`, `src/components/layout/*`
+- Confirmed: 2026-07-21
 
 ### Stage 6: Age gate + blocked page (API-backed)
-- Status: `missing`
+- Status: `done`
 - Endpoints: `POST /api/age-gate/verify`, `POST /api/age-gate/block`
-- Key files (planned): `app/age-gate/page.tsx`, `app/blocked/page.tsx`
-- Your confirmation required: yes
+- Key files: `src/app/age-gate/page.tsx`, `src/app/blocked/page.tsx`, `src/middleware.ts`, `src/lib/api/age-gate.ts`
+- Confirmed: 2026-07-21
 
 ### Stage 7: Central API client
-- Status: `missing`
-- Endpoints: `GET /api/health`
-- Key files (planned): `src/lib/api/client.ts`
-- Your confirmation required: yes
+- Status: `done`
+- Endpoints: `GET /api/health` (via client)
+- Key files: `src/lib/api/client.ts`, `src/lib/auth/token-storage.ts`
+- Confirmed: 2026-07-21
 
 ### Stage 8: API types and endpoint modules
-- Status: `missing`
-- Endpoints: all Postman domains (stubs)
-- Key files (planned): `src/lib/api/*.ts`
-- Your confirmation required: yes
+- Status: `done`
+- Endpoints: catalog + all domain API modules (stubs/implementations)
+- Key files: `src/lib/api/types.ts`, `src/lib/api/*.api.ts`, `src/lib/api/admin/*`, `CatalogApiSmoke`
+- Confirmed: 2026-07-21
 
 ### Stage 9: Phone login screen
-- Status: `missing`
+- Status: `done`
 - Endpoints: `POST /api/auth/otp/send`
-- Key files (planned): `app/(auth)/login/page.tsx`
-- Your confirmation required: yes
+- Key files: `src/components/auth/login-form.tsx`, `src/lib/phone.ts`, `(store)/login`
+- Confirmed: 2026-07-21
 
 ### Stage 10: OTP verification
-- Status: `missing`
+- Status: `done`
 - Endpoints: `POST /api/auth/otp/verify`
-- Key files (planned): `app/(auth)/verify-otp/page.tsx`
-- Your confirmation required: yes
+- Key files: `src/components/auth/verify-otp-form.tsx`, auth session `setSession`
+- Confirmed: 2026-07-21
 
 ### Stage 11: Google OAuth (secure handoff)
-- Status: `missing`
+- Status: `done`
 - Endpoints: `GET /api/auth/google/start`, `POST /api/auth/exchange-code`
-- Key files (planned): `app/auth/google/callback/page.tsx`
-- Your confirmation required: yes
+- Key files: `login-form.tsx` Google button, `app/auth/google/callback/*`
+- Confirmed: 2026-07-21
 
 ### Stage 12: Auth session restore, refresh, logout
-- Status: `missing`
+- Status: `done`
 - Endpoints: `GET /api/users/me`, `POST /api/auth/refresh`, `POST /api/auth/logout`
-- Key files (planned): `src/lib/auth/*`, `src/hooks/useAuth.ts`
-- Your confirmation required: yes
+- Key files: `src/lib/auth/session.ts`, `src/lib/api/client.ts` (401→refresh), `auth-provider.tsx`, `auth-bootstrap-gate.tsx`, `site-header.tsx` (logout)
+- Confirmed: 2026-07-21
 
 ### Stage 13: Auth and admin guards
-- Status: `missing`
+- Status: `done`
 - Endpoints: optional `GET /api/auth/admin-check`
-- Key files (planned): `src/components/guards/*`
-- Your confirmation required: yes
+- Key files: `src/components/guards/*`, `(store)/account|checkout/layout.tsx`, `app/admin/*`, `(store)/forbidden`
+- Confirmed: 2026-07-21
 
 ### Stage 14: Public categories
-- Status: `missing`
+- Status: `done`
 - Endpoints: `GET /api/categories`, `GET /api/categories/:slug`
-- Key files (planned): `app/(store)/categories/[slug]/page.tsx`
-- Your confirmation required: yes
+- Key files: `categories.api.ts`, `categories-nav.tsx`, `category-card.tsx`, `app/(store)/categories/**`, `nav-hover-menu.tsx`
+- Confirmed: 2026-07-21
 
 ### Stage 15: Public product list
-- Status: `missing`
+- Status: `done`
 - Endpoints: `GET /api/products`
-- Key files (planned): `app/(store)/products/page.tsx`
-- Your confirmation required: yes
+- Key files: `products.api.ts`, `product-card.tsx`, `products-filters.tsx`, `products-pagination.tsx`, `lib/catalog/format.ts`, `app/(store)/products/page.tsx`
+- Confirmed: 2026-07-21
 
 ### Stage 16: Homepage + featured products
-- Status: `missing`
+- Status: `done`
 - Endpoints: `GET /api/products/featured`, `GET /api/categories`
-- Key files (planned): `app/(store)/page.tsx`
-- Your confirmation required: yes
+- Key files: `app/(store)/page.tsx`, `catalog-image.tsx`, `hero-featured-stack.tsx`, `product-card.tsx`
+- Confirmed: 2026-07-22
 
 ### Stage 17: Product detail page
-- Status: `missing`
+- Status: `done`
 - Endpoints: `GET /api/products/:slug`
-- Key files (planned): `app/(store)/products/[slug]/page.tsx`
-- Your confirmation required: yes
+- Key files: `app/(store)/products/[slug]/page.tsx`, `product-gallery.tsx`, `add-to-cart-button.tsx`, `product-back-button.tsx`
+- Confirmed: 2026-07-22
 
 ### Stage 18: Guest cart state
-- Status: `missing`
+- Status: `done`
 - Endpoints: none (localStorage)
-- Key files (planned): `src/lib/cart/guest-cart.ts`, `src/stores/cart-store.ts`
-- Your confirmation required: yes
+- Key files: `src/lib/cart/guest-cart.ts`, `src/stores/guest-cart-store.ts`, `cart-provider.tsx`
+- Confirmed: 2026-07-22
 
 ### Stage 19: Cart UI
-- Status: `missing`
-- Endpoints: none (guest)
-- Key files (planned): `app/(store)/cart/page.tsx`
-- Your confirmation required: yes
+- Status: `done`
+- Endpoints: none for guest
+- Key files: `app/(store)/cart/page.tsx`, `components/cart/*`
+- Confirmed: 2026-07-22
 
 ### Stage 20: Authenticated server cart
-- Status: `missing`
+- Status: `done`
 - Endpoints: `GET/POST/PATCH/DELETE /api/cart*`
-- Key files (planned): `src/lib/api/cart.api.ts`
-- Your confirmation required: yes
+- Key files: `src/lib/api/cart.api.ts`, `cart-provider.tsx` (auth branch)
+- Confirmed: 2026-07-22
 
 ### Stage 21: Guest cart merge after login
-- Status: `missing`
+- Status: `partial`
 - Endpoints: `POST /api/cart/merge`
-- Key files (planned): merge hook in auth flow
-- Your confirmation required: yes
+- Key files: `src/lib/cart/merge-guest-cart.ts`, `cart-provider.tsx`, auth redirect helpers (`lib/auth/redirect.ts`)
+- Your confirmation required: yes (deferred)
+- Implemented: 2026-07-22
+- Notes:
+  - Merge on login is implemented; full guest → Checkout → login → `/checkout` persistence cannot be fully confirmed until Stage 24 builds real checkout UI.
+  - **Re-test when Stage 24 completes**, then mark this stage `done`.
 
 ### Stage 22: Account layout + profile
 - Status: `missing`
@@ -158,6 +165,7 @@ API source of truth: [`../backend-postman-collection.json`](../backend-postman-c
 - Endpoints: `GET /api/cart`, `GET /api/users/me/addresses`
 - Key files (planned): `app/(store)/checkout/page.tsx`
 - Your confirmation required: yes
+- **Reminder:** After this stage passes, re-verify Stage 21: guest add → Checkout → login → return to `/checkout` with merged cart; then set Stage 21 to `done`.
 
 ### Stage 25: Order creation
 - Status: `missing`
@@ -333,9 +341,9 @@ API source of truth: [`../backend-postman-collection.json`](../backend-postman-c
 
 | Status | Count |
 |--------|-------|
-| done | 1 |
+| done | 11 |
 | partial | 0 |
-| missing | 51 |
+| missing | 41 |
 
 ## Related files
 

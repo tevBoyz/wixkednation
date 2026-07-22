@@ -35,6 +35,22 @@ Test accounts (backend seed):
 - QA products: slugs like qa-banana after npm run seed:test-products
 
 ============================================================
+PROGRESS (keep in sync with master-plan-checklist.md)
+============================================================
+
+Last confirmed complete: Stages 1–20 — 2026-07-22
+Stage 21 (guest cart merge + login redirect): PARTIAL — merge shipped; full guest→Checkout→login→/checkout confirmation deferred until Stage 24
+Next to implement: Stage 22 (Account layout + profile) when requested
+
+FOLLOW-UP REMINDER (Stage 24):
+When Checkout foundation (Stage 24) is implemented and tested, REMIND THE USER to re-confirm Stage 21:
+  1. As guest, add items → Cart → Checkout
+  2. Login (OTP or Google)
+  3. Must land on /checkout (not home/cart only)
+  4. Merged cart items visible on checkout
+Then mark Stage 21 status `done` in master-plan-checklist.md.
+
+============================================================
 DECISION OVERRIDES (SRD / old cursor plan vs live backend)
 ============================================================
 
@@ -571,6 +587,9 @@ Manual tests:
 2. Empty cart cannot proceed
 3. Only COD shown as payment
 Expected: Place order button present (wired Stage 25).
+
+AGENT REMINDER: After Stage 24 passes, ask the user to re-confirm Stage 21
+(guest → Checkout → login → /checkout + merged cart) and mark Stage 21 `done`.
 
 ------------------------------------------------------------
 Stage 25: Order creation
