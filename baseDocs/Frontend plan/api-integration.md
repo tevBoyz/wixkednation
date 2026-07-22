@@ -54,8 +54,8 @@ Response shapes:
 
 | Method | Path | Auth | Frontend page/hook | Stage | Implemented |
 |--------|------|------|-------------------|-------|-------------|
-| GET | `/api/users/me` | Bearer | `useAuth` bootstrap, `/account/profile` | 12, 22 | yes (2026-07-21 Stage 12 bootstrap) |
-| PATCH | `/api/users/me` | Bearer | profile form | 22 | — |
+| GET | `/api/users/me` | Bearer | `useAuth` bootstrap, `/account/profile` | 12, 22 | yes (2026-07-22 Stage 22) |
+| PATCH | `/api/users/me` | Bearer | profile form | 22 | yes (2026-07-22) |
 
 ---
 
@@ -90,10 +90,10 @@ Guest cart: **localStorage only** — no API (Stages 18–19).
 
 | Method | Path | Auth | Frontend page/hook | Stage | Implemented |
 |--------|------|------|-------------------|-------|-------------|
-| GET | `/api/users/me/addresses` | customer | `/account/addresses`, checkout | 23, 24 | — |
-| POST | `/api/users/me/addresses` | customer | add address form | 23 | — |
-| PATCH | `/api/users/me/addresses/:addressId` | customer | edit address | 23 | — |
-| DELETE | `/api/users/me/addresses/:addressId` | customer | delete address | 23 | — |
+| GET | `/api/users/me/addresses` | customer | `/account/addresses`, checkout | 23, 24 | yes (2026-07-22) |
+| POST | `/api/users/me/addresses` | customer | add address form | 23 | yes (2026-07-22) |
+| PATCH | `/api/users/me/addresses/:addressId` | customer | edit address | 23 | yes (2026-07-22) |
+| DELETE | `/api/users/me/addresses/:addressId` | customer | delete address | 23 | yes (2026-07-22) |
 
 ---
 

@@ -149,16 +149,22 @@ API source of truth: [`../backend-postman-collection.json`](../backend-postman-c
   - **Re-test when Stage 24 completes**, then mark this stage `done`.
 
 ### Stage 22: Account layout + profile
-- Status: `missing`
+- Status: `done`
 - Endpoints: `GET/PATCH /api/users/me`
-- Key files (planned): `app/account/profile/page.tsx`
+- Key files: `app/(store)/account/layout.tsx`, `app/(store)/account/profile/page.tsx`, `components/account/profile-form.tsx`, `components/account/account-nav.tsx`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: Account shell with nav (profile, addresses, orders, notifications placeholders). Profile form updates name/email; phone read-only. No reputation fields.
 
 ### Stage 23: Address management
-- Status: `missing`
+- Status: `done`
 - Endpoints: `/api/users/me/addresses*`
-- Key files (planned): `app/account/addresses/page.tsx`
+- Key files: `app/(store)/account/addresses/page.tsx`, `components/account/addresses-manager.tsx`, `components/account/address-form-dialog.tsx`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: List/add/edit/delete + set default. Soft-delete with confirm dialog.
 
 ### Stage 24: Checkout foundation
 - Status: `missing`
