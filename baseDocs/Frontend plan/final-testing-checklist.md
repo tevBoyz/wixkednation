@@ -1,6 +1,6 @@
 # Frontend Final Testing Checklist
 
-Manual QA for the complete frontend. Run sections as stages complete, then run **full pass** after Stage 52.
+Manual QA for the complete frontend. Run sections as stages complete, then run **full pass** after Stage 53.
 
 **Prereqs (all tests):**
 - Backend: `cd backend && npm run dev` (port 5000)
@@ -181,18 +181,20 @@ Mark each item: `[ ]` not tested · `[x]` pass · `[!]` fail (note in comments)
 
 ---
 
-## 16. SEO and quality (Stages 50–51)
+## 16. Quality and SEO (Stages 51–52)
 
-- [ ] Product pages have title, description, Open Graph tags (Stage 50)
-- [ ] `/robots.txt` disallows `/admin`, `/account`, `/login` (Stage 50)
-- [ ] `/sitemap.xml` includes public product/category URLs (Stage 50)
 - [ ] Keyboard navigation works on checkout and main nav (Stage 51)
-- [ ] Mobile layout usable at 375px width (Stage 51)
+- [ ] Skip link jumps to main content (Stage 51)
+- [ ] Mobile layout usable at 375px width — cart and checkout (Stage 51)
+- [ ] Product images use optimized loading (Stage 51)
 - [ ] `npm run build` succeeds (Stage 51)
+- [ ] Product pages have title, description, Open Graph tags (Stage 52)
+- [ ] `/robots.txt` disallows `/admin`, `/account`, `/login` (Stage 52)
+- [ ] `/sitemap.xml` includes public product/category URLs (Stage 52)
 
 ---
 
-## 17. Automated tests (Stage 52)
+## 17. Automated tests (Stage 53)
 
 - [ ] `npm run lint` passes
 - [ ] `npx tsc --noEmit` passes
@@ -249,7 +251,7 @@ Run once after Stages 31–49 complete:
 
 ---
 
-## 21. Admin media library (Stage 53)
+## 21. Admin media library (Stage 50)
 
 - [ ] `/admin/media` lists all product images from DB aggregate (not raw bucket)
 - [ ] Summary shows total image count and total storage size
@@ -269,4 +271,4 @@ Run once after Stages 31–49 complete:
 | Developer tested | | | |
 | Product owner approved | | | |
 
-When all sections pass, mark Stage 52 `done` in [`master-plan-checklist.md`](master-plan-checklist.md).
+When all sections pass, mark Stage 53 `done` in [`master-plan-checklist.md`](master-plan-checklist.md).

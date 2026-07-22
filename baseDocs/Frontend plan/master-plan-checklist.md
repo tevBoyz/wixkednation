@@ -369,64 +369,90 @@ API source of truth: [`../backend-postman-collection.json`](../backend-postman-c
 - Notes: Contact info, reputation breakdown, recent orders preview, paginated order history with status filter, links to admin order detail.
 
 ### Stage 47: Admin settings (general)
-- Status: `partial`
+- Status: `done`
 - Endpoints: `GET/PATCH /api/admin/settings` (NO cancellation route)
 - Key files: `app/admin/settings/page.tsx`, `components/admin/settings/admin-settings-client.tsx`, `components/admin/settings/admin-settings-nav.tsx`
 - Your confirmation required: yes
 - Implemented: 2026-07-22
+- Confirmed: 2026-07-22
 - Notes: Default measurement unit form; no cancellation toggle.
 
 ### Stage 48: Admin phones + SMS provider settings
-- Status: `partial`
+- Status: `done`
 - Endpoints: admin-phones, sms settings routes
 - Key files: `components/admin/settings/admin-settings-client.tsx` (phones + SMS sections)
 - Your confirmation required: yes
 - Implemented: 2026-07-22
+- Confirmed: 2026-07-22
 - Notes: Add/remove admin alert phones; provider + sender ID metadata only (no API token fields).
 
 ### Stage 49: Admin SMS test + logs
-- Status: `partial`
+- Status: `done`
 - Endpoints: `POST /api/admin/sms/test`, `GET /api/admin/sms/logs`
 - Key files: `app/admin/settings/sms/page.tsx`, `components/admin/settings/admin-sms-client.tsx`, `lib/admin/sms-log.ts`
 - Your confirmation required: yes
 - Implemented: 2026-07-22
+- Confirmed: 2026-07-22
 - Notes: Test SMS form; paginated logs with status filter; OTP messages redacted in UI.
 
-### Stage 50: SEO, metadata, sitemap
-- Status: `missing`
-- Endpoints: none (uses public catalog)
-- Key files (planned): `app/sitemap.ts`, `app/robots.ts`
+### Stage 50: Admin media library (product images)
+- Status: `done`
+- Endpoints: `GET /api/admin/media` (exists); delete reuses `DELETE /api/admin/products/:id/images/:imageId` (**exists**)
+- Key files (implemented):
+  - Frontend: `app/admin/media/page.tsx`, `components/admin/media/admin-media-client.tsx`, `lib/api/admin/media.api.ts`
+  - Nav: `components/admin/admin-nav.ts` — add **Media** item
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Depends on: Stages 39–40 (upload + delete image flows)
+- Design (DB-first, not raw bucket browser):
+  - **Source of truth:** flatten `Product.images` JSON across all products
+  - **List:** paginated grid with thumbnail (proxy URL), product link, size, date, cover badge
+  - **Summary bar:** total image count + total storage bytes
+  - **Filters:** search by product name; `includeArchived` for hidden/soft-deleted products
+  - **Delete:** reuse existing product-image delete endpoint (storage + product JSON in sync)
+  - **Out of scope v1:** bucket orphan scan, bulk delete, upload from media page
+ - Notes: Default placeholder (`/api/assets/default-product.webp`) not in bucket. See `inbetween.md` for backend contract.
+
+### Stage 50.1: Default store currency (admin + storefront)
+- Status: `done`
+- Endpoints: `GET/PATCH /api/admin/settings` (`defaultCurrency`); `GET /api/store/config` (public)
+- Key files:
+  - `lib/catalog/currency.ts`, `lib/api/store-config.api.ts`
+  - `components/providers/store-config-provider.tsx` — `useFormatPrice`, `useStoreCurrency`
+  - `components/admin/settings/admin-settings-client.tsx` — currency dropdown
+  - All price displays via dynamic `formatPrice` (catalog, cart, checkout, orders, admin)
+- Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: User-friendly API error sanitization added (backend + frontend) so Prisma errors never surface in UI.
 
 ### Stage 51: Accessibility, performance, responsive QA
-- Status: `missing`
+- Status: `done`
 - Endpoints: none
-- Key files (planned): loading states, a11y fixes
+- Key files:
+  - `components/layout/skip-link.tsx`, `components/ui/page-skeletons.tsx`
+  - `components/catalog/catalog-image.tsx` (next/image)
+  - Route `loading.tsx` for products, cart, checkout, admin
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: Skip link, reduced-motion, next/image catalog, route skeletons, dev routes removed/blocked.
 
-### Stage 52: Final test suite + production readiness
+### Stage 52: SEO, metadata, sitemap
+- Status: `partial`
+- Endpoints: none (uses public catalog)
+- Key files:
+  - `lib/seo/site-metadata.ts`, `app/robots.ts`, `app/sitemap.ts`, `app/icon.svg`
+  - `public/brand/gasnation-mark.svg`, `public/brand/gasnation-og.svg`
+- Your confirmation required: yes
+- Implemented: 2026-07-22
+- Notes: Favicon = mark only; OG/Twitter = full GasNation logo asset; admin/account/login noindex.
+
+### Stage 53: Final test suite + production readiness
 - Status: `missing`
 - Endpoints: E2E covers full flows
 - Key files (planned): `e2e/*`, `package.json` scripts
 - Your confirmation required: yes
-
-### Stage 53: Admin media library (product images)
-- Status: `missing`
-- Endpoints: `GET /api/admin/media` (new); delete reuses `DELETE /api/admin/products/:id/images/:imageId`
-- Key files (planned):
-  - Backend: `backend/src/modules/media/` (or extend `products` admin routes) — list/aggregate service + route
-  - Frontend: `app/admin/media/page.tsx`, `components/admin/media/admin-media-client.tsx`, `lib/api/admin/media.api.ts`
-  - Nav: `components/admin/admin-nav.ts` — add **Media** item
-- Your confirmation required: yes
-- Depends on: Stages 39–40 (upload + delete image flows must work)
-- Design (DB-first, not raw bucket browser):
-  - **Source of truth:** flatten `Product.images` JSON across all products; do **not** list Supabase bucket as primary UI (avoids orphans vs linked-product drift).
-  - **List:** paginated grid with thumbnail (proxy URL), linked product name → edit page, file size, upload date, cover badge.
-  - **Summary bar:** total image count + total storage bytes (sum of stored `size` fields).
-  - **Filters:** search by product name; optional toggle to include hidden and soft-deleted products (for cleanup).
-  - **Delete:** confirm modal names the product; call existing delete endpoint so storage file **and** product `images[]` + `coverImageIndex` stay in sync.
-  - **Out of scope v1:** bucket orphan scan, bulk delete, upload from media page (upload stays on product edit).
-- Notes: Default product placeholder (`/api/assets/default-product.webp`) is not in bucket and will not appear here. Optional v2: orphan report (`products/` paths not referenced in any product).
 
 ---
 
@@ -434,9 +460,10 @@ API source of truth: [`../backend-postman-collection.json`](../backend-postman-c
 
 | Status | Count |
 |--------|-------|
-| done | 46 |
-| partial | 3 |
-| missing | 4 |
+| done | 51 |
+| partial | 1 |
+| blocked | 0 |
+| missing | 1 |
 
 ## Related files
 

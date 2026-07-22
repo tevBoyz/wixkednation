@@ -1,97 +1,100 @@
 # Backend ↔ Frontend Handoff (`inbetween.md`)
 
 Shared communication file between backend and frontend.
+
 - **Frontend** writes requests / blockers here.
 - **Backend** updates status + notes when done.
-- API contract source of truth: [`baseDocs/backend-postman-collection.json`](baseDocs/backend-postman-collection.json) (72 routes)
+- API contract source of truth: [`baseDocs/backend-postman-collection.json`](baseDocs/backend-postman-collection.json) (**74 routes**)
 
-Last backend update: **2026-07-22** — Default product placeholder image (`/api/assets/default-product.webp`)
-
----
-
-## Default product image — `done` (2026-07-22)
-
-Static placeholder for products without uploaded images.
-
-| URL | Auth | Notes |
-|-----|------|-------|
-| `GET /api/assets/default-product.webp` | none | Green `#148547` square with white **G** |
-
-**Regenerate:** `npm run assets:default-product` in `backend/` (writes `backend/assets/default-product.webp`).
-
-**Frontend:** `getProductCoverUrl()` falls back to `{NEXT_PUBLIC_API_URL}/api/assets/default-product.webp`.
-
-Product uploads are stored in Supabase Storage but **served through the API** at `GET /api/assets/product-images/:productId/:imageId.webp` (private bucket proxy). Product API responses return these backend URLs in `images[].url`.
+Last backend update: **2026-07-22** — D1 complete
 
 ---
 
-## Completed backend work (frontend can proceed)
+## How to use
 
-### A1. Age gate API — `done`
-
-| Method | Path | Auth | Body | Response |
-|--------|------|------|------|----------|
-| `POST` | `/api/age-gate/verify` | none | `{ "accepted": true }` or `{ "over21": true }` | `{ success, message, data: { approved, ageGateToken, expiresIn: "30d" } }` |
-| `POST` | `/api/age-gate/block` | none | `{ "accepted": false }` or `{ "over21": false }` | `{ success, message, data: { blocked: true } }` |
-
-**Frontend integration:**
-- On “Yes”: call `/verify`, store `data.ageGateToken` client-side (cookie or localStorage).
-- On “No”: call `/block`, redirect to `/blocked`.
-- Backend does **not** enforce the token on catalog/auth routes yet (frontend gate UX owns MVP).
+| Field | Meaning |
+|-------|---------|
+| `Status` | `open` / `in_progress` / `done` / `wont_fix` |
+| `Owner` | `backend` or `frontend` |
+| `Updated` | YYYY-MM-DD + short note |
 
 ---
 
-### A2. Google OAuth secure handoff — `done` (breaking change)
+## Completed — D1. Default store currency
 
-**Old (removed):** redirect with `?accessToken=...&refreshToken=...` in URL.
+**Status:** `done`  
+**Owner:** backend  
+**Completed:** 2026-07-22  
+**Migration:** `20260722091407_add_default_currency` (additive `ALTER TABLE ... ADD COLUMN defaultCurrency DEFAULT 'ETB'` — existing data preserved)
 
-**New flow:**
-1. User hits `GET /api/auth/google/start` (browser redirect).
-2. After Google consent, backend callback redirects to:  
-   `{FRONTEND_URL}/auth/google/callback?code=<one-time-handoff-code>`
-3. Frontend calls `POST /api/auth/exchange-code` with `{ "code": "..." }`.
-4. Response: `{ success, message, data: { accessToken, refreshToken, user } }`.
+### Admin settings (extended)
 
-**Rules:** code is single-use, TTL **60s**. Errors redirect with `?error=...` only (no tokens in URL).
+**`GET /api/admin/settings`** — admin JWT  
+`data.settings` now includes:
+
+```json
+{
+  "defaultMeasurementUnit": "pcs",
+  "defaultCurrency": "ETB",
+  "adminPhoneNumbers": [],
+  "smsProviderConfig": { "provider": "afromessage", "senderId": "..." }
+}
+```
+
+**`PATCH /api/admin/settings`** — admin JWT
+
+```json
+{ "defaultMeasurementUnit": "pcs" }
+```
+
+```json
+{ "defaultCurrency": "USD" }
+```
+
+```json
+{ "defaultMeasurementUnit": "kg", "defaultCurrency": "ETB" }
+```
+
+Validation:
+- `defaultCurrency` — 3-letter uppercase ISO; allowed v1: **`ETB`**, **`USD`**, **`EUR`**, **`GBP`**
+- Empty body → `400`: *"Provide defaultMeasurementUnit and/or defaultCurrency to update."*
+- Product/order prices stay numeric — **display currency only**
+
+### Public storefront config (new)
+
+**`GET /api/store/config`** — no auth
+
+```json
+{
+  "success": true,
+  "message": "Store config fetched successfully.",
+  "data": {
+    "defaultCurrency": "ETB"
+  }
+}
+```
+
+Use on catalog, cart, checkout, and orders pages for `formatPrice` / labels.
+
+### Frontend unblocked
+
+1. ~~**Default currency** dropdown on `/admin/settings` (General section)~~ — done 2026-07-22
+2. ~~Extend `AdminSettings` types + `updateAdminSettings` body~~ — done
+3. ~~Add `getStoreConfig()` + provider/hook for `formatPrice`~~ — done
+4. ~~Replace hardcoded `"ETB"` labels~~ — done
+5. Manual QA: change currency in admin → storefront reflects new code
 
 ---
 
-### A3. Postman / response contract notes — `done` (no new features)
+## Previously completed (reference)
 
-Confirmed in Postman descriptions:
-
-| Topic | Contract |
-|-------|----------|
-| Create order | `{ "addressId", "paymentMethod"?: "COD" }` — use **`addressId`**, not `deliveryAddressId` |
-| Customer cancel | Required `{ "cancelledFromStatus": "Pending"\|"Confirmed"\|"OutForDelivery", "note"?: string }` — 409 if stale |
-| OTP verify | Field name is **`otp`** (not `code`) |
-| Profile endpoints | `GET /api/auth/me` → top-level `{ user }` (legacy). `GET /api/users/me` → `{ data: { user } }` (preferred) |
-| Reputation | **Admin-only** — never on customer auth/order/profile endpoints |
-| Notifications | **Polling only** — `GET /api/notifications`; no Supabase Realtime |
-
----
-
-## Intentional backend decisions (do not re-request)
-
-| Item | Backend truth |
-|------|---------------|
-| Customer cancellation admin toggle | **Removed** — cancel from Pending \| Confirmed \| OutForDelivery with `cancelledFromStatus` |
-| Supabase Realtime | **Polling only** — see `baseDocs/notification-polling.md` |
-| Admin cancel route | Use `PATCH /api/admin/orders/:id/status` with `Cancelled` |
-| Customer reputation | **Admin-only** |
-
----
-
-## Frontend setup
-
-- Base URL: `http://localhost:5000` (or `NEXT_PUBLIC_API_URL`)
-- Auth: `Authorization: Bearer <accessToken>`
-- Only call routes in Postman collection
-- OTP dev: `SMS_PROVIDER=mock` → read `[otp-dev]` from backend console
-
-**Previously blocked stages now unblocked:**
-- Stage 6 — Age gate (API-backed)
-- Stage 11 — Google OAuth (secure handoff)
+| ID | Item | Status |
+|----|------|--------|
+| A1 | Age gate API | `done` |
+| A2 | Google secure handoff (`POST /api/auth/exchange-code`) | `done` |
+| A3 | Postman contract confirmations | `done` |
+| C1 | Admin media library (`GET /api/admin/media`) | `done` |
+| D1 | Default store currency | `done` |
 
 ---
 
@@ -109,14 +112,15 @@ Ask:
 
 ---
 
-## How to test (backend)
+## How to test
 
 ```bash
 cd backend
-npm run postman:generate   # refreshes baseDocs/backend-postman-collection.json
-npm run test:e2e           # 114 passed (last run 2026-07-21)
+npm run postman:generate
+npm run test:e2e   # 128 passed (2026-07-22)
 ```
 
-**Manual checks:**
-- Age gate: `POST /api/age-gate/verify` with `{ "accepted": true }` → returns JWT in `data.ageGateToken`
-- Google: complete OAuth in browser → frontend receives `?code=` → exchange via `POST /api/auth/exchange-code`
+Manual:
+1. `GET /api/store/config` → `defaultCurrency`
+2. `PATCH /api/admin/settings` `{ "defaultCurrency": "USD" }` (admin Bearer)
+3. `GET /api/store/config` → `"USD"`; patch back to `"ETB"` when done

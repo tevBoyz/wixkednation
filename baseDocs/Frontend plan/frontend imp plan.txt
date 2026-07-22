@@ -38,9 +38,8 @@ Test accounts (backend seed):
 PROGRESS (keep in sync with master-plan-checklist.md)
 ============================================================
 
-Last confirmed complete: Stages 1–46 — 2026-07-22
-Stages 47–49 (admin settings + SMS): implemented — awaiting your confirmation
-Next to implement: Stage 50 (SEO, metadata, sitemap) when requested
+Last confirmed complete: Stages 1–49 — 2026-07-22
+Next to implement: Stage 50 (Admin media library)
 
 FOLLOW-UP REMINDER (admin order status — Stages 42–44):
 When admin can update order status from the dashboard, re-test Stage 30:
@@ -1083,23 +1082,61 @@ Manual tests:
 Expected: OTP purposes redacted in log preview.
 
 ------------------------------------------------------------
-Stage 50: SEO, metadata, sitemap
+Stage 50: Admin media library (product images)
 ------------------------------------------------------------
-Goal: Public SEO; block admin/auth indexing.
+Goal: Central admin view of all uploaded product images with safe
+storage cleanup. Delete from here removes the bucket file AND
+unlinks the image from the linked product.
 
-Tasks:
-- Root metadata, product page generateMetadata
-- Open Graph tags on product/home
-- robots.txt disallow /admin, /account, /login
-- sitemap.xml for public product/category URLs
+Depends on: Stages 39–40 (upload + per-product delete must work).
 
-Endpoints: none (uses public catalog data)
+Design principle — DB-first, not bucket-first:
+- Aggregate from Product.images JSON (source of truth).
+- Do NOT browse Supabase bucket as the primary list (bucket-only
+  delete would leave broken product references).
+- Reuse existing DELETE .../images/:imageId (already deletes
+  storage + updates product JSON + coverImageIndex).
+
+Backend tasks (implemented):
+- Add GET /api/admin/media (admin JWT)
+  - Flatten images[] from all products (include soft-deleted
+    products when ?includeArchived=true).
+  - Query params: page, limit, search (product name), includeArchived
+  - Each item: imageId, productId, productName, productSlug, url
+    (backend proxy), size, createdAt, isCover, productIsVisible,
+    productDeletedAt
+  - Response includes summary: { totalImages, totalBytes }
+- No new delete route — media page calls:
+  DELETE /api/admin/products/:productId/images/:imageId
+
+Frontend tasks:
+- Route: /admin/media
+- Add **Media** nav item in admin sidebar (after Products)
+- Page: summary bar (count + total size), search, include-archived
+  toggle, paginated image grid
+- Each card: thumbnail, product name (link to /admin/products/[id]),
+  size, date, cover badge if applicable
+- Delete: confirm modal → existing delete API → refresh list
+- Empty state when no images; loading/error states
+
+Out of scope v1 (optional v2):
+- Bucket orphan scan (files in storage not referenced in DB)
+- Bulk delete
+- Upload/replace from media page
+
+Endpoints:
+- GET /api/admin/media (new — backend)
+- DELETE /api/admin/products/:id/images/:imageId (reuse)
 
 Manual tests:
-1. View source on product page — title, description, og:image
-2. /robots.txt blocks /admin
-3. /sitemap.xml lists public URLs
-Expected: Private routes not in sitemap.
+1. Upload images on two products — both appear in /admin/media
+2. Search by product name — filters correctly
+3. Delete from media library — image gone from grid, product edit
+   gallery, and storage (product shows default cover if was cover)
+4. Toggle include archived — images on soft-deleted products visible
+5. Summary totals match visible/filtered set (or global totals per API design)
+Expected: No direct Supabase calls from browser; delete never leaves
+orphan DB references or broken cover index.
 
 ------------------------------------------------------------
 Stage 51: Accessibility, performance, responsive QA
@@ -1123,7 +1160,26 @@ Manual tests:
 Expected: No critical a11y violations on main flows.
 
 ------------------------------------------------------------
-Stage 52: Final test suite + production readiness
+Stage 52: SEO, metadata, sitemap
+------------------------------------------------------------
+Goal: Public SEO; block admin/auth indexing.
+
+Tasks:
+- Root metadata, product page generateMetadata
+- Open Graph tags on product/home
+- robots.txt disallow /admin, /account, /login
+- sitemap.xml for public product/category URLs
+
+Endpoints: none (uses public catalog data)
+
+Manual tests:
+1. View source on product page — title, description, og:image
+2. /robots.txt blocks /admin
+3. /sitemap.xml lists public URLs
+Expected: Private routes not in sitemap.
+
+------------------------------------------------------------
+Stage 53: Final test suite + production readiness
 ------------------------------------------------------------
 Goal: Automated tests and deploy checklist.
 
@@ -1139,65 +1195,6 @@ Manual tests:
 2. npm run build — production bundle clean
 3. Grep frontend for JWT_SECRET, SERVICE_ROLE — none found
 Expected: final-testing-checklist.md fully runnable.
-
-------------------------------------------------------------
-Stage 53: Admin media library (product images)
-------------------------------------------------------------
-Goal: Central admin view of all uploaded product images with safe
-storage cleanup. Delete from here removes the bucket file AND
-unlinks the image from the linked product.
-
-Depends on: Stages 39–40 (upload + per-product delete must work).
-
-Design principle — DB-first, not bucket-first:
-- Aggregate from Product.images JSON (source of truth).
-- Do NOT browse Supabase bucket as the primary list (bucket-only
-  delete would leave broken product references).
-- Reuse existing DELETE .../images/:imageId (already deletes
-  storage + updates product JSON + coverImageIndex).
-
-Backend tasks:
-- Add GET /api/admin/media (admin JWT)
-  - Flatten images[] from all products (include soft-deleted
-    products when ?includeArchived=true).
-  - Query params: page, limit, search (product name), includeArchived
-  - Each item: imageId, productId, productName, productSlug, url
-    (backend proxy), size, createdAt, isCover, productIsVisible,
-    productDeletedAt
-  - Response includes summary: { totalImages, totalBytes }
-- No new delete route — media page calls:
-  DELETE /api/admin/products/:productId/images/:imageId
-
-Frontend tasks:
-- Route: /admin/media
-- Add **Media** nav item in admin sidebar (between Products and
-  Categories or after Products — match admin-nav.ts pattern)
-- Page: summary bar (count + total size), search, include-archived
-  toggle, paginated image grid
-- Each card: thumbnail, product name (link to /admin/products/[id]),
-  size, date, cover badge if applicable
-- Delete: confirm modal (“Remove from {productName} and delete
-  from storage?”) → existing delete API → refresh list
-- Empty state when no images; loading/error states
-
-Out of scope v1 (optional v2):
-- Bucket orphan scan (files in storage not referenced in DB)
-- Bulk delete
-- Upload/replace from media page
-
-Endpoints:
-- GET /api/admin/media (new)
-- DELETE /api/admin/products/:id/images/:imageId (reuse)
-
-Manual tests:
-1. Upload images on two products — both appear in /admin/media
-2. Search by product name — filters correctly
-3. Delete from media library — image gone from grid, product edit
-   gallery, and storage (product shows default cover if was cover)
-4. Toggle include archived — images on soft-deleted products visible
-5. Summary totals match visible/filtered set (or global totals per API design)
-Expected: No direct Supabase calls from browser; delete never leaves
-orphan DB references or broken cover index.
 
 ============================================================
 END OF IMPLEMENTATION STAGES

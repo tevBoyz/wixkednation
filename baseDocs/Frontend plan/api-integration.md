@@ -71,6 +71,14 @@ Response shapes:
 
 ---
 
+## Store config (1) — public
+
+| Method | Path | Auth | Frontend page/hook | Stage | Implemented |
+|--------|------|------|-------------------|-------|-------------|
+| GET | `/api/store/config` | none | `StoreConfigProvider`, `useFormatPrice` | 50.1 | yes (2026-07-22) |
+
+---
+
 ## Cart (6) — customer JWT
 
 | Method | Path | Auth | Frontend page/hook | Stage | Implemented |
@@ -192,8 +200,8 @@ Reputation fields: **never** on customer-facing pages.
 
 | Method | Path | Auth | Frontend page/hook | Stage | Implemented |
 |--------|------|------|-------------------|-------|-------------|
-| GET | `/api/admin/settings` | admin | `/admin/settings` | 47 | yes (2026-07-22) |
-| PATCH | `/api/admin/settings` | admin | general settings form | 47 | yes (2026-07-22) |
+| GET | `/api/admin/settings` | admin | `/admin/settings` | 47, 50.1 | yes (2026-07-22) |
+| PATCH | `/api/admin/settings` | admin | general settings form (`defaultMeasurementUnit`, `defaultCurrency`) | 47, 50.1 | yes (2026-07-22) |
 | POST | `/api/admin/settings/admin-phones` | admin | add admin phone | 48 | yes (2026-07-22) |
 | DELETE | `/api/admin/settings/admin-phones/:phoneId` | admin | remove phone | 48 | yes (2026-07-22) |
 | PATCH | `/api/admin/settings/sms` | admin | SMS provider metadata | 48 | yes (2026-07-22) |
@@ -217,8 +225,8 @@ Never display OTP codes in log UI.
 
 | Method | Path | Auth | Frontend page/hook | Stage | Implemented |
 |--------|------|------|-------------------|-------|-------------|
-| GET | `/api/admin/media` | admin | `/admin/media` grid + summary | 53 | — |
-| DELETE | `/api/admin/products/:id/images/:imageId` | admin | media page delete (reuse Stage 40) | 53 | yes (2026-07-22) |
+| GET | `/api/admin/media` | admin | `/admin/media` grid + summary | 50 | yes (2026-07-22) |
+| DELETE | `/api/admin/products/:id/images/:imageId` | admin | media page delete (reuse Stage 40) | 50 | yes (2026-07-22) |
 
 **Design:** List is DB-first (flatten `Product.images` across products). Do not use Supabase bucket listing as the primary UI. Delete must go through the existing product-image delete route so storage cleanup and product JSON stay in sync.
 

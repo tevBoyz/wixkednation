@@ -1949,6 +1949,30 @@
       ]
     },
     {
+      "name": "Store",
+      "item": [
+        {
+          "name": "Get store config",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Status: implemented\nAuth: none\nPublic storefront config.\nResponse: { success, message, data: { defaultCurrency } }.\nReads AdminSettings singleton; defaults to ETB.",
+            "url": {
+              "raw": "{{baseUrl}}/api/store/config",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "store",
+                "config"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Admin Settings",
       "item": [
         {
@@ -1961,7 +1985,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Status: implemented\nAuth: admin",
+            "description": "Status: implemented\nAuth: admin Bearer JWT\nIncludes defaultMeasurementUnit and defaultCurrency in data.settings.",
             "url": {
               "raw": "{{baseUrl}}/api/admin/settings",
               "host": [
@@ -1989,7 +2013,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Status: implemented\nAuth: admin",
+            "description": "Status: implemented\nAuth: admin Bearer JWT\nBody: { defaultMeasurementUnit?, defaultCurrency? }.\ndefaultCurrency: 3-letter ISO code; allowed v1: ETB, USD, EUR, GBP.",
             "url": {
               "raw": "{{baseUrl}}/api/admin/settings",
               "host": [
@@ -2003,7 +2027,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"defaultMeasurementUnit\": \"pcs\"\n}",
+              "raw": "{\n  \"defaultMeasurementUnit\": \"pcs\",\n  \"defaultCurrency\": \"ETB\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2178,6 +2202,35 @@
                 "admin",
                 "sms",
                 "logs"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Media",
+      "item": [
+        {
+          "name": "List media library",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Status: implemented\nAuth: admin Bearer JWT\nDB-first flatten of Product.images across products.\nQuery: page, limit, search (product name), includeArchived (true = hidden + soft-deleted products).\nResponse data: { items, pagination, summary: { totalImages, totalBytes } }.\nDelete from media UI: reuse DELETE /api/admin/products/:productId/images/:imageId.",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/media",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "media"
               ]
             }
           }

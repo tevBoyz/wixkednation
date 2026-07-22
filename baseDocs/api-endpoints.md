@@ -2,7 +2,7 @@
 
 Source of truth for manual testing alongside `backend-postman-collection.json` (`npm run postman:generate`) and `npm run test:e2e`.
 
-**Total mounted routes: 72** (including `GET /`).
+**Total mounted routes: 74** (including `GET /`).
 
 Auth header where noted: `Authorization: Bearer <accessToken>`.
 
@@ -56,6 +56,14 @@ Backend does not enforce age gate on catalog routes yet (frontend UX owns gate f
 | GET | `/api/products` |
 | GET | `/api/products/featured` |
 | GET | `/api/products/:slug` |
+
+---
+
+## Store config (1)
+
+| Method | Path | Auth | Notes |
+|--------|------|------|-------|
+| GET | `/api/store/config` | none | `{ data: { defaultCurrency } }` — display currency for storefront; from `AdminSettings` singleton |
 
 ---
 
@@ -174,8 +182,8 @@ No Supabase Realtime. See `notification-polling.md`.
 
 | Method | Path | Notes |
 |--------|------|-------|
-| GET | `/api/admin/settings` | No cancellation flag |
-| PATCH | `/api/admin/settings` | e.g. `{ "defaultMeasurementUnit": "pcs" }` |
+| GET | `/api/admin/settings` | Includes `defaultMeasurementUnit`, `defaultCurrency` |
+| PATCH | `/api/admin/settings` | `{ defaultMeasurementUnit?, defaultCurrency? }` — currency: `ETB`, `USD`, `EUR`, `GBP` |
 | POST | `/api/admin/settings/admin-phones` | `{ "phone": "+2519…" }` |
 | DELETE | `/api/admin/settings/admin-phones/:phoneId` | |
 | PATCH | `/api/admin/settings/sms` | `{ provider, senderId }` non-secret |
@@ -227,6 +235,14 @@ No Supabase Realtime. See `notification-polling.md`.
 | Admin sets status to `Cancelled` | no customer-cancel penalty |
 
 Never returned on `/api/auth/me`, customer orders, or notifications.
+
+---
+
+## Admin media (1) — admin JWT
+
+| Method | Path | Notes |
+|--------|------|-------|
+| GET | `/api/admin/media` | DB-first flatten of `Product.images`. Query: `page`, `limit`, `search` (product name), `includeArchived` (hidden + soft-deleted). Response: `{ items, pagination, summary: { totalImages, totalBytes } }`. Delete via existing `DELETE /api/admin/products/:id/images/:imageId` |
 
 ---
 
