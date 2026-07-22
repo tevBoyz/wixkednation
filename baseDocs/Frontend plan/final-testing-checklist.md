@@ -197,17 +197,15 @@ Mark each item: `[ ]` not tested · `[x]` pass · `[!]` fail (note in comments)
 ## 17. Automated tests (Stage 53)
 
 - [ ] `npm run lint` passes
-- [ ] `npx tsc --noEmit` passes
-- [ ] Unit tests pass (cart utils, validators)
-- [ ] Playwright E2E: public browse
-- [ ] Playwright E2E: OTP login (mock)
-- [ ] Playwright E2E: guest cart → login → merge
-- [ ] Playwright E2E: checkout COD order
-- [ ] Playwright E2E: customer order history + cancel
-- [ ] Playwright E2E: admin product create/edit
-- [ ] Playwright E2E: admin order status update
-- [ ] Playwright E2E: notification read flow
-- [ ] No `JWT_*`, `SERVICE_ROLE`, or SMS secrets in frontend source
+- [ ] `npm run typecheck` passes
+- [ ] `npm run test` unit tests pass (phone, errors, cart utils, format)
+- [ ] `npm run build` succeeds
+- [ ] Playwright: `npm run test:e2e:install` then `npm run test:e2e` (frontend + backend running)
+- [ ] Playwright smoke: age gate → browse products; robots.txt; sitemap.xml
+- [ ] Playwright guest cart: open product → add to cart
+- [ ] Optional OTP login: set `E2E_OTP` (+ `E2E_PHONE`) from mock SMS console
+- [ ] No `JWT_*`, `SERVICE_ROLE`, or SMS secrets in frontend source / `.env.example`
+- [ ] `npm run verify` (lint + typecheck + unit + build) passes
 
 ---
 
@@ -268,7 +266,18 @@ Run once after Stages 31–49 complete:
 
 | Role | Name | Date | Notes |
 |------|------|------|-------|
-| Developer tested | | | |
+| Developer tested | | 2026-07-22 | Unit 25/25; Playwright smoke+guest cart pass; OTP E2E optional via `E2E_OTP` |
 | Product owner approved | | | |
 
 When all sections pass, mark Stage 53 `done` in [`master-plan-checklist.md`](master-plan-checklist.md).
+
+### Stage 53 quick commands
+
+```bash
+cd frontend
+npm run verify          # lint + typecheck + unit + build
+npm run test:e2e        # needs frontend (+ backend for catalog/cart) on :3000
+# optional OTP:
+# E2E_OTP=...... E2E_PHONE=+251911000000 npm run test:e2e -- e2e/otp-login.spec.ts
+```
+

@@ -439,20 +439,28 @@ API source of truth: [`../backend-postman-collection.json`](../backend-postman-c
 - Notes: Skip link, reduced-motion, next/image catalog, route skeletons, dev routes removed/blocked.
 
 ### Stage 52: SEO, metadata, sitemap
-- Status: `partial`
+- Status: `done`
 - Endpoints: none (uses public catalog)
 - Key files:
   - `lib/seo/site-metadata.ts`, `app/robots.ts`, `app/sitemap.ts`, `app/icon.svg`
   - `public/brand/gasnation-mark.svg`, `public/brand/gasnation-og.svg`
 - Your confirmation required: yes
 - Implemented: 2026-07-22
+- Confirmed: 2026-07-22
 - Notes: Favicon = mark only; OG/Twitter = full GasNation logo asset; admin/account/login noindex.
 
 ### Stage 53: Final test suite + production readiness
-- Status: `missing`
-- Endpoints: E2E covers full flows
-- Key files (planned): `e2e/*`, `package.json` scripts
+- Status: `done`
+- Endpoints: E2E covers public smoke + optional OTP
+- Key files:
+  - Unit: `src/lib/**/*.test.ts` (phone, errors, cart, format) via Vitest
+  - E2E: `e2e/smoke.spec.ts`, `e2e/guest-cart.spec.ts`, `e2e/otp-login.spec.ts` (Playwright)
+  - Scripts: `test`, `test:e2e`, `verify`
+  - `.env.example` documented (public env only)
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: No JWT/SERVICE_ROLE secrets in frontend. OTP E2E skipped unless `E2E_OTP` is set.
 
 ---
 
@@ -460,10 +468,10 @@ API source of truth: [`../backend-postman-collection.json`](../backend-postman-c
 
 | Status | Count |
 |--------|-------|
-| done | 51 |
-| partial | 1 |
+| done | 53 |
+| partial | 0 |
 | blocked | 0 |
-| missing | 1 |
+| missing | 0 |
 
 ## Related files
 

@@ -1,0 +1,4 @@
+name,category_name,description,price,measurement_unit,volume,is_visible,is_featured
+Example Whiskey 750ml,Spirits,Smooth blended whiskey — REPLACE THIS ROW,29.99,ml,750,TRUE,TRUE
+Example Cabernet 750ml,Wine,Full-bodied red wine — REPLACE THIS ROW,18.5,ml,750,TRUE,FALSE
+Example IPA 6-pack,Beer,Hop-forward IPA 6-pack — REPLACE THIS ROW,14.99,pcs,6,TRUE,FALSE
