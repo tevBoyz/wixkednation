@@ -38,9 +38,15 @@ Test accounts (backend seed):
 PROGRESS (keep in sync with master-plan-checklist.md)
 ============================================================
 
-Last confirmed complete: Stages 1–23 — 2026-07-22
-Stage 21 (guest cart merge + login redirect): PARTIAL — merge shipped; full guest→Checkout→login→/checkout confirmation deferred until Stage 24
-Next to implement: Stage 24 (Checkout foundation) when requested
+Last confirmed complete: Stages 1–30 — 2026-07-22
+Next to implement: Stage 31 (Admin shell) when requested
+
+FOLLOW-UP REMINDER (admin order status — Stages 42–44):
+When admin can update order status from the dashboard, re-test Stage 30:
+  1. Customer signed in on storefront (tab visible)
+  2. Admin changes that customer's order status (e.g. Pending → Confirmed)
+  3. Within ~25s, nav bell badge count should increase without manual refresh
+  4. Inbox shows new notification; order link works
 
 FOLLOW-UP REMINDER (Stage 24):
 When Checkout foundation (Stage 24) is implemented and tested, REMIND THE USER to re-confirm Stage 21:

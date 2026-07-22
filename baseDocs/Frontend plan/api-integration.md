@@ -101,10 +101,10 @@ Guest cart: **localStorage only** — no API (Stages 18–19).
 
 | Method | Path | Auth | Frontend page/hook | Stage | Implemented |
 |--------|------|------|-------------------|-------|-------------|
-| POST | `/api/orders` | customer | checkout `{ addressId, paymentMethod: "COD" }` | 25 | — |
-| GET | `/api/orders/me` | customer | `/account/orders` | 26 | — |
-| GET | `/api/orders/me/:orderId` | customer | `/account/orders/[orderId]` | 27 | — |
-| POST | `/api/orders/:orderId/cancel` | customer | cancel dialog `{ cancelledFromStatus, note? }` | 28 | — |
+| POST | `/api/orders` | customer | checkout `{ addressId, paymentMethod: "COD" }` | 25 | yes (2026-07-22) |
+| GET | `/api/orders/me` | customer | `/account/orders` | 26 | yes (2026-07-22) |
+| GET | `/api/orders/me/:orderId` | customer | `/account/orders/[orderId]` | 27 | yes (2026-07-22) |
+| POST | `/api/orders/:orderId/cancel` | customer | cancel dialog `{ cancelledFromStatus, note? }` | 28 | yes (2026-07-22) |
 
 **No reputation** on customer order endpoints.
 
@@ -114,9 +114,9 @@ Guest cart: **localStorage only** — no API (Stages 18–19).
 
 | Method | Path | Auth | Frontend page/hook | Stage | Implemented |
 |--------|------|------|-------------------|-------|-------------|
-| GET | `/api/notifications` | customer | inbox, badge, `useNotifications` poll | 29, 30 | — |
-| PATCH | `/api/notifications/:id/read` | customer | mark one read | 29 | — |
-| PATCH | `/api/notifications/read-all` | customer | mark all read | 29 | — |
+| GET | `/api/notifications` | customer | inbox, badge, `useNotifications` poll | 29, 30 | yes (2026-07-22) |
+| PATCH | `/api/notifications/:id/read` | customer | mark one read | 29 | yes (2026-07-22) |
+| PATCH | `/api/notifications/read-all` | customer | mark all read | 29 | yes (2026-07-22) |
 
 Poll interval: 20–30s while tab visible. See [`../notification-polling.md`](../notification-polling.md).
 

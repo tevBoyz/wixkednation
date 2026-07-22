@@ -139,14 +139,13 @@ API source of truth: [`../backend-postman-collection.json`](../backend-postman-c
 - Confirmed: 2026-07-22
 
 ### Stage 21: Guest cart merge after login
-- Status: `partial`
+- Status: `done`
 - Endpoints: `POST /api/cart/merge`
 - Key files: `src/lib/cart/merge-guest-cart.ts`, `cart-provider.tsx`, auth redirect helpers (`lib/auth/redirect.ts`)
-- Your confirmation required: yes (deferred)
+- Your confirmation required: yes
 - Implemented: 2026-07-22
-- Notes:
-  - Merge on login is implemented; full guest → Checkout → login → `/checkout` persistence cannot be fully confirmed until Stage 24 builds real checkout UI.
-  - **Re-test when Stage 24 completes**, then mark this stage `done`.
+- Confirmed: 2026-07-22
+- Notes: Guest → Checkout → login → `/checkout` with merged cart verified.
 
 ### Stage 22: Account layout + profile
 - Status: `done`
@@ -167,47 +166,63 @@ API source of truth: [`../backend-postman-collection.json`](../backend-postman-c
 - Notes: List/add/edit/delete + set default. Soft-delete with confirm dialog.
 
 ### Stage 24: Checkout foundation
-- Status: `missing`
+- Status: `done`
 - Endpoints: `GET /api/cart`, `GET /api/users/me/addresses`
-- Key files (planned): `app/(store)/checkout/page.tsx`
+- Key files: `app/(store)/checkout/page.tsx`, `components/checkout/checkout-page-client.tsx`, `components/checkout/checkout-address-picker.tsx`, `components/checkout/checkout-order-summary.tsx`
 - Your confirmation required: yes
-- **Reminder:** After this stage passes, re-verify Stage 21: guest add → Checkout → login → return to `/checkout` with merged cart; then set Stage 21 to `done`.
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
 
 ### Stage 25: Order creation
-- Status: `missing`
-- Endpoints: `POST /api/orders` body `{ addressId, paymentMethod: "COD" }`
-- Key files (planned): `app/(store)/order-success/[orderId]/page.tsx`
+- Status: `done`
+- Endpoints: `POST /api/orders`
+- Key files: `components/checkout/checkout-page-client.tsx`, `app/(store)/order-success/[orderId]/page.tsx`, `components/checkout/order-success-client.tsx`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
 
 ### Stage 26: Customer order history
-- Status: `missing`
+- Status: `done`
 - Endpoints: `GET /api/orders/me`
-- Key files (planned): `app/account/orders/page.tsx`
+- Key files: `app/(store)/account/orders/page.tsx`, `components/orders/orders-list-client.tsx`, `components/orders/order-status-badge.tsx`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
 
 ### Stage 27: Customer order detail
-- Status: `missing`
+- Status: `done`
 - Endpoints: `GET /api/orders/me/:orderId`
-- Key files (planned): `app/account/orders/[orderId]/page.tsx`
+- Key files: `app/(store)/account/orders/[orderId]/page.tsx`, `components/orders/order-detail-client.tsx`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
 
 ### Stage 28: Customer cancellation
-- Status: `missing`
-- Endpoints: `POST /api/orders/:orderId/cancel` + `cancelledFromStatus`
-- Key files (planned): cancel dialog on order detail
+- Status: `done`
+- Endpoints: `POST /api/orders/:orderId/cancel`
+- Key files: `components/orders/cancel-order-dialog.tsx`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
 
 ### Stage 29: Notification list + read actions
-- Status: `missing`
+- Status: `done`
 - Endpoints: `GET/PATCH /api/notifications*`
-- Key files (planned): `app/account/notifications/page.tsx`
+- Key files: `app/(store)/account/notifications/page.tsx`, `components/notifications/notifications-list-client.tsx`, `components/notifications/notifications-nav-button.tsx`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: Inbox with mark one/all read. Order notifications link to order detail. Nav bell (logged in only) with unread badge → `/account/notifications`.
 
 ### Stage 30: Notification polling (NOT Realtime)
-- Status: `missing`
-- Endpoints: `GET /api/notifications` (poll 20–30s)
-- Key files (planned): `src/hooks/useNotifications.ts`
+- Status: `done`
+- Endpoints: `GET /api/notifications` (poll 25s)
+- Key files: `src/hooks/use-notifications.ts`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: Poll while tab visible; pauses when hidden; refetch on focus. No Supabase Realtime.
+- **Re-test when admin order status UI ships (Stages 42–44):** admin status change → customer bell badge updates within ~25s without manual refresh.
 
 ### Stage 31: Admin shell + navigation
 - Status: `missing`
