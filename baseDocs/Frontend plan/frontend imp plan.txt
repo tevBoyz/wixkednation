@@ -1,0 +1,1143 @@
+You are Cursor Agent working on the FRONTEND implementation of this project.
+You must work slowly, safely, and stage by stage. Do not jump ahead.
+Do not implement future stages before the current stage is completed, tested, and approved by me.
+
+============================================================
+DOCUMENT AUTHORITY (read in this order)
+============================================================
+
+1. baseDocs/backend-postman-collection.json  — API contract ONLY (72 routes)
+2. inbetween.md                              — backend ↔ frontend handoff / blockers
+3. baseDocs/Frontend plan/frontend imp plan.txt  — THIS FILE (execution order)
+4. baseDocs/Frontend plan/Frontend srd.md    — product/UX vision (overruled on API conflicts)
+5. baseDocs/notification-polling.md          — notifications transport decision
+
+Also maintain:
+- baseDocs/Frontend plan/master-plan-checklist.md
+- baseDocs/Frontend plan/api-integration.md
+- baseDocs/Frontend plan/final-testing-checklist.md
+
+============================================================
+PROJECT CONTEXT
+============================================================
+
+Frontend: Next.js App Router + TypeScript + Tailwind + shadcn/ui
+Backend: Express.js at http://localhost:5000 (NEXT_PUBLIC_API_URL)
+Auth: Bearer JWT access token + refresh token (Express-owned, NOT Supabase Auth)
+Architecture: Next.js Frontend → Express API → Supabase (backend only)
+
+App root: frontend/ (sibling of backend/)
+
+Test accounts (backend seed):
+- Admin phone: +251911676343
+- Customer phones: +251911000000, +251922000000
+- OTP (SMS_PROVIDER=mock): read [otp-dev] phone=... otp=... from backend console
+- QA products: slugs like qa-banana after npm run seed:test-products
+
+============================================================
+PROGRESS (keep in sync with master-plan-checklist.md)
+============================================================
+
+Last confirmed complete: Stages 1–20 — 2026-07-22
+Stage 21 (guest cart merge + login redirect): PARTIAL — merge shipped; full guest→Checkout→login→/checkout confirmation deferred until Stage 24
+Next to implement: Stage 22 (Account layout + profile) when requested
+
+FOLLOW-UP REMINDER (Stage 24):
+When Checkout foundation (Stage 24) is implemented and tested, REMIND THE USER to re-confirm Stage 21:
+  1. As guest, add items → Cart → Checkout
+  2. Login (OTP or Google)
+  3. Must land on /checkout (not home/cart only)
+  4. Merged cart items visible on checkout
+Then mark Stage 21 status `done` in master-plan-checklist.md.
+
+============================================================
+DECISION OVERRIDES (SRD / old cursor plan vs live backend)
+============================================================
+
+When Frontend srd.md or frontend_development_plan_cursor.txt conflict with Postman, use these:
+
+- Notifications: POLLING ONLY (GET /api/notifications every 20–30s). No Supabase Realtime.
+- Customer cancel: NO admin toggle. Allowed from Pending | Confirmed | OutForDelivery.
+  Body MUST include cancelledFromStatus matching current status.
+- Admin cancel: PATCH /api/admin/orders/:id/status with Cancelled (no dedicated cancel route).
+- Reputation: ADMIN-ONLY (admin customers/orders). Never on customer profile or orders.
+- Order create body: { addressId, paymentMethod?: "COD" } — NOT deliveryAddressId.
+- OTP verify body field: otp (NOT code).
+- Google OAuth: redirect ?code= only → POST /api/auth/exchange-code (tokens in JSON, not URL).
+- Age gate: POST /api/age-gate/verify → store data.ageGateToken; decline → POST /api/age-gate/block → /blocked.
+- Profile read: prefer GET /api/users/me (data.user). Legacy GET /api/auth/me returns top-level user.
+- No PATCH /api/admin/settings/cancellation — endpoint removed.
+
+============================================================
+CRITICAL DEVELOPMENT RULES
+============================================================
+
+1. Work one implementation stage at a time.
+2. Before starting a stage, explain goal, files, endpoints, and tests.
+3. Implement ONLY that stage.
+4. After implementing, STOP and provide exact manual test steps.
+5. Wait for me to report test results before continuing.
+6. Mark master-plan-checklist.md done ONLY after I confirm.
+7. Update api-integration.md when a stage adds pages/hooks/endpoints.
+8. Never call endpoints not in Postman collection.
+9. Never put secrets in NEXT_PUBLIC_* or committed files.
+10. Backend work goes in inbetween.md — this chat is frontend only.
+11. Do not refactor unrelated code.
+12. Do not commit unless I ask.
+
+When stopping after a stage, end with:
+"Stage X is implemented. Please test the items above and tell me the result before I continue."
+
+Execution starts ONLY when I say "go" for a stage.
+
+============================================================
+STACK (locked)
+============================================================
+
+- Next.js App Router, TypeScript, Tailwind CSS, shadcn/ui
+- TanStack Query, Zustand, React Hook Form, Zod, Sonner, next-themes, date-fns
+- Env: NEXT_PUBLIC_API_URL, NEXT_PUBLIC_APP_URL only (no Supabase anon keys)
+
+============================================================
+IMPLEMENTATION STAGES (52)
+============================================================
+
+------------------------------------------------------------
+Stage 1: Project scaffold, env, backend health
+------------------------------------------------------------
+Goal: Create frontend/ Next.js app; verify backend connectivity.
+
+Tasks:
+- npx create-next-app@latest frontend (App Router, TS, Tailwind, ESLint)
+- Add .env.local and .env.example with NEXT_PUBLIC_API_URL, NEXT_PUBLIC_APP_URL
+- Add src/config/env.ts validation
+- Add dev health diagnostic on home page calling GET /api/health
+- Confirm CORS from localhost:3000 → localhost:5000
+
+Endpoints: GET /api/health
+
+Manual tests:
+Prereqs: backend npm run dev on :5000
+1. cd frontend && npm install && npm run dev
+2. Open http://localhost:3000 — page loads
+3. Network tab: GET /api/health returns success JSON
+4. npm run lint and npx tsc --noEmit pass
+Expected: No CORS errors; health data visible or logged cleanly.
+
+------------------------------------------------------------
+Stage 2: shadcn/ui and foundational packages
+------------------------------------------------------------
+Goal: UI foundation and shared utilities.
+
+Tasks:
+- npx shadcn@latest init
+- Add button, input, label, card, dialog, dropdown-menu, sheet, table, badge, skeleton, toast
+- Install @tanstack/react-query, zustand, react-hook-form, zod, @hookform/resolvers, sonner, next-themes, date-fns, clsx, tailwind-merge
+- Create src/lib/utils.ts (cn)
+
+Endpoints: none
+
+Manual tests:
+1. npm run build && npm run lint
+2. Temporarily render Button, Input, Dialog on a dev page — all render
+Expected: Build passes; components visible in both themes placeholder.
+
+------------------------------------------------------------
+Stage 3: Theme, typography, dark mode
+------------------------------------------------------------
+Goal: Light/dark theme with CSS variables.
+
+Tasks:
+- ThemeProvider (next-themes)
+- CSS variables in globals.css
+- Theme toggle component
+- Base typography scale
+
+Endpoints: none
+
+Manual tests:
+1. Toggle theme — UI updates
+2. Reload — theme persists (localStorage/class)
+3. Base shadcn components readable in both modes
+Expected: No flash of wrong theme on reload (or minimal).
+
+------------------------------------------------------------
+Stage 4: Application providers and global error handling
+------------------------------------------------------------
+Goal: Query, toast, error boundaries wired globally.
+
+Tasks:
+- AppProviders: QueryClientProvider, ThemeProvider, Toaster
+- AuthProvider placeholder, CartProvider placeholder
+- app/error.tsx, app/not-found.tsx
+- API error type normalization helper
+
+Endpoints: none
+
+Manual tests:
+1. Trigger test toast — appears
+2. Visit /nonexistent — not-found page
+3. No hydration errors in console
+Expected: Providers mount cleanly.
+
+------------------------------------------------------------
+Stage 5: Shared storefront layout
+------------------------------------------------------------
+Goal: Header, footer, mobile nav, cart icon shell.
+
+Tasks:
+- (store) layout with header/footer
+- Desktop + mobile navigation (sheet)
+- Cart icon (count placeholder)
+- Account menu placeholder
+- Responsive container
+
+Endpoints: none
+
+Manual tests:
+1. Resize mobile/desktop — nav usable
+2. Keyboard: open mobile menu, tab through links
+3. Theme toggle in header works
+Expected: Layout on all public routes; no broken links yet.
+
+------------------------------------------------------------
+Stage 6: Age gate + blocked page (API-backed)
+------------------------------------------------------------
+Goal: Age verification before store access.
+
+Tasks:
+- /age-gate page: Yes/No dialog
+- Yes → POST /api/age-gate/verify { accepted: true } → store data.ageGateToken (localStorage/cookie)
+- No → POST /api/age-gate/block → redirect /blocked
+- Middleware or layout guard: unapproved users → /age-gate
+- /blocked hard block page (no store nav)
+
+Endpoints:
+- POST /api/age-gate/verify
+- POST /api/age-gate/block
+
+Manual tests:
+1. Clear localStorage — visit / → redirected to /age-gate
+2. Click Yes — lands on home; token stored; gate not shown again
+3. Clear storage, click No — /blocked with no product links
+4. curl POST /api/age-gate/verify -d '{"accepted":true}' — returns ageGateToken
+Expected: Gate persists 30d per backend; blocked page has no bypass.
+
+------------------------------------------------------------
+Stage 7: Central API client
+------------------------------------------------------------
+Goal: Typed fetch wrapper with auth header injection.
+
+Tasks:
+- src/lib/api/client.ts — base URL, JSON/FormData, error normalization
+- Attach Authorization: Bearer when access token present
+- Handle { success, message, data } and legacy shapes
+- Timeout/abort support
+
+Endpoints: GET /api/health (smoke)
+
+Manual tests:
+1. Health call through client succeeds
+2. Simulate 400 validation — message shown, no crash
+3. Offline/network error — friendly error
+Expected: Single client used by all future API modules.
+
+------------------------------------------------------------
+Stage 8: API types and endpoint modules
+------------------------------------------------------------
+Goal: Domain API modules from Postman.
+
+Tasks:
+- src/lib/api/types.ts — ApiResponse, pagination, errors
+- Modules: health, auth, ageGate, categories, products, cart, users, addresses, orders, notifications, admin/*
+- Match Postman field names exactly
+
+Endpoints: stub calls to health, categories, products for compile check
+
+Manual tests:
+1. npx tsc --noEmit passes
+2. Import and call getCategories() from dev page — returns data
+Expected: All 72-route domains have module stubs or implementations.
+
+------------------------------------------------------------
+Stage 9: Phone login screen
+------------------------------------------------------------
+Goal: Send OTP flow.
+
+Tasks:
+- /login page with Ethiopian phone input (+251...)
+- Zod validation
+- POST /api/auth/otp/send { phone }
+- Navigate to /verify-otp with phone in state/query
+- Loading + error states; no OTP in UI/logs
+
+Endpoints: POST /api/auth/otp/send
+
+Manual tests:
+Prereqs: SMS_PROVIDER=mock, backend running
+1. Enter +251911000000 → submit
+2. Backend console shows [otp-dev]
+3. Invalid phone blocked client-side
+Expected: Generic success message; no OTP displayed in browser.
+
+------------------------------------------------------------
+Stage 10: OTP verification
+------------------------------------------------------------
+Goal: Verify OTP and store tokens.
+
+Tasks:
+- /verify-otp six-digit input
+- POST /api/auth/otp/verify { phone, otp }
+- Store accessToken + refreshToken securely (memory + localStorage pattern)
+- Redirect to ?redirect= or home
+- Resend cooldown UI
+
+Endpoints: POST /api/auth/otp/verify
+
+Manual tests:
+1. Enter OTP from console → logged in
+2. Wrong OTP → error message
+3. Protected route accessible after login
+Expected: Tokens stored; user redirected.
+
+------------------------------------------------------------
+Stage 11: Google OAuth (secure handoff)
+------------------------------------------------------------
+Goal: Google login without tokens in URL.
+
+Tasks:
+- "Continue with Google" → window.location = GET /api/auth/google/start
+- /auth/google/callback page reads ?code= or ?error=
+- POST /api/auth/exchange-code { code } → store tokens
+- Replace history to remove code from URL
+- Error state → back to /login
+
+Endpoints:
+- GET /api/auth/google/start (browser redirect)
+- POST /api/auth/exchange-code
+
+Manual tests:
+Prereqs: Google OAuth env configured on backend
+1. Click Google → consent → callback with ?code= only (no tokens in URL)
+2. Exchange succeeds → session established
+3. Cancelled OAuth → ?error= handled
+Expected: refreshToken never in address bar.
+
+------------------------------------------------------------
+Stage 12: Auth session restore, refresh, logout
+------------------------------------------------------------
+Goal: Persistent session with token rotation.
+
+Tasks:
+- Bootstrap: GET /api/users/me on app load
+- POST /api/auth/refresh on 401 (single retry, no loop)
+- POST /api/auth/logout + clear storage
+- Loading gate during bootstrap
+
+Endpoints:
+- GET /api/users/me
+- POST /api/auth/refresh
+- POST /api/auth/logout
+
+Manual tests:
+1. Reload while logged in — session restored
+2. Expired access token — auto refresh (or re-login if refresh invalid)
+3. Logout — protected routes redirect to login
+Expected: No infinite 401 loops.
+
+------------------------------------------------------------
+Stage 13: Auth and admin guards
+------------------------------------------------------------
+Goal: Route protection by role.
+
+Tasks:
+- AuthGuard for /account/*, /checkout
+- AdminGuard for /admin/* (role === admin)
+- Preserve return URL ?redirect=
+- 403 page for customer hitting /admin
+
+Endpoints: GET /api/auth/admin-check (optional verify)
+
+Manual tests:
+1. Guest → /checkout → /login?redirect=/checkout
+2. Customer → /admin → denied
+3. Admin → /admin → allowed
+Expected: Guards on all protected route groups.
+
+------------------------------------------------------------
+Stage 14: Public categories
+------------------------------------------------------------
+Goal: Category list and category detail pages.
+
+Tasks:
+- GET /api/categories in header/nav and /categories/[slug]
+- Category cards; empty/error states
+
+Endpoints:
+- GET /api/categories
+- GET /api/categories/:slug
+
+Manual tests:
+1. Categories appear in nav
+2. Click category → filtered or detail page loads
+3. Invalid slug → not found
+Expected: Only active categories from API.
+
+------------------------------------------------------------
+Stage 15: Public product list
+------------------------------------------------------------
+Goal: Product grid with filters.
+
+Tasks:
+- /products page
+- GET /api/products with ?category=, search, pagination
+- URL query sync for filters
+- NO availability text on cards
+
+Endpoints: GET /api/products
+
+Manual tests:
+1. /products loads grid
+2. Filter by category — URL updates, results change
+3. Confirm no "in stock" / availability labels
+Expected: Hidden products absent from public list.
+
+------------------------------------------------------------
+Stage 16: Homepage + featured products
+------------------------------------------------------------
+Goal: Landing page with hero and featured section.
+
+Tasks:
+- GET /api/products/featured
+- Hero, featured grid, category discovery, CTA to /products
+- Responsive layout
+
+Endpoints:
+- GET /api/products/featured
+- GET /api/categories (reuse)
+
+Manual tests:
+1. / shows featured products from API
+2. Mobile layout readable
+3. Broken image fallback
+Expected: Homepage is primary entry after age gate.
+
+------------------------------------------------------------
+Stage 17: Product detail page
+------------------------------------------------------------
+Goal: Single product view + add to cart entry.
+
+Tasks:
+- /products/[slug]
+- GET /api/products/:slug
+- Gallery, price, unit, volume, description
+- Add to cart button (guest cart hookup in Stage 18)
+- generateMetadata for SEO stub
+
+Endpoints: GET /api/products/:slug
+
+Manual tests:
+1. Open qa-banana or seeded product slug — detail renders
+2. Hidden/missing slug → 404
+3. No availability text
+Expected: Add to cart button visible (may wire cart next stage).
+
+------------------------------------------------------------
+Stage 18: Guest cart state
+------------------------------------------------------------
+Goal: localStorage guest cart.
+
+Tasks:
+- guest_cart key in localStorage
+- Zustand store: add, update qty, remove, clear
+- Schema: productId, name, image, quantity, volume, measurementUnit, price
+- Corrupt storage recovery
+
+Endpoints: none (local only)
+
+Manual tests:
+1. Add item from product page — count updates in header
+2. Reload — cart persists
+3. Clear site data — empty cart
+Expected: Duplicate productId merges quantity.
+
+------------------------------------------------------------
+Stage 19: Cart UI
+------------------------------------------------------------
+Goal: Cart page and sheet.
+
+Tasks:
+- /cart page + optional cart sheet
+- Quantity controls, remove, clear with confirm
+- Subtotal display (backend authoritative at checkout)
+- Empty state
+
+Endpoints: none for guest
+
+Manual tests:
+1. Guest cart full flow: add → edit qty → remove
+2. Mobile cart page usable
+3. Empty cart message
+Expected: Checkout button visible (guest → login redirect later).
+
+------------------------------------------------------------
+Stage 20: Authenticated server cart
+------------------------------------------------------------
+Goal: Server cart for logged-in users.
+
+Tasks:
+- Switch data source when authenticated
+- GET /api/cart, POST/PATCH/DELETE cart items, DELETE /api/cart
+- Optimistic updates with rollback on error
+
+Endpoints:
+- GET /api/cart
+- POST /api/cart/items
+- PATCH /api/cart/items/:itemId
+- DELETE /api/cart/items/:itemId
+- DELETE /api/cart
+
+Manual tests:
+1. Login as customer — cart loads from server
+2. Add/update/remove — persists after reload
+3. Hidden product error handled from API
+Expected: Guest and logged-in UIs look the same.
+
+------------------------------------------------------------
+Stage 21: Guest cart merge after login
+------------------------------------------------------------
+Goal: Merge local cart on login.
+
+Tasks:
+- After OTP/Google login success, if guest cart non-empty:
+  POST /api/cart/merge with local items
+- Clear local cart only on success
+- Refetch server cart
+- Handle unavailable products message
+
+Endpoints: POST /api/cart/merge
+
+Manual tests:
+1. As guest add 2 items → login → items appear in server cart
+2. localStorage guest_cart cleared after merge
+3. Failed merge keeps local cart
+Expected: No double merge on refresh.
+
+------------------------------------------------------------
+Stage 22: Account layout + profile
+------------------------------------------------------------
+Goal: Profile read/update.
+
+Tasks:
+- /account layout with nav (profile, addresses, orders, notifications)
+- GET /api/users/me display
+- PATCH /api/users/me { name?, email? }
+
+Endpoints:
+- GET /api/users/me
+- PATCH /api/users/me
+
+Manual tests:
+1. Login → /account/profile shows name, phone, email
+2. Update name → saves and refetches
+3. Validation errors on invalid email
+Expected: Phone read-only if API returns it read-only.
+
+------------------------------------------------------------
+Stage 23: Address management
+------------------------------------------------------------
+Goal: CRUD delivery addresses.
+
+Tasks:
+- /account/addresses
+- GET/POST/PATCH/DELETE /api/users/me/addresses
+- Default address selection if API supports isDefault
+
+Endpoints:
+- GET /api/users/me/addresses
+- POST /api/users/me/addresses
+- PATCH /api/users/me/addresses/:addressId
+- DELETE /api/users/me/addresses/:addressId
+
+Manual tests:
+1. Add address — appears in list
+2. Edit address — updates
+3. Delete — removed after confirm
+Expected: At least one address required before checkout test (Stage 24).
+
+------------------------------------------------------------
+Stage 24: Checkout foundation
+------------------------------------------------------------
+Goal: Checkout page with address + COD summary.
+
+Tasks:
+- Protect /checkout (AuthGuard)
+- Guest with items → /login?redirect=/checkout
+- Refetch cart; block empty cart
+- Address selector (saved + add new inline)
+- COD only — no online payment UI
+- Order summary
+
+Endpoints:
+- GET /api/cart
+- GET /api/users/me/addresses
+
+Manual tests:
+1. Guest click checkout → login → return to checkout
+2. Empty cart cannot proceed
+3. Only COD shown as payment
+Expected: Place order button present (wired Stage 25).
+
+AGENT REMINDER: After Stage 24 passes, ask the user to re-confirm Stage 21
+(guest → Checkout → login → /checkout + merged cart) and mark Stage 21 `done`.
+
+------------------------------------------------------------
+Stage 25: Order creation
+------------------------------------------------------------
+Goal: POST order and success page.
+
+Tasks:
+- POST /api/orders { addressId, paymentMethod: "COD" }
+- Disable double submit
+- On success: clear cart refetch, redirect /order-success/[orderId]
+- Success page shows order ref + summary message
+
+Endpoints: POST /api/orders
+
+Manual tests:
+1. Complete checkout with valid address — order created
+2. Double-click Place Order — only one order
+3. Success page shows order number/id
+Expected: Cart empty after success.
+
+------------------------------------------------------------
+Stage 26: Customer order history
+------------------------------------------------------------
+Goal: List own orders.
+
+Tasks:
+- /account/orders
+- GET /api/orders/me with pagination/filters if API supports
+- Status badges: Pending, Confirmed, OutForDelivery, Delivered, Cancelled
+
+Endpoints: GET /api/orders/me
+
+Manual tests:
+1. After placing order — appears in list
+2. Empty state for new user with no orders
+3. No reputation fields shown
+Expected: Link to order detail works.
+
+------------------------------------------------------------
+Stage 27: Customer order detail
+------------------------------------------------------------
+Goal: Single order view with snapshots.
+
+Tasks:
+- /account/orders/[orderId]
+- GET /api/orders/me/:orderId
+- Items snapshot, address snapshot, COD, status history/timeline
+- Do NOT use live product prices for historical lines
+
+Endpoints: GET /api/orders/me/:orderId
+
+Manual tests:
+1. Open order from list — full detail
+2. Wrong orderId → not found / unauthorized
+3. Snapshot data visible even if product later hidden
+Expected: Cancel button area reserved for Stage 28.
+
+------------------------------------------------------------
+Stage 28: Customer cancellation
+------------------------------------------------------------
+Goal: Cancel eligible orders (no admin toggle).
+
+Tasks:
+- Show Cancel when status is Pending | Confirmed | OutForDelivery
+- POST /api/orders/:orderId/cancel { cancelledFromStatus, note? }
+- cancelledFromStatus MUST match current status
+- Handle 409 stale status
+- Hide cancel for Delivered/Cancelled
+
+Endpoints: POST /api/orders/:orderId/cancel
+
+Manual tests:
+1. Pending order — cancel succeeds → status Cancelled
+2. Delivered order — no cancel button
+3. Stale cancelledFromStatus — 409 message shown
+Expected: NO settings toggle anywhere; eligibility from order status only.
+
+------------------------------------------------------------
+Stage 29: Notification list + read actions
+------------------------------------------------------------
+Goal: In-app notifications inbox.
+
+Tasks:
+- /account/notifications + header badge/dropdown
+- GET /api/notifications
+- PATCH /api/notifications/:id/read
+- PATCH /api/notifications/read-all
+- unreadCount from API response
+- Link order notifications to /account/orders/[id]
+
+Endpoints:
+- GET /api/notifications
+- PATCH /api/notifications/:id/read
+- PATCH /api/notifications/read-all
+
+Manual tests:
+1. After admin status update (manual/backend) — notification appears in list
+2. Mark one read — unread count decreases
+3. Mark all read — all marked
+Expected: Customer never sees another user's notifications.
+
+------------------------------------------------------------
+Stage 30: Notification polling (NOT Realtime)
+------------------------------------------------------------
+Goal: Auto-refresh notifications while app active.
+
+Tasks:
+- Poll GET /api/notifications?isRead=false every 25s while tab visible
+- Pause when document.hidden
+- Refetch on focus / opening notifications panel
+- Update badge via TanStack Query invalidation
+- NO Supabase client subscription
+
+Endpoints: GET /api/notifications
+
+Manual tests:
+1. Keep tab open — after admin updates order status, badge updates within ~30s without manual refresh
+2. Switch tab away — polling pauses (network quiet)
+3. No Supabase Realtime connections in network tab
+Expected: Same as notification-polling.md strategy.
+
+------------------------------------------------------------
+Stage 31: Admin shell + navigation
+------------------------------------------------------------
+Goal: Protected admin layout.
+
+Tasks:
+- /admin layout: sidebar (Dashboard, Products, Categories, Orders, Customers, Settings)
+- AdminGuard on all /admin routes
+- Breadcrumbs, admin user menu, logout
+
+Endpoints: none (guard uses auth role)
+
+Manual tests:
+1. Admin login → /admin loads
+2. Customer → /admin blocked
+3. Sidebar navigation highlights active route
+Expected: Mobile sidebar usable.
+
+------------------------------------------------------------
+Stage 32: Admin dashboard
+------------------------------------------------------------
+Goal: Stats + recent orders.
+
+Tasks:
+- GET /api/admin/dashboard/stats — cards
+- GET /api/admin/dashboard/recent-orders — table
+- Links to order detail
+
+Endpoints:
+- GET /api/admin/dashboard/stats
+- GET /api/admin/dashboard/recent-orders
+
+Manual tests:
+1. Admin /admin shows stat cards matching API
+2. Recent orders table populated
+3. Loading skeleton while fetching
+Expected: Numbers match Postman/admin API.
+
+------------------------------------------------------------
+Stage 33: Admin category list
+------------------------------------------------------------
+Goal: List all categories including deleted state.
+
+Tasks:
+- GET /api/admin/categories
+- Table with name, slug, active, deleted indicators
+- Actions: create, edit, delete, restore links
+
+Endpoints: GET /api/admin/categories
+
+Manual tests:
+1. All categories visible to admin
+2. Deleted categories shown with restore option
+Expected: Public categories unchanged (Stage 14).
+
+------------------------------------------------------------
+Stage 34: Admin category create + edit
+------------------------------------------------------------
+Goal: Category forms.
+
+Tasks:
+- POST /api/admin/categories
+- PATCH /api/admin/categories/:id
+- Reusable form with Zod validation
+
+Endpoints:
+- POST /api/admin/categories
+- PATCH /api/admin/categories/:id
+
+Manual tests:
+1. Create category — appears in admin list
+2. Edit name/description — saves
+3. Duplicate slug error displayed
+Expected: Form validation before submit.
+
+------------------------------------------------------------
+Stage 35: Admin category soft delete + restore
+------------------------------------------------------------
+Goal: Archive/restore categories.
+
+Tasks:
+- DELETE /api/admin/categories/:id
+- PATCH /api/admin/categories/:id/restore
+- Confirm modal before delete
+
+Endpoints:
+- DELETE /api/admin/categories/:id
+- PATCH /api/admin/categories/:id/restore
+
+Manual tests:
+1. Soft delete — gone from public nav after refresh
+2. Restore — reappears per active flag
+Expected: Constraint errors from API shown if products attached.
+
+------------------------------------------------------------
+Stage 36: Admin product list
+------------------------------------------------------------
+Goal: Admin product table with filters.
+
+Tasks:
+- GET /api/admin/products with search, category, visibility, pagination
+- Quick visibility toggle link
+- Create/edit navigation
+
+Endpoints: GET /api/admin/products
+
+Manual tests:
+1. Hidden and deleted products visible in admin table
+2. Filters update results
+Expected: Visibility column clear.
+
+------------------------------------------------------------
+Stage 37: Admin product create
+------------------------------------------------------------
+Goal: New product form.
+
+Tasks:
+- POST /api/admin/products
+- Fields per Postman: name, slug, description, price, categoryId, measurementUnit, volume, isVisible, isFeatured
+- NO public availability field
+- Redirect to edit after create
+
+Endpoints:
+- GET /api/admin/categories (dropdown)
+- POST /api/admin/products
+
+Manual tests:
+1. Create valid product — success → edit page
+2. Invalid price — field error
+Expected: Product appears in admin list.
+
+------------------------------------------------------------
+Stage 38: Admin product edit
+------------------------------------------------------------
+Goal: Edit existing product.
+
+Tasks:
+- GET /api/admin/products/:id
+- PATCH /api/admin/products/:id
+- Unsaved changes warning (optional)
+
+Endpoints:
+- GET /api/admin/products/:id
+- PATCH /api/admin/products/:id
+
+Manual tests:
+1. Load product — form prefilled
+2. Change price — saves
+Expected: Images section ready for Stage 39.
+
+------------------------------------------------------------
+Stage 39: Admin product image upload
+------------------------------------------------------------
+Goal: Upload up to 3 images via Express.
+
+Tasks:
+- POST /api/admin/products/:id/images multipart field name: image
+- Client validate jpg/jpeg/png/webp, max 3 images in UI
+- Upload progress indicator
+- NO direct Supabase upload
+
+Endpoints: POST /api/admin/products/:id/images
+
+Manual tests:
+1. Upload valid image — appears in gallery
+2. Attempt 4th image — blocked in UI or API error
+3. Wrong file type — clear error
+Expected: Images served from backend URLs.
+
+------------------------------------------------------------
+Stage 40: Admin product image cover, reorder, delete
+------------------------------------------------------------
+Goal: Manage image gallery.
+
+Tasks:
+- PATCH .../images/:imageId/cover
+- PATCH .../images/reorder { imageIds }
+- DELETE .../images/:imageId
+- Confirm before delete
+
+Endpoints:
+- PATCH /api/admin/products/:id/images/reorder
+- PATCH /api/admin/products/:id/images/:imageId/cover
+- DELETE /api/admin/products/:id/images/:imageId
+
+Manual tests:
+1. Set cover — public product shows new cover
+2. Reorder — persists after reload
+3. Delete image — removed from gallery
+Expected: Cover never points to deleted image.
+
+------------------------------------------------------------
+Stage 41: Admin product visibility, soft delete, restore
+------------------------------------------------------------
+Goal: Hide/archive/restore products.
+
+Tasks:
+- PATCH /api/admin/products/:id/visibility
+- DELETE /api/admin/products/:id (soft)
+- PATCH /api/admin/products/:id/restore
+
+Endpoints:
+- PATCH /api/admin/products/:id/visibility
+- DELETE /api/admin/products/:id
+- PATCH /api/admin/products/:id/restore
+
+Manual tests:
+1. Hide product — disappears from /products public list
+2. Soft delete — gone from public; visible in admin as deleted
+3. Restore — follows visibility flag
+Expected: No availability text added.
+
+------------------------------------------------------------
+Stage 42: Admin order list
+------------------------------------------------------------
+Goal: All orders with filters.
+
+Tasks:
+- GET /api/admin/orders with status, search, pagination
+- URL query sync for filters
+- Link to detail
+
+Endpoints: GET /api/admin/orders
+
+Manual tests:
+1. Orders list loads with customer name/phone
+2. Filter by Pending — results match
+Expected: Pagination works if API paginates.
+
+------------------------------------------------------------
+Stage 43: Admin order detail
+------------------------------------------------------------
+Goal: Full order view for admin.
+
+Tasks:
+- GET /api/admin/orders/:id
+- Show customer, items snapshot, address, COD, status history
+- Display user.reputation (admin-only fields)
+- Link to customer detail
+
+Endpoints: GET /api/admin/orders/:id
+
+Manual tests:
+1. Open order — reputation block visible (admin only)
+2. Status history timeline shown
+Expected: Customer-facing pages never show reputation.
+
+------------------------------------------------------------
+Stage 44: Admin order status update
+------------------------------------------------------------
+Goal: Change order status (including Cancelled).
+
+Tasks:
+- PATCH /api/admin/orders/:id/status { status, note? }
+- Valid statuses: Pending, Confirmed, OutForDelivery, Delivered, Cancelled
+- Confirm on Cancelled/Delivered
+- Refetch order; note customer gets in-app notification (not SMS)
+
+Endpoints: PATCH /api/admin/orders/:id/status
+
+Manual tests:
+1. Pending → Confirmed — succeeds
+2. Confirmed → OutForDelivery — customer notification created (check Stage 29/30)
+3. UI does not claim SMS sent to customer
+Expected: NO PATCH .../cancel route used.
+
+------------------------------------------------------------
+Stage 45: Admin customer list
+------------------------------------------------------------
+Goal: Paginated customers with reputation.
+
+Tasks:
+- GET /api/admin/customers with search, pagination
+- Show reputationScore, orderCount per API
+- Link to detail
+
+Endpoints: GET /api/admin/customers
+
+Manual tests:
+1. Customer list loads with reputation column
+2. Search by phone/name if supported
+Expected: Reputation visible here only (admin).
+
+------------------------------------------------------------
+Stage 46: Admin customer detail
+------------------------------------------------------------
+Goal: Customer profile + order history.
+
+Tasks:
+- GET /api/admin/customers/:id
+- GET /api/admin/customers/:id/orders
+- Show reputation breakdown, recent orders
+
+Endpoints:
+- GET /api/admin/customers/:id
+- GET /api/admin/customers/:id/orders
+
+Manual tests:
+1. Customer detail shows reputation + cancelledOrderCount etc.
+2. Order history paginated
+Expected: Sensitive tokens never displayed.
+
+------------------------------------------------------------
+Stage 47: Admin settings (general)
+------------------------------------------------------------
+Goal: General settings WITHOUT cancellation toggle.
+
+Tasks:
+- GET /api/admin/settings
+- PATCH /api/admin/settings (e.g. defaultMeasurementUnit)
+- DO NOT call /api/admin/settings/cancellation — removed
+
+Endpoints:
+- GET /api/admin/settings
+- PATCH /api/admin/settings
+
+Manual tests:
+1. Settings page loads current values
+2. Update default measurement unit — saves
+3. Confirm NO cancellation toggle in UI
+Expected: No secret SMS tokens in form fields.
+
+------------------------------------------------------------
+Stage 48: Admin phones + SMS provider settings
+------------------------------------------------------------
+Goal: Manage admin alert phones and SMS config metadata.
+
+Tasks:
+- POST /api/admin/settings/admin-phones { phone }
+- DELETE /api/admin/settings/admin-phones/:phoneId
+- PATCH /api/admin/settings/sms { provider, senderId } — non-secret only
+
+Endpoints:
+- POST /api/admin/settings/admin-phones
+- DELETE /api/admin/settings/admin-phones/:phoneId
+- PATCH /api/admin/settings/sms
+
+Manual tests:
+1. Add admin phone — appears in list
+2. Remove phone — gone
+3. Update SMS provider metadata — saves
+Expected: No AfroMessage API token field in frontend.
+
+------------------------------------------------------------
+Stage 49: Admin SMS test + logs
+------------------------------------------------------------
+Goal: Test SMS and view logs.
+
+Tasks:
+- POST /api/admin/sms/test { phone, message? }
+- GET /api/admin/sms/logs with pagination/filters
+- Never display OTP codes in logs table
+
+Endpoints:
+- POST /api/admin/sms/test
+- GET /api/admin/sms/logs
+
+Manual tests:
+1. Send test SMS to admin phone — success toast
+2. Logs table shows entry with purpose=test
+3. Customer cannot access /admin/sms routes
+Expected: OTP purposes redacted in log preview.
+
+------------------------------------------------------------
+Stage 50: SEO, metadata, sitemap
+------------------------------------------------------------
+Goal: Public SEO; block admin/auth indexing.
+
+Tasks:
+- Root metadata, product page generateMetadata
+- Open Graph tags on product/home
+- robots.txt disallow /admin, /account, /login
+- sitemap.xml for public product/category URLs
+
+Endpoints: none (uses public catalog data)
+
+Manual tests:
+1. View source on product page — title, description, og:image
+2. /robots.txt blocks /admin
+3. /sitemap.xml lists public URLs
+Expected: Private routes not in sitemap.
+
+------------------------------------------------------------
+Stage 51: Accessibility, performance, responsive QA
+------------------------------------------------------------
+Goal: Polish core UX quality.
+
+Tasks:
+- Keyboard audit on nav, dialogs, forms
+- Focus visible states
+- next/image for product images
+- Route loading.tsx skeletons
+- Lighthouse pass on home, products, checkout
+- Remove temp dev/diagnostic pages
+
+Endpoints: none
+
+Manual tests:
+1. Tab through checkout without mouse
+2. Mobile 375px — cart and checkout usable
+3. npm run build — no errors
+Expected: No critical a11y violations on main flows.
+
+------------------------------------------------------------
+Stage 52: Final test suite + production readiness
+------------------------------------------------------------
+Goal: Automated tests and deploy checklist.
+
+Tasks:
+- Playwright: browse, OTP login (mock), guest cart merge, checkout, admin product, admin status update, notifications
+- Unit tests for cart utils, phone normalize, API error parser
+- npm run lint, tsc, test, build all pass
+- .env.example documented
+- Remove debug logs and temp mocks
+
+Manual tests:
+1. npm run test:e2e (or playwright test) — all pass
+2. npm run build — production bundle clean
+3. Grep frontend for JWT_SECRET, SERVICE_ROLE — none found
+Expected: final-testing-checklist.md fully runnable.
+
+============================================================
+END OF IMPLEMENTATION STAGES
+============================================================
+
+After EVERY stage:
+1. Update master-plan-checklist.md (only after my confirmation)
+2. Update api-integration.md with new routes/pages
+3. Add stage-specific items to final-testing-checklist.md if new flows appear
+4. STOP and wait for my "go" for the next stage

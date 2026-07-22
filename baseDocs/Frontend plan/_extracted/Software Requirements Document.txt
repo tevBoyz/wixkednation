@@ -1,0 +1,1078 @@
+Software Requirements Document
+E-Commerce Web Application with Admin Panel, Age Gate, COD Orders, Supabase Backend Services
+1. Project Overview
+1.1 Project Name
+E-Commerce Product Ordering Web Application
+1.2 Purpose
+The purpose of this project is to develop a mobile-first e-commerce web application where users can browse products, add products to cart as guests, authenticate only when checking out, place Cash on Delivery orders, and track their order status through their user profile.
+The system will also include an admin dashboard where administrators can manage products, categories, orders, customer details, image uploads, SMS settings, and customer cancellation settings.
+The application will enforce an age-gate before users can access the public website.
+2. Technology Stack
+2.1 Frontend
+Next.js will be used for the frontend.
+Reasons:
+SEO-friendly public pages
+Good routing structure
+Works well for landing pages, product pages, cart, checkout, profile, and admin panel
+Supports server-side rendering and static generation where needed
+Good developer ecosystem
+2.2 Backend
+Express.js will be used as the main backend API layer.
+The frontend will not directly perform sensitive Supabase operations. Instead, the frontend will call the Express API, and Express will communicate with Supabase.
+Architecture:
+Next.js Frontend → Express.js API → Supabase
+2.3 Database
+Supabase PostgreSQL will be used as the main database.
+2.4 Authentication
+Supabase Auth will be used through the Express API relay.
+Supported authentication methods:
+Phone number + OTP
+Google OAuth
+No email/password authentication is required.
+2.5 File Storage
+Supabase Storage will be used for product image uploads.
+Product image uploads, replacements, deletions, and bucket cleanup will be controlled through the Express API.
+2.6 Realtime Notifications
+Supabase Realtime will be used for customer order status notifications.
+When an admin updates an order status, the backend will create a notification record in Supabase, and the customer frontend will receive the update in real time.
+2.7 Codebase
+JavaScript may be used for the codebase.
+TypeScript is recommended if the project is expected to grow, because the system includes roles, orders, status rules, image limits, authentication flows, and admin permissions.
+3. System Users and Roles
+3.1 Guest
+A guest user is any visitor who has passed the age gate but is not logged in.
+Guest permissions:
+Pass or fail age gate
+Browse landing page
+Browse product catalog
+View product detail pages
+Filter products by category
+Add products to cart
+Update cart quantities
+Remove cart items
+Proceed to login when attempting checkout
+Guests cannot:
+Place orders
+View order history
+Receive notifications
+Access profile pages
+Access admin pages
+3.2 Customer
+A customer is an authenticated user.
+Customer permissions:
+Browse products
+Manage cart
+Checkout
+Place Cash on Delivery orders
+Save delivery address
+View order history
+Track order status
+Receive in-app/site notifications
+Cancel order only if admin enables cancellation and the order status allows cancellation
+Customers cannot:
+Access admin dashboard
+Manage products
+Manage categories
+View other customers’ orders
+Update order statuses
+Manage SMS settings
+3.3 Admin
+An admin is an authenticated user with admin role.
+Admin permissions:
+Access admin dashboard
+Create, read, update, and soft delete products
+Toggle product visibility
+Upload product images
+Replace product images
+Delete old image files from storage bucket
+Set product cover image
+Manage categories
+View all orders
+View order details
+Update order statuses
+View customer details per order
+Manage admin phone numbers
+Manage SMS configuration
+Enable or disable customer cancellation
+Trigger real-time customer notifications through order status updates
+4. Core Business Rules
+4.1 Age Gate Rule
+All users must pass an age verification gate before accessing the website.
+The age gate must ask:
+Are you over 21?
+If the user selects “Yes,” access is allowed for the current session.
+If the user selects “No,” the user must be shown a hard block page.
+The user should not be able to bypass the block by refreshing, using back navigation, or directly accessing public URLs during the blocked session.
+4.2 Product Visibility Rule
+Product visibility is controlled only by the admin.
+Public users must not see “Available” or “Not Available” text.
+If a product is hidden or unavailable, it should simply not appear on the public website.
+Public product listing must only show products where:
+isVisible = truedeletedAt = null
+4.3 Guest Cart Rule
+Guests can fully use the cart without logging in.
+Guest cart data must be stored in browser localStorage or sessionStorage.
+When a guest clicks checkout:
+Cart data is saved locally.
+User is redirected to login.
+After successful login, the cart is restored.
+The frontend sends the guest cart to the backend.
+Backend validates the products and prices.
+Guest cart is merged with the customer’s server-side cart.
+4.4 Checkout Rule
+Checkout requires login.
+The system does not use online payment.
+All orders are Cash on Delivery.
+When an order is placed:
+Order status = PendingPayment method = COD
+The customer sees an order confirmation page.
+Admin phone numbers receive SMS alerts for the new order.
+Customers do not receive SMS for order status updates.
+4.5 Order Status Rule
+Supported order statuses:
+PendingConfirmedOut for DeliveryDeliveredCancelled
+Admin can update order status.
+Customers can only see their own order status.
+Customers receive real-time in-app/site notifications when order status changes.
+4.6 SMS Rule
+SMS is used only for:
+Customer login OTP
+Admin alerts when a new order is placed
+SMS must not be sent to customers for order status updates.
+4.7 Soft Delete Rule
+All deletions must be soft deletes.
+Records should not be permanently removed from the database during normal admin operations.
+Soft deleted records should use:
+deletedAt
+A record is considered active only when:
+deletedAt = null
+4.8 Customer Cancellation Rule
+Customer cancellation must be controlled by an admin setting.
+If cancellation is enabled:
+Customer can cancel eligible orders from profile.
+Usually only Pending orders should be cancellable by the customer.
+If cancellation is disabled:
+Cancellation button must be hidden from customer UI.
+Backend must reject customer cancellation requests.
+5. Functional Requirements
+5.1 Age Gate
+FR-AG-001
+The system must display an age gate before allowing access to the website.
+FR-AG-002
+The age gate must ask:
+Are you over 21?
+FR-AG-003
+If the user answers “Yes,” the system must save an age-gate session flag.
+FR-AG-004
+If the user answers “No,” the system must show a hard block page.
+FR-AG-005
+The system must prevent direct access to public website pages if the age-gate status is missing or blocked.
+FR-AG-006
+Refreshing the page should not re-trigger the gate during the same approved session.
+5.2 Public Landing Page
+FR-LP-001
+The system must provide a public landing page after age verification.
+FR-LP-002
+The landing page must include:
+Hero section
+Featured products
+Categories
+Basic brand information
+Call-to-action to browse products
+FR-LP-003
+Only visible and non-deleted products may appear on the landing page.
+5.3 Product Catalog
+FR-PC-001
+The system must provide a products listing page.
+FR-PC-002
+The products listing page must show:
+Product name
+Product image
+Price
+Measurement unit
+Volume
+Category
+Short description
+FR-PC-003
+The system must allow users to filter products by category.
+FR-PC-004
+The public product listing must not display hidden products.
+FR-PC-005
+The public product listing must not display soft-deleted products.
+FR-PC-006
+The public product listing must not show availability text.
+5.4 Product Detail Page
+FR-PD-001
+The system must provide a product detail page.
+FR-PD-002
+The product detail page must show:
+Product name
+Full description
+Price
+Measurement unit
+Volume
+Category
+Cover image
+Image gallery if multiple images exist
+Add to cart button
+FR-PD-003
+Only visible and non-deleted products should be accessible on public detail pages.
+FR-PD-004
+If a product is hidden or soft deleted, the public detail page must return a not-found response or redirect to products page.
+5.5 Authentication
+FR-AUTH-001
+The system must support Phone OTP login.
+FR-AUTH-002
+The system must support Google OAuth login.
+FR-AUTH-003
+The system must not support email/password login unless added in a future requirement.
+FR-AUTH-004
+The frontend must call the Express API for authentication requests.
+FR-AUTH-005
+The Express API must relay authentication requests to Supabase Auth.
+FR-AUTH-006
+The system must create or update the user profile after successful authentication.
+FR-AUTH-007
+The system must identify user roles after login.
+FR-AUTH-008
+Admin routes must only be accessible to users with admin role.
+5.6 User Profile
+FR-UP-001
+Authenticated customers must have a profile page.
+FR-UP-002
+The user profile must show:
+Name
+Phone number
+Email if available from Google OAuth
+Saved delivery addresses
+Order history
+Notifications
+FR-UP-003
+Customers must be able to add delivery addresses.
+FR-UP-004
+Customers must be able to update delivery addresses.
+FR-UP-005
+Customers must be able to remove delivery addresses.
+FR-UP-006
+Removed addresses should be soft deleted or marked inactive.
+5.7 Guest Cart
+FR-GC-001
+Guests must be able to add products to cart.
+FR-GC-002
+Guests must be able to update cart quantities.
+FR-GC-003
+Guests must be able to remove items from cart.
+FR-GC-004
+Guest cart must be stored in localStorage or sessionStorage.
+FR-GC-005
+Guest cart must persist during normal browsing.
+FR-GC-006
+Guest cart must be saved before redirecting to login.
+5.8 Customer Cart
+FR-CC-001
+Authenticated customers must have a server-side cart.
+FR-CC-002
+The system must allow customers to add products to the cart.
+FR-CC-003
+The system must allow customers to update item quantity.
+FR-CC-004
+The system must allow customers to remove cart items.
+FR-CC-005
+The system must allow customers to clear the cart.
+FR-CC-006
+The system must merge guest cart with customer cart after login.
+FR-CC-007
+When merging cart, the backend must validate product availability, visibility, deleted status, price, and measurement unit.
+5.9 Checkout
+FR-CH-001
+Only authenticated customers can checkout.
+FR-CH-002
+If a guest attempts checkout, the system must redirect them to login.
+FR-CH-003
+After login, the customer must be returned to checkout with cart restored.
+FR-CH-004
+Checkout must allow the customer to select or enter a delivery address.
+FR-CH-005
+Checkout must show an order summary before confirmation.
+FR-CH-006
+Checkout must calculate total amount based on current product prices from the database.
+FR-CH-007
+Checkout must use Cash on Delivery only.
+FR-CH-008
+No online payment gateway is required.
+5.10 Order Creation
+FR-OC-001
+The system must create an order when the customer confirms checkout.
+FR-OC-002
+The order must include:
+Customer ID
+Items
+Product snapshot
+Quantity
+Volume
+Unit price
+Total price
+Delivery address
+Total amount
+Payment method
+Order status
+FR-OC-003
+The initial order status must be Pending.
+FR-OC-004
+The payment method must be COD.
+FR-OC-005
+The backend must clear the customer cart after successful order creation.
+FR-OC-006
+The backend must send SMS alerts to configured admin phone numbers after order placement.
+FR-OC-007
+The customer must see a confirmation page after order creation.
+FR-OC-008
+The confirmation page must show:
+Order ID
+Items
+Quantities
+Volumes
+Prices
+Delivery address
+Message confirming the order
+5.11 Customer Order History
+FR-OH-001
+Authenticated customers must be able to view their own order history.
+FR-OH-002
+Customers must be able to view the detail of each order.
+FR-OH-003
+Each order must show current status.
+FR-OH-004
+Customers must not be able to view other customers’ orders.
+5.12 Customer Cancellation
+FR-CAN-001
+The system must include customer-initiated cancellation.
+FR-CAN-002
+Customer cancellation must be controlled by an admin setting.
+FR-CAN-003
+If cancellation is disabled, the customer cancellation button must be hidden.
+FR-CAN-004
+If cancellation is disabled, backend cancellation requests from customers must be rejected.
+FR-CAN-005
+If cancellation is enabled, customers can cancel orders only when order status allows cancellation.
+FR-CAN-006
+The default allowed customer cancellation status should be Pending.
+5.13 Customer Notifications
+FR-NOT-001
+Authenticated customers must have a notifications section.
+FR-NOT-002
+Customers must receive real-time notifications when admin updates order status.
+FR-NOT-003
+Notifications must be stored in the database.
+FR-NOT-004
+Customers must be able to mark notifications as read.
+FR-NOT-005
+Customers must be able to mark all notifications as read.
+FR-NOT-006
+Customers must not receive SMS notifications for order status updates.
+5.14 Admin Dashboard
+FR-AD-001
+Admins must have access to a protected admin dashboard.
+FR-AD-002
+The admin dashboard must show summary statistics.
+Recommended stats:
+Total orders
+Pending orders
+Confirmed orders
+Delivered orders
+Cancelled orders
+Total products
+Visible products
+Hidden products
+Total customers
+FR-AD-003
+Admin dashboard must show recent orders.
+5.15 Admin Product Management
+FR-AP-001
+Admins must be able to create products.
+FR-AP-002
+Admins must be able to view all products.
+FR-AP-003
+Admins must be able to view one product detail.
+FR-AP-004
+Admins must be able to update products.
+FR-AP-005
+Admins must be able to soft delete products.
+FR-AP-006
+Admins must be able to restore soft-deleted products.
+FR-AP-007
+Admins must be able to toggle product visibility.
+FR-AP-008
+Product fields must include:
+Name
+Slug
+Description
+Price
+Category
+Images
+Cover image index
+Measurement unit
+Volume
+Visibility status
+Created date
+Updated date
+Deleted date
+FR-AP-009
+Product price must be dynamic and set by the admin.
+FR-AP-010
+Measurement unit must be dynamic and set by the admin.
+FR-AP-011
+No static product pricing tier assumptions should be hardcoded.
+5.16 Admin Product Image Management
+FR-IMG-001
+Admins must be able to upload product images.
+FR-IMG-002
+Images must be uploaded to Supabase Storage through the Express API.
+FR-IMG-003
+The returned image URL must be stored on the product.
+FR-IMG-004
+Each product may have a maximum of 3 images.
+FR-IMG-005
+Each image must be 3MB or smaller after compression.
+FR-IMG-006
+If an image is larger than 3MB, it should be compressed before upload.
+FR-IMG-007
+The first uploaded image must be selected as the default cover image.
+FR-IMG-008
+Admin must be able to change the cover image.
+FR-IMG-009
+If an image is replaced, the old file must be deleted from the storage bucket.
+FR-IMG-010
+If an image is removed from a product, the corresponding bucket file must be cleaned up.
+5.17 Admin Category Management
+FR-CAT-001
+Admins must be able to create categories one by one.
+FR-CAT-002
+Admins must be able to list categories.
+FR-CAT-003
+Admins must be able to update categories.
+FR-CAT-004
+Admins must be able to soft delete categories.
+FR-CAT-005
+Admins must be able to restore categories.
+FR-CAT-006
+Products must belong to a category.
+FR-CAT-007
+Categories must have a dedicated database table.
+5.18 Admin Order Management
+FR-AO-001
+Admins must be able to view all orders.
+FR-AO-002
+Admins must be able to filter orders by status.
+FR-AO-003
+Admins must be able to view order details.
+FR-AO-004
+Order detail must include:
+Customer name
+Customer phone
+Delivery address
+Ordered items
+Quantity
+Volume
+Unit price
+Total amount
+Current status
+Order date
+FR-AO-005
+Admins must be able to update order status.
+FR-AO-006
+When admin updates order status, the backend must create a customer notification.
+FR-AO-007
+The customer must receive the notification in real time.
+FR-AO-008
+Admin status updates must not trigger customer SMS messages.
+5.19 Admin Customer Management
+FR-CUS-001
+Admins must be able to view a list of customers.
+FR-CUS-002
+Admins must be able to view customer details.
+FR-CUS-003
+Admins must be able to view customer order history.
+FR-CUS-004
+Admins must not be able to see sensitive Supabase secrets or raw authentication tokens.
+5.20 Admin Settings
+FR-SET-001
+Admins must be able to manage system settings.
+FR-SET-002
+Admins must be able to add multiple admin phone numbers.
+FR-SET-003
+Admins must be able to remove admin phone numbers.
+FR-SET-004
+Admins must be able to configure SMS provider settings.
+FR-SET-005
+Admins must be able to enable or disable customer cancellation.
+FR-SET-006
+Admins must be able to set default measurement unit.
+5.21 SMS Integration
+FR-SMS-001
+The system must integrate with an SMS provider.
+FR-SMS-002
+SMS must be used for Phone OTP login.
+FR-SMS-003
+SMS must be used for admin alerts when new orders are placed.
+FR-SMS-004
+New order SMS must be sent to all configured admin phone numbers.
+FR-SMS-005
+The system must provide an admin test SMS function.
+FR-SMS-006
+The system must not send order status SMS to customers.
+5.22 Supabase Integration
+FR-SUP-001
+Express API must communicate with Supabase database.
+FR-SUP-002
+Express API must communicate with Supabase Auth.
+FR-SUP-003
+Express API must communicate with Supabase Storage.
+FR-SUP-004
+Express API must use Supabase service role key only on the server side.
+FR-SUP-005
+The Supabase service role key must never be exposed to the frontend.
+FR-SUP-006
+Frontend must call Express API for controlled backend actions.
+FR-SUP-007
+The frontend may subscribe to Supabase Realtime for notifications if configured securely.
+6. Non-Functional Requirements
+6.1 Security
+NFR-SEC-001
+The system must protect admin routes with role-based access control.
+NFR-SEC-002
+The system must verify user session or token on protected endpoints.
+NFR-SEC-003
+The Supabase service role key must only exist in the Express backend environment.
+NFR-SEC-004
+The frontend must not directly use privileged Supabase keys.
+NFR-SEC-005
+Admin APIs must reject requests from non-admin users.
+NFR-SEC-006
+Customer APIs must ensure users can only access their own data.
+NFR-SEC-007
+File upload endpoints must validate file type and size.
+NFR-SEC-008
+The system must prevent users from bypassing the age gate.
+NFR-SEC-009
+Sensitive configuration values must be stored in environment variables.
+NFR-SEC-010
+Backend must sanitize and validate all request inputs.
+6.2 Performance
+NFR-PERF-001
+Public pages should load quickly on mobile devices.
+NFR-PERF-002
+Images must be optimized for web display.
+NFR-PERF-003
+Product listing should support pagination or lazy loading if product count grows.
+NFR-PERF-004
+Admin order and product lists should support pagination.
+NFR-PERF-005
+Realtime notification subscriptions should be efficient and not create unnecessary load.
+6.3 Reliability
+NFR-REL-001
+The system must handle failed SMS sending gracefully.
+NFR-REL-002
+The system must not fail order creation only because admin SMS fails.
+NFR-REL-003
+The system must handle Supabase connection errors gracefully.
+NFR-REL-004
+The system must retry or report failed image uploads clearly.
+NFR-REL-005
+Cart merge should not duplicate identical cart items unnecessarily.
+NFR-REL-006
+Order creation should be transaction-safe where possible.
+6.4 Usability
+NFR-USE-001
+The website must be mobile-first.
+NFR-USE-002
+The cart must be easy to use on mobile.
+NFR-USE-003
+Checkout should require minimal steps.
+NFR-USE-004
+Admin product creation should be simple and clear.
+NFR-USE-005
+Admin order status update should be easy to perform.
+NFR-USE-006
+The customer profile should clearly show order status and notifications.
+6.5 Maintainability
+NFR-MAIN-001
+The codebase should be organized by modules.
+Recommended backend modules:
+authusersproductscategoriescartordersnotificationsadminsettingssmsstorage
+NFR-MAIN-002
+Business rules should be handled in service files, not directly inside route files.
+NFR-MAIN-003
+API validation should be centralized.
+NFR-MAIN-004
+Environment variables should be documented.
+NFR-MAIN-005
+Soft delete logic should be consistent across all delete operations.
+6.6 Compatibility
+NFR-COMP-001
+The website must work on modern mobile browsers.
+NFR-COMP-002
+The website must work on modern desktop browsers.
+NFR-COMP-003
+The admin dashboard must be usable on desktop and tablet.
+NFR-COMP-004
+The public customer-facing pages must be fully responsive.
+6.7 Scalability
+NFR-SCALE-001
+The database structure should support future product growth.
+NFR-SCALE-002
+The order system should support increasing order volume.
+NFR-SCALE-003
+The storage structure should support multiple product images.
+NFR-SCALE-004
+The notification system should support many customers.
+NFR-SCALE-005
+The API should be structured so new payment methods can be added later.
+6.8 Auditability
+NFR-AUD-001
+The system should track createdAt and updatedAt for main records.
+NFR-AUD-002
+The system should track deletedAt for soft deletion.
+NFR-AUD-003
+Order status changes should be recorded.
+NFR-AUD-004
+Admin actions should be logged in future versions if required.
+7. Data Models
+7.1 User
+idnamephoneemailauthProviderrolecreatedAtupdatedAtdeletedAt
+Role values:
+customeradmin
+Auth provider values:
+phonegoogle
+7.2 Address
+iduserIdlabelfullNamephoneaddressLine1addressLine2citystatecountrylatitudelongitudeisDefaultcreatedAtupdatedAtdeletedAt
+7.3 Category
+idnameslugdescriptionisActivecreatedAtupdatedAtdeletedAt
+7.4 Product
+idnameslugdescriptionpricecategoryIdmeasurementUnitvolumeimagescoverImageIndexisVisibleisFeaturedcreatedAtupdatedAtdeletedAt
+Image field may be stored as JSON array:
+[  {    id,    url,    path,    altText,    size,    mimeType  }]
+7.5 Cart
+iduserIdcreatedAtupdatedAt
+7.6 Cart Item
+idcartIdproductIdquantityvolumemeasurementUnitcreatedAtupdatedAt
+7.7 Order
+iduserIdorderNumberitemsdeliveryAddressstatustotalAmountpaymentMethodcreatedAtupdatedAtdeletedAt
+Payment method:
+COD
+Status:
+PendingConfirmedOut for DeliveryDeliveredCancelled
+Order items should store a product snapshot:
+productIdproductNameproductImagequantityvolumemeasurementUnitunitPricetotalPrice
+7.8 Notification
+iduserIdorderIdtypetitlemessageisReadcreatedAtupdatedAt
+Notification types:
+order_statusgeneral
+7.9 Admin Setting
+idadminPhoneNumberssmsProviderConfigallowCustomerCancellationdefaultMeasurementUnitcreatedAtupdatedAt
+7.10 Order Status History
+idorderIdoldStatusnewStatuschangedBynotecreatedAt
+This is recommended for auditability.
+8. API Endpoints
+8.1 Age Gate APIs
+POST /api/age-gate/verifyGET  /api/age-gate/status
+8.2 Auth APIs
+POST /api/auth/otp/sendPOST /api/auth/otp/verifyGET  /api/auth/google/startGET  /api/auth/google/callbackPOST /api/auth/logoutGET  /api/auth/mePOST /api/auth/refresh
+8.3 User APIs
+GET    /api/users/mePATCH  /api/users/meGET    /api/users/me/addressesPOST   /api/users/me/addressesPATCH  /api/users/me/addresses/:addressIdDELETE /api/users/me/addresses/:addressId
+8.4 Public Category APIs
+GET /api/categoriesGET /api/categories/:slug
+8.5 Public Product APIs
+GET /api/productsGET /api/products/featuredGET /api/products/:slugGET /api/products?category=:slug
+8.6 Cart APIs
+GET    /api/cartPOST   /api/cart/itemsPATCH  /api/cart/items/:itemIdDELETE /api/cart/items/:itemIdDELETE /api/cartPOST   /api/cart/merge
+8.7 Customer Order APIs
+POST /api/ordersGET  /api/orders/meGET  /api/orders/me/:orderIdPOST /api/orders/:orderId/cancel
+8.8 Notification APIs
+GET   /api/notificationsPATCH /api/notifications/:id/readPATCH /api/notifications/read-all
+8.9 Admin Dashboard APIs
+GET /api/admin/dashboard/statsGET /api/admin/dashboard/recent-orders
+8.10 Admin Product APIs
+GET    /api/admin/productsGET    /api/admin/products/:idPOST   /api/admin/productsPATCH  /api/admin/products/:idPATCH  /api/admin/products/:id/visibilityDELETE /api/admin/products/:idPATCH  /api/admin/products/:id/restore
+8.11 Admin Product Image APIs
+POST   /api/admin/products/:id/imagesDELETE /api/admin/products/:id/images/:imageIdPATCH  /api/admin/products/:id/images/:imageId/coverPATCH  /api/admin/products/:id/images/reorder
+8.12 Admin Category APIs
+GET    /api/admin/categoriesGET    /api/admin/categories/:idPOST   /api/admin/categoriesPATCH  /api/admin/categories/:idDELETE /api/admin/categories/:idPATCH  /api/admin/categories/:id/restore
+8.13 Admin Order APIs
+GET   /api/admin/ordersGET   /api/admin/orders/:idPATCH /api/admin/orders/:id/statusPATCH /api/admin/orders/:id/cancel
+8.14 Admin Customer APIs
+GET /api/admin/customersGET /api/admin/customers/:idGET /api/admin/customers/:id/orders
+8.15 Admin Settings APIs
+GET    /api/admin/settingsPATCH  /api/admin/settingsPATCH  /api/admin/settings/cancellationPOST   /api/admin/settings/admin-phonesDELETE /api/admin/settings/admin-phones/:phoneIdPATCH  /api/admin/settings/sms
+8.16 SMS APIs
+POST /api/sms/otp/sendPOST /api/internal/sms/new-order-alertPOST /api/admin/sms/test
+8.17 Storage APIs
+POST   /api/storage/upload/product-imageDELETE /api/storage/deletePOST   /api/storage/signed-url
+9. Main Workflows
+9.1 Customer Browse and Cart Flow
+User visits siteAge gate appearsUser confirms over 21Landing page opensUser browses productsUser opens product detailUser adds product to cartCart is stored locally if guestUser continues browsing or goes to cart
+9.2 Guest Checkout Flow
+Guest adds products to cartGuest clicks checkoutSystem saves cart in localStorage/sessionStorageSystem redirects guest to loginGuest logs in using Phone OTP or Google OAuthSystem restores guest cartFrontend sends cart to /api/cart/mergeBackend validates products and pricesBackend saves merged cartCustomer continues checkout
+9.3 Order Placement Flow
+Customer reviews cartCustomer selects or enters delivery addressCustomer confirms orderBackend validates cartBackend calculates totalBackend creates order with Pending statusBackend stores product snapshotBackend clears cartBackend sends SMS to admin phone numbersCustomer sees confirmation page
+9.4 Admin Order Fulfillment Flow
+Admin receives SMS for new orderAdmin opens dashboardAdmin views pending orderAdmin updates status to ConfirmedBackend updates orderBackend creates customer notificationCustomer receives real-time notificationAdmin later updates status to Out for DeliveryCustomer receives real-time notificationAdmin updates status to DeliveredCustomer sees delivered status
+9.5 Product Image Upload Flow
+Admin opens product create/edit pageAdmin selects image filesFrontend validates max 3 imagesFrontend compresses files larger than 3MBFrontend sends image to Express APIExpress uploads image to Supabase StorageSupabase returns file URL/pathExpress stores image reference on productFirst image becomes default coverAdmin may change cover imageIf image is replaced, old bucket file is deleted
+9.6 Customer Cancellation Flow
+Customer opens order historySystem checks admin cancellation settingSystem checks order statusIf cancellation is enabled and order is Pending, show Cancel buttonCustomer clicks CancelBackend validates permission and settingBackend updates order status to CancelledBackend creates notification if needed
+10. Page Requirements
+10.1 Public Pages
+Required public pages:
+/age-gate/blocked//products/products/:slug/cart/checkout/login/profile/profile/orders/profile/orders/:id/profile/notifications
+10.2 Admin Pages
+Required admin pages:
+/admin/login/admin/admin/products/admin/products/create/admin/products/:id/edit/admin/categories/admin/orders/admin/orders/:id/admin/customers/admin/customers/:id/admin/settings
+11. Environment Variables
+Recommended backend environment variables:
+PORTNODE_ENVSUPABASE_URLSUPABASE_ANON_KEYSUPABASE_SERVICE_ROLE_KEYSUPABASE_STORAGE_BUCKETJWT_SECRETSESSION_SECRETSMS_PROVIDERSMS_API_KEYSMS_SENDER_IDGOOGLE_CLIENT_IDGOOGLE_CLIENT_SECRETFRONTEND_URLBACKEND_URL
+Recommended frontend environment variables:
+NEXT_PUBLIC_API_URLNEXT_PUBLIC_SUPABASE_URLNEXT_PUBLIC_SUPABASE_ANON_KEY
+Important:
+SUPABASE_SERVICE_ROLE_KEY must never be exposed to frontend.
+12. Validation Requirements
+Product Validation
+name: requiredslug: required and uniquedescription: requiredprice: required, numeric, greater than 0categoryId: requiredmeasurementUnit: requiredvolume: requiredimages: maximum 3coverImageIndex: must point to valid image index
+Category Validation
+name: requiredslug: required and unique
+Cart Validation
+productId: requiredquantity: required, minimum 1volume: requiredmeasurementUnit: required
+Order Validation
+userId: requireditems: must not be emptydeliveryAddress: requiredpaymentMethod: CODstatus: Pending by default
+Image Validation
+allowed file types: jpg, jpeg, png, webpmaximum file size after compression: 3MBmaximum product images: 3
+13. Error Handling Requirements
+ERR-001
+The API must return clear error messages.
+ERR-002
+Validation errors must return status code 400.
+ERR-003
+Unauthorized requests must return status code 401.
+ERR-004
+Forbidden admin requests must return status code 403.
+ERR-005
+Missing resources must return status code 404.
+ERR-006
+Server errors must return status code 500.
+ERR-007
+SMS failure must be logged but should not automatically cancel a valid order.
+ERR-008
+Image upload failure must not create incomplete product image records.
+14. Recommended Development Phases
+Phase 1: Project Setup
+Setup Next.js frontend
+Setup Express backend
+Setup Supabase project
+Configure environment variables
+Setup database schema
+Setup basic routing structure
+Phase 2: Age Gate and Public Pages
+Age gate
+Landing page
+Product listing page
+Product detail page
+Public category filter
+Phase 3: Authentication
+Phone OTP login
+Google OAuth login
+Auth relay through Express
+User profile creation
+Role checking
+Admin protection middleware
+Phase 4: Cart
+Guest cart with localStorage
+Customer server-side cart
+Cart add/update/remove
+Cart merge after login
+Phase 5: Checkout and Orders
+Checkout page
+Address selection
+Order creation
+COD confirmation
+Order history
+Order detail
+Phase 6: Admin Product and Category Management
+Admin dashboard
+Product CRUD
+Category CRUD
+Soft delete
+Product visibility toggle
+Phase 7: Product Images
+Supabase bucket setup
+Image upload through Express
+Max 3 image rule
+Compression
+Cover image selection
+Bucket cleanup on replace/delete
+Phase 8: Admin Orders and Notifications
+Admin order list
+Order detail
+Status update
+Notification creation
+Supabase Realtime customer notification
+Phase 9: SMS and Settings
+Admin phone number settings
+SMS provider configuration
+New order admin SMS alert
+Test SMS
+Customer cancellation toggle
+Phase 10: Final Testing and Deployment
+Test full guest flow
+Test full customer checkout flow
+Test admin order update flow
+Test image upload and cleanup
+Test SMS alerts
+Test realtime notifications
+Test role protection
+Deploy frontend
+Deploy backend
+Configure Supabase production settings
+15. Acceptance Criteria
+The project is accepted when:
+Users cannot access the site without passing the age gate.
+Users who answer “No” are blocked.
+Guests can browse products.
+Guests can add items to cart.
+Guests are redirected to login only when checking out.
+Guest cart is restored after login.
+Customers can place Cash on Delivery orders.
+Admin receives SMS alerts for new orders.
+Customers do not receive SMS for order status updates.
+Customers can view order history.
+Customers receive real-time in-app/site notifications.
+Admin can create, edit, hide, show, and soft delete products.
+Hidden products do not appear publicly.
+Admin can upload up to 3 product images.
+Old replaced images are deleted from storage.
+Admin can create and manage categories.
+Admin can update order status.
+Customer cancellation works only when enabled by admin.
+Supabase service role key is never exposed to frontend.
+All protected APIs enforce authentication and role permissions.
+16. Future Enhancement Ideas
+The following are not required for MVP but can be added later:
+Online payment integration
+Coupon codes
+Delivery tracking
+Product reviews
+Product inventory management
+Admin activity logs
+Advanced analytics dashboard
+Email notifications
+Multi-admin permissions
+Product variants
+Delivery fee calculation
+Location-based delivery area validation
+17. Final Architecture Summary
+The recommended architecture is:
+Next.js Frontend        ↓Express.js Backend API        ↓Supabase Auth / PostgreSQL / Storage / Realtime
+Frontend responsibilities:
+Public UIAdmin UIGuest cart localStorageCheckout interfaceProfile interfaceRealtime notification listener
+Express responsibilities:
+Auth relayRole checksBusiness rulesProduct CRUDCategory CRUDOrder processingSMS triggersCart mergeStorage upload and cleanupNotification creationAdmin settings
+Supabase responsibilities:
+PostgreSQL databasePhone OTPGoogle OAuthStorage bucketRealtime events
+This structure keeps the application secure, maintainable, and scalable while giving the backend full control over important business rules.
+Core subscriptions you should expect
+Item
+Platform
+Needed for
+Estimated cost
+Frontend hosting
+Vercel or similar
+Hosting the Next.js website
+Free for testing, paid for commercial use
+Backend hosting
+DigitalOcean / Render / Railway / VPS
+Hosting Express.js API
+Usually starts around $4–$8/month on a small VPS
+Database/Auth/Storage
+Supabase
+PostgreSQL DB, Phone OTP auth, Google OAuth, product image storage, realtime notifications
+Free for development, production usually $25/month+
+SMS provider
+Twilio / local SMS provider
+Phone OTP and admin order alerts
+Pay-per-SMS
+Domain name
+GoDaddy / Namecheap / Cloudflare Registrar
+Website domain
+Usually $10–$25/year
+Email service, optional
+Google Workspace / Zoho / custom SMTP
+Business email, admin contact email
+Optional, often $3–$8/user/month
+Error monitoring, optional
+Sentry
+Track backend/frontend errors
+Free tier available, paid later
+Analytics, optional
+Google Analytics / Plausible / PostHog
+Traffic and product analytics
+Free or paid depending on platform
+1. Supabase
+This is your most important subscription because you want Supabase for:
+Database
+Authentication
+Phone OTP
+Google OAuth
+Storage bucket
+Realtime notifications
+Supabase has a free plan, but for a live production project, I would plan for the Supabase Pro plan, which starts around $25/month. Supabase’s current pricing page shows the Pro estimate starting at $25/month, with compute and usage-based costs depending on project size.
+For development/testing:
+Supabase Free Plan
+For production:
+Supabase Pro Plan
+Expected starting cost:
+$25/month+
+You may pay more later if you exceed included database size, storage, bandwidth, realtime, or auth usage.
+2. Frontend hosting for Next.js
+Since your frontend is Next.js, the easiest hosting option is Vercel.
+Vercel has a free Hobby plan, but for a commercial/revenue-generating project, you should expect to use a paid plan. The current Vercel pricing page lists plans for Hobby, Pro, and Enterprise, and third-party pricing summaries commonly place Pro around $20/user/month.
+For testing:
+Vercel Hobby
+For commercial production:
+Vercel Pro
+Expected starting cost:
+$20/month per team member
+Alternative: host Next.js yourself on DigitalOcean together with Express. That can reduce subscription count, but Vercel is easier.
+3. Backend hosting for Express.js
+Your Express API needs to run somewhere.
+Good options:
+DigitalOcean DropletRenderRailwayFly.ioAWS Lightsail
+Since you already have experience with DigitalOcean, a small DigitalOcean Droplet is a practical choice. DigitalOcean’s pricing page lists Droplets with granular billing, and current pricing summaries show small Droplets starting around $4/month, with more practical small app servers usually around $6–$8/month+.
+For this project, I would start with:
+1 vCPU / 1GB RAM Droplet
+Expected starting cost:
+$6–$8/month
+If traffic grows:
+$12–$24/month+
+4. SMS provider
+You need SMS for only two things:
+Customer Phone OTP login
+Admin alerts for new orders
+You do not need SMS for order status updates because customers will receive in-app/site notifications.
+Possible SMS providers:
+TwilioAfrica's TalkingGeezSMSEthio Telecom / local providerMessageBird
+Twilio has Ethiopia SMS pricing listed as pay-as-you-go, and its global pricing pages show usage-based pricing rather than a fixed subscription.
+Expected cost:
+No fixed monthly fee in many casesPay per SMS
+Rough cost depends heavily on provider and destination country.
+Example calculation:
+1 OTP = 1 SMS1 new order alert to 2 admins = 2 SMSIf 1,000 logins/month and 300 orders/month:OTP SMS: 1,000Admin alert SMS: 300 × 2 = 600Total: 1,600 SMS/month
+You should price this with the provider you choose, especially if the target users are in the US market.
+5. Domain name
+You need one domain for the public site.
+Example:
+yourstore.com
+Expected cost:
+$10–$25/year
+Optional subdomains:
+www.yourstore.comapi.yourstore.comadmin.yourstore.com
+These usually do not cost extra.
+6. Business email
+This is optional but recommended.
+You may need emails like:
+support@yourdomain.comorders@yourdomain.comadmin@yourdomain.com
+Options:
+Google WorkspaceZoho MailNamecheap Private EmailCloudflare Email Routing
+Expected cost:
+$0–$8/user/month
+If you only need forwarding, Cloudflare Email Routing can be enough. If you need inboxes, use Google Workspace or Zoho.
+7. Image optimization / CDN
+Because product images are stored in Supabase Storage, you may not need a separate CDN at the beginning.
+But if the site grows, image delivery can become a cost issue.
+Options:
+Supabase Storage onlyCloudflare CDNCloudflare ImagesImageKitUploadcare
+For MVP:
+Use Supabase Storage only
+Expected cost:
+Included in Supabase limits at firstExtra cost if storage/egress grows
+8. Error monitoring
+Optional but useful for production.
+Recommended:
+Sentry
+Used for:
+Frontend errors
+Backend errors
+Failed API requests
+Unexpected crashes
+Expected cost:
+Free tier firstPaid later if usage grows
+9. Analytics
+You may want analytics for:
+Site visits
+Product views
+Cart activity
+Checkout conversion
+Popular products
+Options:
+Google Analytics - freePostHog - free tier / paid laterPlausible - paidVercel Analytics - paid depending on plan
+For MVP:
+Google Analytics
+Expected cost:
+Free
+10. Google OAuth
+Google OAuth itself does not normally require a paid subscription for this use case.
+But if you use Google Workspace for business email, that is separate.
+Expected cost:
+$0 for OAuth
+11. SSL certificate
+If using Vercel, SSL is included.
+If using DigitalOcean with Nginx, you can use Let’s Encrypt.
+Expected cost:
+$0
+12. GitHub
+For code hosting:
+GitHub
+Expected cost:
+Free for normal private repos
+Paid only if you need advanced team features.
+Recommended MVP subscription setup
+For the first production version, I would use:
+Service
+Recommended choice
+Estimated cost
+Frontend
+Vercel Pro
+~$20/month
+Backend
+DigitalOcean Droplet
+~$6–$12/month
+DB/Auth/Storage
+Supabase Pro
+~$25/month
+SMS
+Twilio or local provider
+Pay-per-SMS
+Domain
+Any registrar
+~$10–$25/year
+Email
+Zoho or Google Workspace
+$0–$8/month
+Analytics
+Google Analytics
+Free
+Error tracking
+Sentry
+Free first
+Expected minimum monthly production cost:
+Around $51–$65/month + SMS usage
+If you self-host both Next.js and Express on one DigitalOcean server:
+DigitalOcean: $8–$12/monthSupabase: $25/monthSMS: usage-basedDomain: yearly
+Then your starting monthly cost could be closer to:
+Around $33–$45/month + SMS usage
+My recommendation for your project
+For development:
+Vercel FreeSupabase FreeDigitalOcean small droplet or local backendFree GitHubSMS test account
+For production MVP:
+Supabase ProDigitalOcean Droplet for ExpressVercel Pro for Next.jsSMS provider pay-as-you-goDomainOptional business email
+The only subscriptions I would treat as must-have for launch are:
+Supabase ProBackend hostingFrontend hostingSMS providerDomain
+Everything else can wait

@@ -1,0 +1,219 @@
+4-Milestone Project Delivery Plan
+E-Commerce Web App: API, Frontend, Admin, SMS, Testing, SEO
+Overall Timeline
+Estimated total duration:
+34 to 37 days
+Recommended safer production timeline:
+40 to 45 days
+Milestone 1 — Backend Foundation
+Duration
+7 days
+Deliverables
+Backend Express.js project initialized and running
+Environment variables configured
+Supabase project connected
+Supabase PostgreSQL database connected
+Supabase Auth connected
+Supabase Storage bucket created and connected
+Database schema created
+Health check endpoint working
+Global error handler working
+404 handler working
+Auth middleware implemented
+Admin middleware implemented
+User role structure implemented
+Customer and admin role detection working
+Protected route test completed
+Admin route protection test completed
+Backend ready for endpoint development
+Client Subscription Responsibility
+The client is responsible for:
+SMS service on Twilio or other alternative.
+SMS provider subscription or pay-as-you-go balance
+SMS sender ID registration cost, if required
+Domain purchase and VPS Subscription
+Any Google Cloud/OAuth account for Authentication.
+Milestone Acceptance
+Milestone 1 is complete when:
+Documentation for basic setup of backend API, with Postman collection and    payload for testing.
+Milestone 2 — Complete Backend API
+Duration
+8 days
+Deliverables
+Phone OTP authentication endpoints completed
+Google OAuth authentication endpoints completed
+User profile endpoints completed
+Public category endpoints completed
+Admin category management endpoints completed
+Public product endpoints completed
+Admin product management endpoints completed
+Product visibility control completed
+Product soft delete and restore completed
+Product image upload to Supabase Storage completed
+Product image delete and bucket cleanup completed
+Product cover image selection completed
+Cart endpoints completed
+Guest cart merge endpoint completed
+Address endpoints completed
+Checkout/order creation endpoint completed
+Cash on Delivery order logic completed
+Customer order history endpoints completed
+Customer order detail endpoint completed
+Admin order list endpoint completed
+Admin order detail endpoint completed
+Admin order status update endpoint completed
+Order status history completed
+Customer notification endpoints completed
+Admin settings endpoints completed
+Customer cancellation toggle completed
+SMS admin alert structure completed
+Test SMS endpoint completed
+API tested with Postman/curl
+Backend API ready for frontend integration
+Required From Client
+The client must provide or approve:
+Admin phone numbers for new-order SMS, test phone numbers are fine
+Supabase subscription for Bucket, DB and Notifications
+SMS provider account access or API credentials
+SMS sender ID, if required by provider
+SMS message wording approval for admin order alerts
+Customer cancellation rule confirmation
+Test customer phone number for OTP testing
+Client Subscription Responsibility
+The client is responsible for:
+Supabase usage cost for database, auth, storage, and realtime
+Any cost related to phone OTP delivery
+Any cost for storing and serving product images
+Milestone Acceptance
+Milestone 2 is complete when:
+All required backend endpoints are working, protected correctly, connected to Supabase, and ready to be consumed by the frontend.Updated Backend documentation with postman collection with payloads
+Milestone 3 — Customer Frontend and Admin Frontend
+Duration
+15 - 20 days
+Deliverables
+Customer/Public Frontend
+Next.js frontend project initialized
+API client connected to backend
+Age gate page completed
+Blocked page completed
+Landing page completed
+Product listing page completed
+Product detail page completed
+Category filtering completed
+Guest cart with localStorage/sessionStorage completed
+Cart page completed
+Phone OTP login UI completed
+Google OAuth login UI completed
+Guest cart merge after login completed
+Checkout page completed
+Cash on Delivery confirmation flow completed
+Order success page completed
+Customer profile page completed
+Address management UI completed
+Customer order history page completed
+Customer order detail page completed
+Customer notifications page completed
+Realtime notification UI connected
+Customer cancellation UI connected to admin setting
+Mobile responsive customer UI completed
+Admin Frontend
+Admin login/protected access completed
+Admin dashboard completed
+Admin product list completed
+Product create page completed
+Product edit page completed
+Product image upload UI completed
+Product image delete UI completed
+Product cover image selector completed
+Product visibility toggle completed
+Product soft delete and restore UI completed
+Category management page completed
+Admin order list completed
+Admin order detail completed
+Admin order status update UI completed
+Customer management page completed
+Admin settings page completed
+Admin phone number management completed
+Customer cancellation toggle UI completed
+SMS test UI completed
+Admin UI protected from non-admin users
+Required From Client
+The client must provide or approve:
+Logo
+Brand colors
+Brand name
+Homepage content
+Product images
+Product descriptions
+Category names
+Business contact information
+Blocked-page wording approval
+Privacy Policy content or approval to use placeholder
+Terms and Conditions content or approval to use placeholder
+Client Subscription Responsibility
+The client is responsible for:
+Milestone Acceptance
+Milestone 3 is complete when:
+The full customer flow and admin flow are usable through the frontend and connected to the backend API.
+Milestone 4 — Integration, SMS, Testing, SEO, Deployment, and Handover
+Duration
+Final 7 to 10 days, or remaining project period depending on bug volume
+Deliverables
+Full backend/frontend integration completed
+Supabase Realtime notifications tested
+SMS provider fully integrated
+Admin new-order SMS alerts working
+Phone OTP SMS tested
+Test SMS from admin panel working
+Guest-to-checkout flow tested
+Customer login flow tested
+Guest cart merge tested
+Order creation tested
+Admin order status update tested
+Customer notification flow tested
+Product visibility tested
+Soft delete and restore tested
+Product image upload tested
+Product image replacement and bucket cleanup tested
+Customer cancellation toggle tested
+Admin permission testing completed
+Customer data isolation testing completed
+Mobile responsiveness testing completed
+Loading states completed
+Empty states completed
+Error states completed
+SEO metadata added
+Sitemap added
+Robots.txt added
+Open Graph/social preview metadata added
+Basic performance optimization completed
+Production environment variables configured
+Frontend deployed
+Backend deployed
+Supabase production configuration reviewed
+Domain connected
+SSL confirmed
+Final bug fixing completed
+Final user acceptance testing completed
+Basic handover documentation completed
+Client Subscription Responsibility
+The client is responsible for:
+Production Supabase subscription
+Production frontend hosting subscription
+Production backend hosting subscription
+Domain renewal/payment
+SMS provider balance or subscription
+Business email subscription, if used
+Google OAuth/Google Cloud account ownership, if required
+Any third-party monitoring or analytics tools if requested
+Any future overage charges from hosting, storage, bandwidth, SMS, or database usage
+Milestone Acceptance
+Milestone 4 is complete when:
+The project is deployed, tested end-to-end, SEO-ready, and ready for MVP launch.
+Client Subscription Summary
+The following subscriptions or paid services are the client’s responsibility:
+SupabaseFrontend hostingBackend hostingDomain nameSMS providerBusiness email, if neededGoogle OAuth/Google Cloud account, if neededAnalytics, if paid analytics is requestedError monitoring, if paid monitoring is requestedImage/CDN service, if needed later
+Final Milestone Summary
+Milestone 1: Backend Foundation — 7 daysMilestone 2: Complete Backend API — 8 daysMilestone 3: Customer + Admin Frontend — 10 to 15 daysMilestone 4: Integration, SMS, Testing, SEO, Deployment — final 7 to 10 days
+Recommended total delivery estimate:
+34 to 37 days for MVP40 to 45 days with safer production polish
