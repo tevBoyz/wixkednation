@@ -5,7 +5,23 @@ Shared communication file between backend and frontend.
 - **Backend** updates status + notes when done.
 - API contract source of truth: [`baseDocs/backend-postman-collection.json`](baseDocs/backend-postman-collection.json) (72 routes)
 
-Last backend update: **2026-07-21** — Stage 38 complete (inbetween A1–A3)
+Last backend update: **2026-07-22** — Default product placeholder image (`/api/assets/default-product.webp`)
+
+---
+
+## Default product image — `done` (2026-07-22)
+
+Static placeholder for products without uploaded images.
+
+| URL | Auth | Notes |
+|-----|------|-------|
+| `GET /api/assets/default-product.webp` | none | Green `#148547` square with white **G** |
+
+**Regenerate:** `npm run assets:default-product` in `backend/` (writes `backend/assets/default-product.webp`).
+
+**Frontend:** `getProductCoverUrl()` falls back to `{NEXT_PUBLIC_API_URL}/api/assets/default-product.webp`.
+
+Product uploads are stored in Supabase Storage but **served through the API** at `GET /api/assets/product-images/:productId/:imageId.webp` (private bucket proxy). Product API responses return these backend URLs in `images[].url`.
 
 ---
 

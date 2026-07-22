@@ -249,6 +249,19 @@ Run once after Stages 31–49 complete:
 
 ---
 
+## 21. Admin media library (Stage 53)
+
+- [ ] `/admin/media` lists all product images from DB aggregate (not raw bucket)
+- [ ] Summary shows total image count and total storage size
+- [ ] Search by product name filters the grid
+- [ ] Include archived toggle shows images on hidden/soft-deleted products
+- [ ] Each card links to the product edit page
+- [ ] Delete from media library removes image from product gallery and storage
+- [ ] Deleting cover image leaves product with valid cover (index 0 or default)
+- [ ] Default placeholder asset does not appear in media library
+
+---
+
 ## Sign-off
 
 | Role | Name | Date | Notes |

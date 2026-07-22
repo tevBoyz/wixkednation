@@ -126,12 +126,12 @@ Poll interval: 20–30s while tab visible. See [`../notification-polling.md`](..
 
 | Method | Path | Auth | Frontend page/hook | Stage | Implemented |
 |--------|------|------|-------------------|-------|-------------|
-| GET | `/api/admin/categories` | admin | `/admin/categories` | 33 | — |
-| POST | `/api/admin/categories` | admin | create form | 34 | — |
-| GET | `/api/admin/categories/:id` | admin | edit load | 34 | — |
-| PATCH | `/api/admin/categories/:id` | admin | edit save | 34 | — |
-| DELETE | `/api/admin/categories/:id` | admin | soft delete | 35 | — |
-| PATCH | `/api/admin/categories/:id/restore` | admin | restore | 35 | — |
+| GET | `/api/admin/categories` | admin | `/admin/categories` | 33 | yes (2026-07-22) |
+| POST | `/api/admin/categories` | admin | create form | 34 | yes (2026-07-22) |
+| GET | `/api/admin/categories/:id` | admin | edit load | 34 | yes (2026-07-22) |
+| PATCH | `/api/admin/categories/:id` | admin | edit save | 34 | yes (2026-07-22) |
+| DELETE | `/api/admin/categories/:id` | admin | soft delete | 35 | yes (2026-07-22) |
+| PATCH | `/api/admin/categories/:id/restore` | admin | restore | 35 | yes (2026-07-22) |
 
 ---
 
@@ -139,17 +139,17 @@ Poll interval: 20–30s while tab visible. See [`../notification-polling.md`](..
 
 | Method | Path | Auth | Frontend page/hook | Stage | Implemented |
 |--------|------|------|-------------------|-------|-------------|
-| GET | `/api/admin/products` | admin | `/admin/products` | 36 | — |
-| POST | `/api/admin/products` | admin | create | 37 | — |
-| GET | `/api/admin/products/:id` | admin | edit load | 38 | — |
-| PATCH | `/api/admin/products/:id` | admin | edit save | 38 | — |
-| PATCH | `/api/admin/products/:id/visibility` | admin | visibility toggle | 41 | — |
-| DELETE | `/api/admin/products/:id` | admin | soft delete | 41 | — |
-| PATCH | `/api/admin/products/:id/restore` | admin | restore | 41 | — |
-| POST | `/api/admin/products/:id/images` | admin | multipart `image` | 39 | — |
-| PATCH | `/api/admin/products/:id/images/reorder` | admin | reorder gallery | 40 | — |
-| PATCH | `/api/admin/products/:id/images/:imageId/cover` | admin | set cover | 40 | — |
-| DELETE | `/api/admin/products/:id/images/:imageId` | admin | delete image | 40 | — |
+| GET | `/api/admin/products` | admin | `/admin/products` | 36 | yes (2026-07-22) |
+| POST | `/api/admin/products` | admin | `/admin/products/new` | 37 | yes (2026-07-22) |
+| GET | `/api/admin/products/:id` | admin | `/admin/products/[id]` edit load | 38 | yes (2026-07-22) |
+| PATCH | `/api/admin/products/:id` | admin | `/admin/products/[id]` edit save | 38 | yes (2026-07-22) |
+| PATCH | `/api/admin/products/:id/visibility` | admin | list Hide/Show toggle | 41 | yes (2026-07-22) |
+| DELETE | `/api/admin/products/:id` | admin | list soft delete | 41 | yes (2026-07-22) |
+| PATCH | `/api/admin/products/:id/restore` | admin | list restore | 41 | yes (2026-07-22) |
+| POST | `/api/admin/products/:id/images` | admin | edit gallery upload | 39 | yes (2026-07-22) |
+| PATCH | `/api/admin/products/:id/images/reorder` | admin | edit gallery reorder | 40 | yes (2026-07-22) |
+| PATCH | `/api/admin/products/:id/images/:imageId/cover` | admin | edit set cover | 40 | yes (2026-07-22) |
+| DELETE | `/api/admin/products/:id/images/:imageId` | admin | edit delete image | 40 | yes (2026-07-22) |
 
 Upload: **Express only** — never direct Supabase from browser.
 
@@ -159,9 +159,9 @@ Upload: **Express only** — never direct Supabase from browser.
 
 | Method | Path | Auth | Frontend page/hook | Stage | Implemented |
 |--------|------|------|-------------------|-------|-------------|
-| GET | `/api/admin/orders` | admin | `/admin/orders` | 42 | — |
-| GET | `/api/admin/orders/:id` | admin | `/admin/orders/[id]` + `user.reputation` | 43 | — |
-| PATCH | `/api/admin/orders/:id/status` | admin | status update (incl. Cancelled) | 44 | — |
+| GET | `/api/admin/orders` | admin | `/admin/orders` | 42 | yes (2026-07-22) |
+| GET | `/api/admin/orders/:id` | admin | `/admin/orders/[orderId]` + `user.reputation` | 43 | yes (2026-07-22) |
+| PATCH | `/api/admin/orders/:id/status` | admin | status update dialog | 44 | yes (2026-07-22) |
 
 **No** `PATCH /api/admin/orders/:id/cancel` — use status update.
 
@@ -171,8 +171,8 @@ Upload: **Express only** — never direct Supabase from browser.
 
 | Method | Path | Auth | Frontend page/hook | Stage | Implemented |
 |--------|------|------|-------------------|-------|-------------|
-| GET | `/api/admin/dashboard/stats` | admin | `/admin` stat cards | 32 | — |
-| GET | `/api/admin/dashboard/recent-orders` | admin | `/admin` recent table | 32 | — |
+| GET | `/api/admin/dashboard/stats` | admin | `/admin` stat cards | 32 | yes (2026-07-22) |
+| GET | `/api/admin/dashboard/recent-orders` | admin | `/admin` recent table | 32 | yes (2026-07-22) |
 
 ---
 
@@ -180,9 +180,9 @@ Upload: **Express only** — never direct Supabase from browser.
 
 | Method | Path | Auth | Frontend page/hook | Stage | Implemented |
 |--------|------|------|-------------------|-------|-------------|
-| GET | `/api/admin/customers` | admin | `/admin/customers` | 45 | — |
-| GET | `/api/admin/customers/:id` | admin | `/admin/customers/[id]` | 46 | — |
-| GET | `/api/admin/customers/:id/orders` | admin | customer order history | 46 | — |
+| GET | `/api/admin/customers` | admin | `/admin/customers` | 45 | yes (2026-07-22) |
+| GET | `/api/admin/customers/:id` | admin | `/admin/customers/[customerId]` | 46 | yes (2026-07-22) |
+| GET | `/api/admin/customers/:id/orders` | admin | customer order history | 46 | yes (2026-07-22) |
 
 Reputation fields: **never** on customer-facing pages.
 
@@ -192,11 +192,11 @@ Reputation fields: **never** on customer-facing pages.
 
 | Method | Path | Auth | Frontend page/hook | Stage | Implemented |
 |--------|------|------|-------------------|-------|-------------|
-| GET | `/api/admin/settings` | admin | `/admin/settings` | 47 | — |
-| PATCH | `/api/admin/settings` | admin | general settings form | 47 | — |
-| POST | `/api/admin/settings/admin-phones` | admin | add admin phone | 48 | — |
-| DELETE | `/api/admin/settings/admin-phones/:phoneId` | admin | remove phone | 48 | — |
-| PATCH | `/api/admin/settings/sms` | admin | SMS provider metadata | 48 | — |
+| GET | `/api/admin/settings` | admin | `/admin/settings` | 47 | yes (2026-07-22) |
+| PATCH | `/api/admin/settings` | admin | general settings form | 47 | yes (2026-07-22) |
+| POST | `/api/admin/settings/admin-phones` | admin | add admin phone | 48 | yes (2026-07-22) |
+| DELETE | `/api/admin/settings/admin-phones/:phoneId` | admin | remove phone | 48 | yes (2026-07-22) |
+| PATCH | `/api/admin/settings/sms` | admin | SMS provider metadata | 48 | yes (2026-07-22) |
 
 **Removed:** `PATCH /api/admin/settings/cancellation` — do not integrate.
 
@@ -206,10 +206,23 @@ Reputation fields: **never** on customer-facing pages.
 
 | Method | Path | Auth | Frontend page/hook | Stage | Implemented |
 |--------|------|------|-------------------|-------|-------------|
-| POST | `/api/admin/sms/test` | admin | test SMS form | 49 | — |
-| GET | `/api/admin/sms/logs` | admin | SMS logs table | 49 | — |
+| POST | `/api/admin/sms/test` | admin | test SMS form | 49 | yes (2026-07-22) |
+| GET | `/api/admin/sms/logs` | admin | SMS logs table | 49 | yes (2026-07-22) |
 
 Never display OTP codes in log UI.
+
+---
+
+## Admin media library (1 new + 1 reused) — admin JWT
+
+| Method | Path | Auth | Frontend page/hook | Stage | Implemented |
+|--------|------|------|-------------------|-------|-------------|
+| GET | `/api/admin/media` | admin | `/admin/media` grid + summary | 53 | — |
+| DELETE | `/api/admin/products/:id/images/:imageId` | admin | media page delete (reuse Stage 40) | 53 | yes (2026-07-22) |
+
+**Design:** List is DB-first (flatten `Product.images` across products). Do not use Supabase bucket listing as the primary UI. Delete must go through the existing product-image delete route so storage cleanup and product JSON stay in sync.
+
+Query params for `GET /api/admin/media`: `page`, `limit`, `search`, `includeArchived` (hidden + soft-deleted products).
 
 ---
 
@@ -248,6 +261,7 @@ frontend/src/lib/api/
     dashboard.api.ts
     settings.api.ts
     sms.api.ts
+    media.api.ts
 ```
 
 Update **Implemented** column to `yes` + date when stage passes your manual test.

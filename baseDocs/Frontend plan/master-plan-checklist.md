@@ -225,118 +225,172 @@ API source of truth: [`../backend-postman-collection.json`](../backend-postman-c
 - **Re-test when admin order status UI ships (Stages 42–44):** admin status change → customer bell badge updates within ~25s without manual refresh.
 
 ### Stage 31: Admin shell + navigation
-- Status: `missing`
+- Status: `done`
 - Endpoints: none (role guard)
-- Key files (planned): `app/admin/layout.tsx`
+- Key files: `app/admin/layout.tsx`, `components/admin/admin-shell.tsx`, `components/admin/admin-sidebar-nav.tsx`, `components/admin/admin-nav.ts`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: Sidebar (Dashboard, Products, Categories, Orders, Customers, Settings). AdminGuard + admin-check. Mobile sheet nav. Header with logout + storefront link. Admin dashboard link in account menu.
 
 ### Stage 32: Admin dashboard
-- Status: `missing`
+- Status: `done`
 - Endpoints: `GET /api/admin/dashboard/stats`, `GET /api/admin/dashboard/recent-orders`
-- Key files (planned): `app/admin/page.tsx`
+- Key files: `app/admin/page.tsx`, `components/admin/admin-dashboard-client.tsx`, `lib/api/admin/dashboard.api.ts`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: Stat cards + recent orders table with links to `/admin/orders/[id]` (detail placeholder until Stage 43).
 
 ### Stage 33: Admin category list
-- Status: `missing`
+- Status: `done`
 - Endpoints: `GET /api/admin/categories`
-- Key files (planned): `app/admin/categories/page.tsx`
+- Key files: `app/admin/categories/page.tsx`, `components/admin/categories/admin-categories-client.tsx`, `lib/api/admin/categories.api.ts`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: Table with name, slug, status badges (active/inactive/deleted). Search filter. New category button. Deleted rows sorted to bottom via `sortDeletedLast`.
 
 ### Stage 34: Admin category create + edit
-- Status: `missing`
+- Status: `done`
 - Endpoints: `POST/PATCH /api/admin/categories*`
-- Key files (planned): category form components
+- Key files: `components/admin/categories/category-form-dialog.tsx`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: Dialog form with Zod validation (name, description, isActive). Duplicate slug (409) surfaced via toast.
 
 ### Stage 35: Admin category soft delete + restore
-- Status: `missing`
+- Status: `done`
 - Endpoints: `DELETE/PATCH .../restore`
-- Key files (planned): category list actions
+- Key files: `components/admin/categories/delete-category-dialog.tsx`, list restore action
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: Confirm modal before delete. Restore button on deleted rows. Invalidates public categories cache for nav refresh.
 
 ### Stage 36: Admin product list
-- Status: `missing`
+- Status: `done`
 - Endpoints: `GET /api/admin/products`
-- Key files (planned): `app/admin/products/page.tsx`
+- Key files: `app/admin/products/page.tsx`, `components/admin/products/admin-products-client.tsx`, `components/admin/products/admin-products-filters.tsx`, `lib/api/admin/products.api.ts`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: Paginated table with search, category, visibility filters. Includes hidden + deleted. Hide/Show, Delete, Restore. Newest visible first; hidden/deleted at bottom.
 
 ### Stage 37: Admin product create
-- Status: `missing`
+- Status: `done`
 - Endpoints: `POST /api/admin/products`
-- Key files (planned): `app/admin/products/new/page.tsx`
+- Key files: `app/admin/products/new/page.tsx`, `components/admin/products/admin-product-create-client.tsx`, `components/admin/products/admin-product-form.tsx`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: Zod form. Redirects to edit page on success. List cache invalidated.
 
 ### Stage 38: Admin product edit
-- Status: `missing`
+- Status: `done`
 - Endpoints: `GET/PATCH /api/admin/products/:id`
-- Key files (planned): `app/admin/products/[id]/page.tsx`
+- Key files: `app/admin/products/[id]/page.tsx`, `components/admin/products/admin-product-edit-client.tsx`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: Prefilled form + PATCH save. Redirects to list after save.
 
 ### Stage 39: Admin product image upload
-- Status: `missing`
+- Status: `done`
 - Endpoints: `POST /api/admin/products/:id/images`
-- Key files (planned): image upload component
+- Key files: `components/admin/products/product-image-gallery.tsx`, `lib/api/admin/product-image-upload.ts`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: Multipart upload via XHR with progress bar. JPG/PNG/WebP validation. Max 3 images enforced in UI + API. Client compresses files >1MB before upload.
 
 ### Stage 40: Admin product image cover, reorder, delete
-- Status: `missing`
+- Status: `done`
 - Endpoints: cover, reorder, delete image routes
-- Key files (planned): image gallery manager
+- Key files: `components/admin/products/product-image-gallery.tsx`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: Set cover, move left/right reorder, delete with confirm modal.
 
 ### Stage 41: Admin product visibility, soft delete, restore
-- Status: `missing`
+- Status: `done`
 - Endpoints: visibility, DELETE, restore
-- Key files (planned): product list actions
+- Key files: `components/admin/products/delete-product-dialog.tsx`, list actions in `admin-products-client.tsx`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: Hide/Show toggle, soft delete confirm, restore on deleted rows.
 
 ### Stage 42: Admin order list
-- Status: `missing`
+- Status: `done`
 - Endpoints: `GET /api/admin/orders`
-- Key files (planned): `app/admin/orders/page.tsx`
+- Key files: `app/admin/orders/page.tsx`, `components/admin/orders/admin-orders-client.tsx`, `components/admin/orders/admin-orders-filters.tsx`, `lib/api/admin/orders.api.ts`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: Paginated table, search (order # / customer), status filter, URL query sync, links to detail.
 
 ### Stage 43: Admin order detail
-- Status: `missing`
+- Status: `done`
 - Endpoints: `GET /api/admin/orders/:id` (includes reputation)
-- Key files (planned): `app/admin/orders/[id]/page.tsx`
+- Key files: `app/admin/orders/[orderId]/page.tsx`, `components/admin/orders/admin-order-detail-client.tsx`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: Items snapshot, delivery address, COD total, status history timeline, customer reputation panel (admin-only), link to customer profile.
 
 ### Stage 44: Admin order status update
-- Status: `missing`
+- Status: `done`
 - Endpoints: `PATCH /api/admin/orders/:id/status`
-- Key files (planned): status update form
+- Key files: `components/admin/orders/admin-order-status-dialog.tsx`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: Status dialog with optional note; confirm step for Cancelled/Delivered; toast clarifies in-app notification only (no SMS).
 
 ### Stage 45: Admin customer list
-- Status: `missing`
+- Status: `done`
 - Endpoints: `GET /api/admin/customers`
-- Key files (planned): `app/admin/customers/page.tsx`
+- Key files: `app/admin/customers/page.tsx`, `components/admin/customers/admin-customers-client.tsx`, `components/admin/customers/admin-customers-filters.tsx`, `lib/api/admin/customers.api.ts`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: Paginated table with reputation score, order count, search by name/phone/email, links to detail.
 
 ### Stage 46: Admin customer detail
-- Status: `missing`
-- Endpoints: `GET /api/admin/customers/:id`, `GET .../orders`
-- Key files (planned): `app/admin/customers/[id]/page.tsx`
+- Status: `done`
+- Endpoints: `GET /api/admin/customers/:id`, `GET /api/admin/customers/:id/orders`
+- Key files: `app/admin/customers/[customerId]/page.tsx`, `components/admin/customers/admin-customer-detail-client.tsx`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Confirmed: 2026-07-22
+- Notes: Contact info, reputation breakdown, recent orders preview, paginated order history with status filter, links to admin order detail.
 
 ### Stage 47: Admin settings (general)
-- Status: `missing`
+- Status: `partial`
 - Endpoints: `GET/PATCH /api/admin/settings` (NO cancellation route)
-- Key files (planned): `app/admin/settings/page.tsx`
+- Key files: `app/admin/settings/page.tsx`, `components/admin/settings/admin-settings-client.tsx`, `components/admin/settings/admin-settings-nav.tsx`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Notes: Default measurement unit form; no cancellation toggle.
 
 ### Stage 48: Admin phones + SMS provider settings
-- Status: `missing`
+- Status: `partial`
 - Endpoints: admin-phones, sms settings routes
-- Key files (planned): settings phone/SMS sections
+- Key files: `components/admin/settings/admin-settings-client.tsx` (phones + SMS sections)
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Notes: Add/remove admin alert phones; provider + sender ID metadata only (no API token fields).
 
 ### Stage 49: Admin SMS test + logs
-- Status: `missing`
+- Status: `partial`
 - Endpoints: `POST /api/admin/sms/test`, `GET /api/admin/sms/logs`
-- Key files (planned): `app/admin/settings/sms/page.tsx`
+- Key files: `app/admin/settings/sms/page.tsx`, `components/admin/settings/admin-sms-client.tsx`, `lib/admin/sms-log.ts`
 - Your confirmation required: yes
+- Implemented: 2026-07-22
+- Notes: Test SMS form; paginated logs with status filter; OTP messages redacted in UI.
 
 ### Stage 50: SEO, metadata, sitemap
 - Status: `missing`
@@ -356,15 +410,33 @@ API source of truth: [`../backend-postman-collection.json`](../backend-postman-c
 - Key files (planned): `e2e/*`, `package.json` scripts
 - Your confirmation required: yes
 
+### Stage 53: Admin media library (product images)
+- Status: `missing`
+- Endpoints: `GET /api/admin/media` (new); delete reuses `DELETE /api/admin/products/:id/images/:imageId`
+- Key files (planned):
+  - Backend: `backend/src/modules/media/` (or extend `products` admin routes) — list/aggregate service + route
+  - Frontend: `app/admin/media/page.tsx`, `components/admin/media/admin-media-client.tsx`, `lib/api/admin/media.api.ts`
+  - Nav: `components/admin/admin-nav.ts` — add **Media** item
+- Your confirmation required: yes
+- Depends on: Stages 39–40 (upload + delete image flows must work)
+- Design (DB-first, not raw bucket browser):
+  - **Source of truth:** flatten `Product.images` JSON across all products; do **not** list Supabase bucket as primary UI (avoids orphans vs linked-product drift).
+  - **List:** paginated grid with thumbnail (proxy URL), linked product name → edit page, file size, upload date, cover badge.
+  - **Summary bar:** total image count + total storage bytes (sum of stored `size` fields).
+  - **Filters:** search by product name; optional toggle to include hidden and soft-deleted products (for cleanup).
+  - **Delete:** confirm modal names the product; call existing delete endpoint so storage file **and** product `images[]` + `coverImageIndex` stay in sync.
+  - **Out of scope v1:** bucket orphan scan, bulk delete, upload from media page (upload stays on product edit).
+- Notes: Default product placeholder (`/api/assets/default-product.webp`) is not in bucket and will not appear here. Optional v2: orphan report (`products/` paths not referenced in any product).
+
 ---
 
 ## Summary
 
 | Status | Count |
 |--------|-------|
-| done | 11 |
-| partial | 0 |
-| missing | 41 |
+| done | 46 |
+| partial | 3 |
+| missing | 4 |
 
 ## Related files
 
