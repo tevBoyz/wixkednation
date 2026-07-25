@@ -1,0 +1,15 @@
+service,required,used_in_codebase_today,option_A_split_vercel_railway_supabase_monthly_usd,option_A_year_usd,option_B_digitalocean_monthly_usd,option_B_year_usd,option_C_hostinger_vps_monthly_usd,option_C_year_usd,notes
+Frontend_Nextjs,yes,NEXT_PUBLIC_APP_URL + Next app,Vercel_Pro_20,240,App_Platform_~12,144,Included_on_VPS,0_included_in_vps,Hostinger packs FE+BE on one VPS
+Backend_Express,yes,Express API BACKEND_URL,Railway_Pro_20,240,App_Platform_~12,144,Included_on_VPS,0_included_in_vps,Always-on Node process required
+Postgres_DB,yes,DATABASE_URL + Prisma,Supabase_Pro_included_in_25,0_included_in_supabase_row,Managed_Postgres_~15,180,Self_hosted_on_VPS,0_included_in_vps,Self-host DB = more ops risk
+Object_storage_bucket,yes,SUPABASE_STORAGE_BUCKET + image upload,Supabase_Storage_included_in_25,0_included_in_supabase_row,Spaces_5,60,Local_disk_or_external,0_or_external,Hostinger has no real S3 product
+Supabase_bundle_DB_plus_bucket,yes_if_option_A,SUPABASE_URL keys bucket,25,300,n/a,0,n/a,0,Option A only - one Supabase Pro covers DB+bucket
+SMS_OTP,yes,SMS_PROVIDER AfroMessage (swap to Twilio for US),Twilio_usage,360_to_1440,Twilio_usage,360_to_1440,Twilio_usage,360_to_1440,Light ~500 OTP/mo = ~360/yr; medium ~2000 = ~1440/yr
+Google_OAuth,yes,GOOGLE_CLIENT_ID SECRET callback,0,0,0,0,0,0,Google Cloud Console free for OAuth login
+Domain_DNS,recommended_for_prod,FRONTEND_URL BACKEND_URL OAuth redirects,~1.5,~15,~1.5,~15,~1.5,~15,Typical .com ~15/yr
+Hosting_subtotal_ex_SMS_domain,,,,780,,528,,108_to_180_promo_vs_renewal,Hostinger KVM2 ~9 promo / ~15 renewal
+TOTAL_lean_500_OTP_per_mo_plus_domain,,,,1155,,903,,483_to_555,Approx Year-1 USD
+TOTAL_medium_2000_OTP_per_mo_plus_domain,,,,2235,,1983,,1563_to_1635,Approx Year-1 USD
+ops_difficulty,,,,Low,,Medium,,High,DIY server vs managed
+fits_current_code_least_rework,,,,Best_Supabase_already_wired,,Medium_rewire_Spaces,,Weakest_self_host_all,Rework storage paths for non-Supabase
+recommendation_for_GasNation,,,,Best_DX,,Best_price_vs_managed,,Budget_only,Prefer B or A over C for client production

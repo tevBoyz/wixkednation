@@ -2,7 +2,7 @@
 
 Source of truth for manual testing alongside `backend-postman-collection.json` (`npm run postman:generate`) and `npm run test:e2e`.
 
-**Total mounted routes: 74** (including `GET /`).
+**Total mounted routes: 78** (including `GET /`).
 
 Auth header where noted: `Authorization: Bearer <accessToken>`.
 
@@ -20,19 +20,24 @@ Auth header where noted: `Authorization: Bearer <accessToken>`.
 
 ---
 
-## Auth (9)
+## Auth (12)
 
 | Method | Path | Auth | Notes |
 |--------|------|------|-------|
-| POST | `/api/auth/otp/send` | none | Body `{ phone }`. Mock OTP: `[otp-dev] phone=… otp=…` |
-| POST | `/api/auth/otp/verify` | none | Body `{ phone, otp }` — field is **`otp`** (not `code`) → `{ data: { accessToken, refreshToken, user } }` |
+| POST | `/api/auth/otp/send` | none | `{ phone, purpose?: "register"\|"forgot_pin" }`. Register blocked (409) if PIN already set |
+| POST | `/api/auth/otp/verify` | none | `{ phone, otp, purpose? }` → `requiresPinSetup` + `setupToken` OR full tokens |
+| POST | `/api/auth/pin/set` | setup Bearer | `{ pin, confirmPin }` (4–6 digits) → full JWT |
+| POST | `/api/auth/pin/login` | none | `{ pin, phone? }` **or** `{ pin, email? }` → JWT. Default admin: `admin@gasnation.com` / `072326` |
+| POST | `/api/auth/pin/change` | Bearer | `{ currentPin, newPin, confirmPin }` |
 | POST | `/api/auth/refresh` | none | Body `{ refreshToken }` |
 | POST | `/api/auth/logout` | none | Body `{ refreshToken }` |
 | GET | `/api/auth/google/start` | none | Browser redirect to Google |
-| GET | `/api/auth/google/callback` | none | Google OAuth callback (backend URL). On success redirects to `FRONTEND_URL/auth/google/callback?code=<handoff>` |
-| POST | `/api/auth/exchange-code` | none | Body `{ code }` — exchange one-time Google handoff for tokens (60s TTL, single-use). Response `{ data: { accessToken, refreshToken, user } }` |
-| GET | `/api/auth/me` | Bearer | Legacy shape: `{ success, message, user }` (top-level `user`, not `data.user`). **No reputation** |
+| GET | `/api/auth/google/callback` | none | Redirects to frontend with handoff `code` |
+| POST | `/api/auth/exchange-code` | none | `{ code }` → setup token or full JWT depending on PIN |
+| GET | `/api/auth/me` | Bearer | Legacy shape: `{ success, message, user }` |
 | GET | `/api/auth/admin-check` | admin | |
+
+**Daily login:** phone or email + PIN (no OTP). OTP/Google only for new users and forgot-PIN.
 
 ---
 
@@ -57,13 +62,15 @@ Backend does not enforce age gate on catalog routes yet (frontend UX owns gate f
 | GET | `/api/products/featured` |
 | GET | `/api/products/:slug` |
 
+**Product search** (`GET /api/products?search=`): case-insensitive match on name, description, slug, `strainType`, `productType`, **and category name/slug** (e.g. `search=hybrid` returns all products in the Hybrid category). Same for admin product list search.
+
 ---
 
 ## Store config (1)
 
 | Method | Path | Auth | Notes |
 |--------|------|------|-------|
-| GET | `/api/store/config` | none | `{ data: { defaultCurrency } }` — display currency for storefront; from `AdminSettings` singleton |
+| GET | `/api/store/config` | none | `{ data: { defaultCurrency, orderContactPhones: [{ id, phone }] } }` — phones with `showOnBanner: true` for storefront order banner |
 
 ---
 
@@ -95,6 +102,8 @@ Backend does not enforce age gate on catalog routes yet (frontend UX owns gate f
 | PATCH | `/api/admin/products/:id/images/reorder` | `{ imageIds }` |
 | PATCH | `/api/admin/products/:id/images/:imageId/cover` |
 | DELETE | `/api/admin/products/:id/images/:imageId` |
+
+**Product fields (public + admin responses):** `price` may be **`null`** (“contact for price”); when priced, **`volume` is required** — price is the fixed charge for one pack of that volume (e.g. 1 g = 2800). Cart/order `lineTotal = price × quantity`; responses include `effectiveVolume = volume × quantity`. Also: `productType`, `strainType`, `thcPercent`, `cbdPercent`, `flavors[]`, `effects[]`. Max **4** images. Cart rejects null-price or missing-volume products (400).
 
 ---
 
@@ -184,7 +193,8 @@ No Supabase Realtime. See `notification-polling.md`.
 |--------|------|-------|
 | GET | `/api/admin/settings` | Includes `defaultMeasurementUnit`, `defaultCurrency` |
 | PATCH | `/api/admin/settings` | `{ defaultMeasurementUnit?, defaultCurrency? }` — currency: `ETB`, `USD`, `EUR`, `GBP` |
-| POST | `/api/admin/settings/admin-phones` | `{ "phone": "+2519…" }` |
+| POST | `/api/admin/settings/admin-phones` | `{ "phone": "+2519…", "showOnBanner"?: boolean }` |
+| PATCH | `/api/admin/settings/admin-phones/:phoneId` | `{ "showOnBanner": boolean }` — toggle storefront banner |
 | DELETE | `/api/admin/settings/admin-phones/:phoneId` | |
 | PATCH | `/api/admin/settings/sms` | `{ provider, senderId }` non-secret |
 

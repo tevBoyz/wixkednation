@@ -203,7 +203,8 @@ Mark each item: `[ ]` not tested · `[x]` pass · `[!]` fail (note in comments)
 - [ ] Playwright: `npm run test:e2e:install` then `npm run test:e2e` (frontend + backend running)
 - [ ] Playwright smoke: age gate → browse products; robots.txt; sitemap.xml
 - [ ] Playwright guest cart: open product → add to cart
-- [ ] Optional OTP login: set `E2E_OTP` (+ `E2E_PHONE`) from mock SMS console
+- [ ] Optional PIN login: set `E2E_PIN` (+ `E2E_PHONE` or `E2E_EMAIL`)
+- [ ] Optional register OTP → setup PIN: set `E2E_OTP` (+ `E2E_PHONE`) from mock SMS console
 - [ ] No `JWT_*`, `SERVICE_ROLE`, or SMS secrets in frontend source / `.env.example`
 - [ ] `npm run verify` (lint + typecheck + unit + build) passes
 
@@ -215,11 +216,12 @@ Run once after Stages 1–30 complete:
 
 1. [ ] Clear storage → age gate Yes → homepage
 2. [ ] Browse products → open detail → add to cart as guest
-3. [ ] Go to checkout → login with OTP → cart merged
+3. [ ] Go to checkout → login with PIN (or register → OTP → setup PIN) → cart merged
 4. [ ] Add address if needed → place COD order
 5. [ ] View order in `/account/orders`
 6. [ ] Cancel order if Pending (with `cancelledFromStatus`)
 7. [ ] Check notifications inbox + polling badge
+8. [ ] Change PIN from `/account/profile`
 
 ---
 
