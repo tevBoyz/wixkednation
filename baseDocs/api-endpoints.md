@@ -54,15 +54,30 @@ Backend does not enforce age gate on catalog routes yet (frontend UX owns gate f
 
 ## Public catalog (5)
 
-| Method | Path |
-|--------|------|
-| GET | `/api/categories` |
-| GET | `/api/categories/:slug` |
-| GET | `/api/products` |
-| GET | `/api/products/featured` |
-| GET | `/api/products/:slug` |
+| Method | Path | Notes |
+|--------|------|-------|
+| GET | `/api/categories` | **Nested tree** — roots with `children[]`; each node has `parentId`, `sortOrder` |
+| GET | `/api/categories/:slug` | Includes `parentId` + direct `children` |
+| GET | `/api/products` | `?category=` id or slug — includes **descendants** (e.g. `flower` → Indica/Sativa/Hybrid/…) |
+| GET | `/api/products/featured` | |
+| GET | `/api/products/:slug` | |
 
 **Product search** (`GET /api/products?search=`): case-insensitive match on name, description, slug, `strainType`, `productType`, **and category name/slug** (e.g. `search=hybrid` returns all products in the Hybrid category). Same for admin product list search.
+
+Example category tree node:
+
+```json
+{
+  "id": "…",
+  "name": "Flower",
+  "slug": "flower",
+  "parentId": null,
+  "sortOrder": 0,
+  "children": [
+    { "id": "…", "name": "Indica", "slug": "indica", "parentId": "…", "sortOrder": 10, "children": [] }
+  ]
+}
+```
 
 ---
 
@@ -76,14 +91,14 @@ Backend does not enforce age gate on catalog routes yet (frontend UX owns gate f
 
 ## Admin categories (6) — admin JWT
 
-| Method | Path |
-|--------|------|
-| GET | `/api/admin/categories` |
-| POST | `/api/admin/categories` |
-| GET | `/api/admin/categories/:id` |
-| PATCH | `/api/admin/categories/:id` |
-| DELETE | `/api/admin/categories/:id` |
-| PATCH | `/api/admin/categories/:id/restore` |
+| Method | Path | Notes |
+|--------|------|-------|
+| GET | `/api/admin/categories` | Nested tree (`parentId`, `sortOrder`, `children`) |
+| POST | `/api/admin/categories` | Body `{ name, slug?, description?, isActive?, parentId?, sortOrder? }` |
+| GET | `/api/admin/categories/:id` | Includes direct `children` |
+| PATCH | `/api/admin/categories/:id` | Partial; optional `parentId`, `sortOrder` |
+| DELETE | `/api/admin/categories/:id` | Soft-delete; **400** if non-deleted children or products remain |
+| PATCH | `/api/admin/categories/:id/restore` | |
 
 ---
 

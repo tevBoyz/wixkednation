@@ -1,90 +1,69 @@
-# FE handoff — Guest checkout + risk + phone rate limit
+# Backend ↔ Frontend Handoff (`inbetween.md`)
 
-Backend is ready. Guest cart stays **FE localStorage**; mid-browse login merge is unchanged.
-
-## Do not break
-
-- Guest browse cart → on login / PIN setup / session restore still call **`POST /api/cart/merge`** with local items.
-- Guest checkout sends **`items` in the order body**; it does **not** use or clear the authenticated server cart.
+Shared communication file between backend and frontend.
+- **Frontend** writes requests / blockers here.
+- **Backend** updates status + notes when done.
 
 ---
 
-## Store: guest checkout
+## Frontend → Backend request (2026-07-25) — Nested shop categories
 
-1. ~~Allow checkout **without** auth (remove AuthGuard for guest path).~~ **Done**
-2. ~~Form: **required phone** (+2519/7…), delivery address fields, COD, cart line items from local guest cart.~~ **Done**
-3. ~~Submit: **`POST /api/orders/guest`** (no Bearer).~~ **Done**
+**Priority:** medium  
+**Status:** `done` (v1 + v2 category seed)
+
+### What shipped
+
+**Migration:** `20260725220000_category_parent_hierarchy`
+
+- `Category.parentId` (self-relation), `sortOrder`
+- Created parent **Flower**; reparented **Indica / Sativa / Hybrid** under it
+- Product `categoryId` values unchanged (still on leaf rows)
+- Catalog seed also upserts full SHOP tree (Exotics, Oz Deals, Tier 1, Carts→THC Carts, Concentrates, Edibles→THC Edibles / Vegan)
+
+**Keep using** `strainType` / `productType` on products for badges/filters — category is nav/browse only.
+
+### API contracts (FE consume now)
+
+| Endpoint | Behavior |
+|----------|----------|
+| `GET /api/categories` | **Nested tree** — roots with `children[]`; fields: `id`, `name`, `slug`, `parentId`, `sortOrder`, `isActive`, `children` |
+| `GET /api/categories/:slug` | Same fields + **direct** `children` |
+| `GET /api/products?category=flower` | Products in Flower **or any descendant** |
+| `GET /api/products?category=indica` | Leaf only (that category) |
+| `GET /api/admin/categories` | Same tree shape (incl. soft-deleted nested where present) |
+| `POST/PATCH /api/admin/categories` | Optional `parentId`, `sortOrder` |
+| `DELETE /api/admin/categories/:id` | **400** if children remain or products still assigned |
+
+Example:
 
 ```json
 {
-  "phone": "+2519XXXXXXXX",
-  "name": "Optional",
-  "paymentMethod": "COD",
-  "items": [{ "productId": "uuid", "quantity": 1 }],
-  "address": {
-    "fullName": "…",
-    "phone": "+2519XXXXXXXX",
-    "addressLine1": "…",
-    "city": "…"
+  "data": {
+    "categories": [
+      {
+        "name": "Flower",
+        "slug": "flower",
+        "parentId": null,
+        "sortOrder": 0,
+        "children": [
+          { "name": "Indica", "slug": "indica", "sortOrder": 10, "children": [] },
+          { "name": "Sativa", "slug": "sativa", "sortOrder": 20, "children": [] },
+          { "name": "Hybrid", "slug": "hybrid", "sortOrder": 30, "children": [] }
+        ]
+      }
+    ]
   }
 }
 ```
 
-4. ~~Success `data.customer.postOrderCta` is **optional** only:~~ **Done**
-   - `"register"` → soft CTA “Create an account to track this order” → `/register?phone=`
-   - `"login"` → soft CTA “Log in to check order status” → `/login?phone=` + Forgot PIN link  
-   Never block another guest order because of CTA.
-5. ~~Clear **local** guest cart after successful guest order (not the server cart).~~ **Done**
+### FE todos
 
-### Signed-in checkout (unchanged path)
+1. ~~Store **SHOP** nav → render parent → children from `GET /api/categories` (not flat list).~~ **Done**
+2. ~~Category / shop pages: parent slug (e.g. `/categories/flower`) can call `GET /api/products?category=flower`.~~ **Done** (routes stay `/categories/[slug]`; index + child links added)
+3. ~~Admin category picker: show hierarchy (`Flower → Indica`); send `parentId` when creating subcategories.~~ **Done**
+4. ~~Types: add `parentId`, `sortOrder`, `children` on `Category`.~~ **Done**
 
-- Still **`POST /api/orders`** with `{ addressId, paymentMethod?: "COD" }`.
-- Response may include `order.risk` (ignore on store UI).
+### Not changed
 
----
-
-## Rate limit UX (required)
-
-Both guest and signed-in create can return **429**:
-
-```json
-{
-  "success": false,
-  "code": "ORDER_PHONE_BLOCKED",
-  "message": "Too many orders from this number. Please try again later.",
-  "blockedUntil": "2026-07-27T12:00:00.000Z"
-}
-```
-
-~~Show that **message** clearly (toast/banner). Optionally format `blockedUntil` as a local time. Do not show a generic “something went wrong”.~~ **Done**
-
----
-
-## Admin: orders list + detail
-
-API already returns on each admin order:
-
-| Field | Use |
-|-------|-----|
-| `placedAsGuest` | Label **Guest** vs **Registered** |
-| `matchedExistingAccount` | If guest + true → **Guest (existing customer)** |
-| `risk.lowReputation` | Soft **red** row/badge when true (`reputationScore < 0`) |
-| `risk.pendingPileUp` | Soft **red** when true (≥3 Pending on that customer) |
-| `user.reputation` | Existing scores (color red when low-rep) |
-
-~~Do **not** block or hide these orders — visual alert only. Same rules for registered customers.~~ **Done**
-
-Admin SMS may already be prefixed with `[LOW REP]` / `[PENDING PILE-UP]`.
-
----
-
-## Out of scope for FE (v1)
-
-- Force register after N guest orders  
-- Multi-SIM / `clientKey` / IP farm controls (v2)
-
----
-
-## FE status
-
-**Frontend guest checkout + risk UI is implemented** (checkout open to guests, `createGuestOrder`, 429 UX, order-success soft CTAs, admin guest/risk badges).
+- Guest checkout / cart merge  
+- Product seed prices/images (categories only for v2 extras)

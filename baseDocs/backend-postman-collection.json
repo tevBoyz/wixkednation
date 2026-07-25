@@ -706,7 +706,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "description": "Status: implemented\nAuth: none",
+            "description": "Status: implemented\nAuth: none\nReturns nested tree: roots with children[]. Each node: id, name, slug, parentId, sortOrder, children.",
             "url": {
               "raw": "{{baseUrl}}/api/categories",
               "host": [
@@ -724,7 +724,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "description": "Status: implemented\nAuth: none",
+            "description": "Status: implemented\nAuth: none\nIncludes parentId and direct children.",
             "url": {
               "raw": "{{baseUrl}}/api/categories/{{categorySlug}}",
               "host": [
@@ -743,7 +743,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "description": "Status: implemented\nAuth: none",
+            "description": "Status: implemented\nAuth: none\nQuery category=id|slug includes that category and all descendants (e.g. flower → indica/sativa/hybrid).",
             "url": {
               "raw": "{{baseUrl}}/api/products",
               "host": [
@@ -837,7 +837,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Status: implemented\nAuth: admin",
+            "description": "Status: implemented\nAuth: admin\nBody: { name, slug?, description?, isActive?, parentId?, sortOrder? }.\nSoft-delete blocked if children or products exist.",
             "url": {
               "raw": "{{baseUrl}}/api/admin/categories",
               "host": [
@@ -851,7 +851,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"E2E Category\",\n  \"description\": \"Created from Postman\",\n  \"isActive\": true\n}",
+              "raw": "{\n  \"name\": \"E2E Category\",\n  \"description\": \"Created from Postman\",\n  \"isActive\": true,\n  \"parentId\": null,\n  \"sortOrder\": 0\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -914,7 +914,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"E2E Category Updated\",\n  \"isActive\": true\n}",
+              "raw": "{\n  \"name\": \"E2E Category Updated\",\n  \"isActive\": true,\n  \"sortOrder\": 5\n}",
               "options": {
                 "raw": {
                   "language": "json"
