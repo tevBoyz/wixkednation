@@ -1651,6 +1651,39 @@
       "name": "Orders",
       "item": [
         {
+          "name": "Create guest order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Status: implemented\nAuth: none (public)\nNo OTP/PIN at checkout.\nBody: { phone, name?, paymentMethod?: \"COD\", items[{ productId, quantity, volume?, measurementUnit? }], address{ fullName, phone?, addressLine1, city, ... } }.\nFinds/creates User by phone (guest registry). Response: order (placedAsGuest, matchedExistingAccount, risk), smsAlert, customer { hasPin, postOrderCta: register|login }.\nRate limit: >10 orders/hour → 429 code ORDER_PHONE_BLOCKED + blockedUntil + try-again message.\nDoes not clear authenticated server cart / does not break POST /api/cart/merge.",
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/guest",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "guest"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{guestPhone}}\",\n  \"name\": \"Guest Customer\",\n  \"paymentMethod\": \"COD\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"address\": {\n    \"fullName\": \"Guest Customer\",\n    \"phone\": \"{{guestPhone}}\",\n    \"addressLine1\": \"Bole Road\",\n    \"city\": \"Addis Ababa\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
           "name": "Create order",
           "request": {
             "method": "POST",
@@ -1664,7 +1697,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Status: implemented\nAuth: customer Bearer JWT\nBody: { addressId, paymentMethod?: \"COD\" } — use addressId (NOT deliveryAddressId). paymentMethod is optional; always stored as COD.\nTriggers admin SMS alerts (mock logs [mock-sms]). Response includes data.smsAlert.",
+            "description": "Status: implemented\nAuth: customer Bearer JWT\nBody: { addressId, paymentMethod?: \"COD\" } — use addressId (NOT deliveryAddressId). paymentMethod is optional; always stored as COD.\nTriggers admin SMS alerts (mock logs [mock-sms]). Response includes data.smsAlert and order.risk.\nSame phone burst rate limit as guest checkout (ORDER_PHONE_BLOCKED).",
             "url": {
               "raw": "{{baseUrl}}/api/orders",
               "host": [
@@ -1807,7 +1840,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Status: implemented\nAuth: admin Bearer JWT\nIncludes user.reputation { reputationScore, deliveredOrderCount, cancelledOrderCount }.",
+            "description": "Status: implemented\nAuth: admin Bearer JWT\nIncludes placedAsGuest, matchedExistingAccount, live risk { lowReputation, pendingPileUp, reputationScore, cancelledOrderCount, pendingOrderCount }, and user.reputation.",
             "url": {
               "raw": "{{baseUrl}}/api/admin/orders/{{orderId}}",
               "host": [

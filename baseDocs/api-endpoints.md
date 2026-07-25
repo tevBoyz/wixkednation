@@ -142,17 +142,61 @@ Legacy `GET /api/auth/me` remains available with top-level `user` field.
 
 ---
 
-## Orders (4 customer + 3 admin)
+## Orders (5 customer + 3 admin)
 
 | Method | Path | Auth | Notes |
 |--------|------|------|-------|
-| POST | `/api/orders` | customer | Body `{ addressId, paymentMethod?: "COD" }` — use **`addressId`** (not `deliveryAddressId`). Always stored as COD |
+| POST | `/api/orders` | customer | Body `{ addressId, paymentMethod?: "COD" }` — use **`addressId`**. COD only. Clears server cart. Returns `order.risk`. Rate-limited per phone (see below). |
+| POST | `/api/orders/guest` | **public** | Guest checkout — no Bearer, no OTP. Body below. Find/create customer by phone; does **not** clear authenticated cart. |
 | GET | `/api/orders/me` | customer | No reputation |
 | GET | `/api/orders/me/:orderId` | customer | No reputation |
 | POST | `/api/orders/:orderId/cancel` | customer | See cancel rules below |
-| GET | `/api/admin/orders` | admin | Includes `user.reputation` |
-| GET | `/api/admin/orders/:id` | admin | Includes `user.reputation` |
+| GET | `/api/admin/orders` | admin | Includes `user.reputation`, `placedAsGuest`, `matchedExistingAccount`, live `risk` |
+| GET | `/api/admin/orders/:id` | admin | Same + status history |
 | PATCH | `/api/admin/orders/:id/status` | admin | `Delivered` → reputation `+1` |
+
+### Guest checkout
+
+```json
+POST /api/orders/guest
+{
+  "phone": "+2519XXXXXXXX",
+  "name": "Optional",
+  "paymentMethod": "COD",
+  "items": [{ "productId": "uuid", "quantity": 1, "volume": 1, "measurementUnit": "g" }],
+  "address": {
+    "fullName": "Required",
+    "phone": "+2519XXXXXXXX",
+    "addressLine1": "Required",
+    "city": "Required",
+    "addressLine2": "Optional",
+    "state": "Optional",
+    "country": "Ethiopia",
+    "latitude": null,
+    "longitude": null,
+    "label": "Optional"
+  }
+}
+```
+
+Response `data`:
+
+- `order` — includes `placedAsGuest`, `matchedExistingAccount`, `risk`
+- `smsAlert` — admin SMS summary (may prefix `[LOW REP]` / `[PENDING PILE-UP]`)
+- `customer` — `{ id, phone, isNewUser, matchedExistingAccount, hasPin, postOrderCta }` where `postOrderCta` is `"register"` or `"login"` (**optional UX only**)
+
+### Phone burst rate limit (guest + authenticated)
+
+- More than **10** orders in **1 hour** for the same customer/phone → `429`
+- Body: `{ success: false, code: "ORDER_PHONE_BLOCKED", message: "Too many orders from this number. Please try again later.", blockedUntil: "<ISO>" }`
+- Cooldown: **48 hours** (`User.orderBlockedUntil`)
+
+### Soft risk (admin — does not block checkout)
+
+Live on admin order payloads:
+
+- `risk.lowReputation` when `reputationScore < 0`
+- `risk.pendingPileUp` when customer has **≥3** `Pending` orders
 
 ### Customer cancel rules
 
