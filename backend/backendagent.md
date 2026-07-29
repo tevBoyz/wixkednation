@@ -334,7 +334,8 @@ Copy `.env.example` → `.env`. Required (see `src/config/env.js`):
 |----------|---------|
 | `PORT` | Server port (default 5000) |
 | `NODE_ENV` | development / production |
-| `FRONTEND_URL` | CORS origin |
+| `FRONTEND_URL` | Primary CORS origin |
+| `CORS_ORIGINS` | Optional comma-separated extra CORS origins |
 | `BACKEND_URL` | Server URL |
 | `DATABASE_URL` | Supabase PostgreSQL |
 | `SUPABASE_URL` | Supabase project URL |

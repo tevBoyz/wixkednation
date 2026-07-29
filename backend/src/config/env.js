@@ -40,6 +40,10 @@ const env = {
   nodeEnv: process.env.NODE_ENV || "development",
 
   frontendUrl: process.env.FRONTEND_URL,
+  corsOrigins: (process.env.CORS_ORIGINS || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
   backendUrl: process.env.BACKEND_URL,
 
   supabase: {

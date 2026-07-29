@@ -4,6 +4,7 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 
 const env = require("./config/env");
+const { corsOrigin } = require("./config/cors");
 const { assetsDir } = require("./config/assets");
 const assetsRoutes = require("./modules/assets/assets.routes");
 
@@ -36,7 +37,7 @@ app.use(helmet());
 
 app.use(
   cors({
-    origin: env.frontendUrl,
+    origin: corsOrigin,
     credentials: true
   })
 );
