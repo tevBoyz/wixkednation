@@ -336,7 +336,7 @@ Copy `.env.example` → `.env`. Required (see `src/config/env.js`):
 | `NODE_ENV` | development / production |
 | `FRONTEND_URL` | Primary CORS origin |
 | `CORS_ORIGINS` | Optional comma-separated extra CORS origins |
-| `BACKEND_URL` | Server URL |
+| `BACKEND_URL` | Public API origin; product image URLs are built from it |
 | `DATABASE_URL` | Supabase PostgreSQL |
 | `SUPABASE_URL` | Supabase project URL |
 | `SUPABASE_ANON_KEY` | Public key |

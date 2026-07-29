@@ -1,3 +1,52 @@
+const ASSET_PATH_PREFIX = "/api/assets/";
+
+function getApiBaseUrl(): string | null {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/$/, "");
+  return apiUrl || null;
+}
+
+/**
+ * Point asset URLs at the API this frontend is configured to talk to.
+ *
+ * The API builds absolute image URLs from its own BACKEND_URL, so a backend
+ * deployed behind a different hostname than it thinks it has (or a cart line
+ * persisted while pointing at another environment) yields unreachable hosts.
+ * Rebasing keeps rendering tied to NEXT_PUBLIC_API_URL; non-asset sources such
+ * as Supabase public storage are left untouched.
+ */
+export function resolveCatalogAssetUrl(
+  src: string | null | undefined,
+): string | null {
+  const trimmed = src?.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const apiUrl = getApiBaseUrl();
+  if (!apiUrl) {
+    return trimmed;
+  }
+
+  if (trimmed.startsWith(ASSET_PATH_PREFIX)) {
+    return `${apiUrl}${trimmed}`;
+  }
+
+  if (trimmed.startsWith(`${apiUrl}${ASSET_PATH_PREFIX}`)) {
+    return trimmed;
+  }
+
+  try {
+    const url = new URL(trimmed);
+    if (!url.pathname.startsWith(ASSET_PATH_PREFIX)) {
+      return trimmed;
+    }
+
+    return `${apiUrl}${url.pathname}${url.search}`;
+  } catch {
+    return trimmed;
+  }
+}
+
 /** True when hostname is loopback / private (Next image optimizer blocks these). */
 function isPrivateOrLocalHostname(hostname: string): boolean {
   const host = hostname.toLowerCase().replace(/^\[|\]$/g, "");

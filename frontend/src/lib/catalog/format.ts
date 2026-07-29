@@ -1,3 +1,4 @@
+import { resolveCatalogAssetUrl } from "@/lib/catalog/catalog-image-url";
 import { getDefaultProductImageUrl } from "@/lib/catalog/default-product-image";
 import {
   DEFAULT_CURRENCY,
@@ -171,6 +172,5 @@ export function getProductCoverUrl(product: {
     Math.max(product.coverImageIndex ?? 0, 0),
     images.length - 1,
   );
-  const url = images[index]?.url;
-  return url?.trim() ? url : getDefaultProductImageUrl();
+  return resolveCatalogAssetUrl(images[index]?.url) ?? getDefaultProductImageUrl();
 }

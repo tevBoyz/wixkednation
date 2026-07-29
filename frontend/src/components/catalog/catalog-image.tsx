@@ -6,6 +6,7 @@ import { useState } from "react";
 import {
   canOptimizeCatalogImage,
   getCatalogImageSizes,
+  resolveCatalogAssetUrl,
 } from "@/lib/catalog/catalog-image-url";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +44,7 @@ export function CatalogImage({
   priority = false,
 }: CatalogImageProps) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
-  const resolvedSrc = src?.trim() || null;
+  const resolvedSrc = resolveCatalogAssetUrl(src);
   const showImage = Boolean(resolvedSrc) && resolvedSrc !== failedSrc;
   const optimize =
     Boolean(resolvedSrc) && canOptimizeCatalogImage(resolvedSrc);

@@ -35,6 +35,25 @@ if (missingEnvVars.length > 0) {
   process.exit(1);
 }
 
+function isLoopbackUrl(value) {
+  try {
+    const hostname = new URL(value).hostname.toLowerCase().replace(/^\[|\]$/g, "");
+
+    return ["localhost", "127.0.0.1", "::1", "0.0.0.0"].includes(hostname);
+  } catch {
+    return false;
+  }
+}
+
+// BACKEND_URL is baked into the asset URLs the API hands to browsers, so a
+// loopback value in production renders every product image unreachable.
+if (process.env.NODE_ENV === "production" && isLoopbackUrl(process.env.BACKEND_URL)) {
+  console.warn(
+    `BACKEND_URL is set to "${process.env.BACKEND_URL}", which browsers cannot reach. ` +
+      "Set it to the public API origin (for example https://api.example.com) so image URLs resolve."
+  );
+}
+
 const env = {
   port: process.env.PORT || 5000,
   nodeEnv: process.env.NODE_ENV || "development",
