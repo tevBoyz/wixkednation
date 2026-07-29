@@ -12,9 +12,11 @@ function buildRemotePatterns(): NonNullable<
   ];
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
   if (apiUrl) {
     try {
       const parsed = new URL(apiUrl);
+
       patterns.push({
         protocol: parsed.protocol.replace(":", "") as "http" | "https",
         hostname: parsed.hostname,
@@ -22,7 +24,7 @@ function buildRemotePatterns(): NonNullable<
         pathname: "/api/assets/**",
       });
     } catch {
-      // ignore invalid env at build time
+      // Ignore invalid environment values during build
     }
   }
 
@@ -30,10 +32,15 @@ function buildRemotePatterns(): NonNullable<
 }
 
 const nextConfig: NextConfig = {
+  output: "export",
+  trailingSlash: true,
+
   images: {
     remotePatterns: buildRemotePatterns(),
-    // Local API (localhost:5000) resolves to private IPs; allow in development
-    // so next/image can optimize when used. Production keeps the SSRF default.
+
+    // Static export has no Next.js image optimization server.
+    unoptimized: true,
+
     dangerouslyAllowLocalIP: process.env.NODE_ENV === "development",
   },
 };
