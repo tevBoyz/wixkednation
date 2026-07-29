@@ -32,15 +32,14 @@ function buildRemotePatterns(): NonNullable<
 }
 
 const nextConfig: NextConfig = {
-  output: "export",
-  trailingSlash: true,
+  // Smaller Docker image: copies only the standalone server + traced deps.
+  output: "standalone",
 
   images: {
     remotePatterns: buildRemotePatterns(),
 
-    // Static export has no Next.js image optimization server.
-    unoptimized: true,
-
+    // Local API (localhost:5000) resolves to private IPs; allow in development
+    // so next/image can optimize when used. Production keeps the SSRF default.
     dangerouslyAllowLocalIP: process.env.NODE_ENV === "development",
   },
 };
