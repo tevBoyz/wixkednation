@@ -1,0 +1,499 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+
+import { CheckoutAddressPicker } from "@/components/checkout/checkout-address-picker";
+import { CheckoutOrderSummary } from "@/components/checkout/checkout-order-summary";
+import { useAuth } from "@/components/providers/auth-provider";
+import { useCart } from "@/components/providers/cart-provider";
+import { useFormatPrice } from "@/components/providers/store-config-provider";
+import { Container } from "@/components/layout/container";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { createGuestOrder, createOrder } from "@/lib/api/orders.api";
+import {
+  getOrderPhoneBlockedMessage,
+  getOrderSubmitErrorMessage,
+} from "@/lib/api/errors";
+import { saveGuestOrderSnapshot } from "@/lib/orders/guest-order-snapshot";
+import { isValidEthiopianPhone, normalizePhone } from "@/lib/phone";
+import { useGuestCartStore } from "@/stores/guest-cart-store";
+
+const guestCheckoutSchema = z.object({
+  phone: z
+    .string()
+    .min(1, "Phone number is required")
+    .refine((value) => isValidEthiopianPhone(value), {
+      message: "Enter a valid Ethiopian mobile (+2519… or +2517…)",
+    }),
+  name: z.string().max(120),
+  fullName: z.string().trim().min(1, "Full name is required").max(120),
+  addressPhone: z.string(),
+  addressLine1: z.string().trim().min(1, "Address is required").max(200),
+  addressLine2: z.string().max(200),
+  city: z.string().trim().min(1, "City is required").max(120),
+  state: z.string().max(120),
+});
+
+type GuestCheckoutValues = z.infer<typeof guestCheckoutSchema>;
+
+export function CheckoutPageClient() {
+  const formatPrice = useFormatPrice();
+  const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { items, itemCount, subtotal, isLoading, refresh } = useCart();
+  const guestClear = useGuestCartStore((state) => state.clear);
+
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+    null,
+  );
+  const [submitting, setSubmitting] = useState(false);
+  const [phoneBlockMessage, setPhoneBlockMessage] = useState<string | null>(
+    null,
+  );
+  const submitLockRef = useRef(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<GuestCheckoutValues>({
+    resolver: zodResolver(guestCheckoutSchema),
+    defaultValues: {
+      phone: "",
+      name: "",
+      fullName: "",
+      addressPhone: "",
+      addressLine1: "",
+      addressLine2: "",
+      city: "",
+      state: "",
+    },
+  });
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      void refresh();
+    }
+  }, [isAuthenticated, refresh]);
+
+  async function onPlaceSignedInOrder() {
+    if (!selectedAddressId) {
+      toast.error("Select a delivery address");
+      return;
+    }
+
+    if (submitLockRef.current || submitting) {
+      return;
+    }
+
+    submitLockRef.current = true;
+    setSubmitting(true);
+    setPhoneBlockMessage(null);
+
+    try {
+      const order = await createOrder({
+        addressId: selectedAddressId,
+        paymentMethod: "COD",
+      });
+
+      await refresh();
+      router.replace(`/order-success/${order.id}`);
+      router.refresh();
+    } catch (error) {
+      const blocked = getOrderPhoneBlockedMessage(error);
+      const message = blocked ?? getOrderSubmitErrorMessage(error);
+      setPhoneBlockMessage(blocked);
+      toast.error(message);
+      submitLockRef.current = false;
+      setSubmitting(false);
+    }
+  }
+
+  async function onPlaceGuestOrder(values: GuestCheckoutValues) {
+    if (submitLockRef.current || submitting) {
+      return;
+    }
+
+    if (items.length === 0) {
+      toast.error("Your cart is empty");
+      return;
+    }
+
+    submitLockRef.current = true;
+    setSubmitting(true);
+    setPhoneBlockMessage(null);
+
+    const phone = normalizePhone(values.phone);
+    const addressPhoneRaw = values.addressPhone.trim();
+    const addressPhone = addressPhoneRaw
+      ? normalizePhone(addressPhoneRaw)
+      : phone;
+
+    if (addressPhoneRaw && !isValidEthiopianPhone(addressPhoneRaw)) {
+      toast.error("Enter a valid delivery phone (+2519… or +2517…)");
+      submitLockRef.current = false;
+      setSubmitting(false);
+      return;
+    }
+
+    try {
+      const result = await createGuestOrder({
+        phone,
+        name: values.name.trim() || undefined,
+        paymentMethod: "COD",
+        items: items.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        })),
+        address: {
+          fullName: values.fullName.trim(),
+          phone: addressPhone,
+          addressLine1: values.addressLine1.trim(),
+          addressLine2: values.addressLine2.trim() || null,
+          city: values.city.trim(),
+          state: values.state.trim() || null,
+          country: "Ethiopia",
+        },
+      });
+
+      guestClear();
+      saveGuestOrderSnapshot(result);
+      router.replace(`/order-success/${result.order.id}`);
+      router.refresh();
+    } catch (error) {
+      const blocked = getOrderPhoneBlockedMessage(error);
+      const message = blocked ?? getOrderSubmitErrorMessage(error);
+      setPhoneBlockMessage(blocked);
+      toast.error(message);
+      submitLockRef.current = false;
+      setSubmitting(false);
+    }
+  }
+
+  if (authLoading || isLoading) {
+    return (
+      <Container as="main" className="py-10">
+        <p className="text-sm text-muted-foreground">Loading checkout…</p>
+      </Container>
+    );
+  }
+
+  if (itemCount === 0) {
+    return (
+      <Container as="main" className="py-10">
+        <h1>Checkout</h1>
+        <p className="mt-2 text-muted-foreground">
+          Your cart is empty. Add products before checking out.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Button render={<Link href="/products" />} nativeButton={false}>
+            Browse products
+          </Button>
+          <Button
+            render={<Link href="/cart" />}
+            nativeButton={false}
+            variant="outline"
+          >
+            View cart
+          </Button>
+        </div>
+      </Container>
+    );
+  }
+
+  const phoneBlockBanner = phoneBlockMessage ? (
+    <div
+      role="alert"
+      className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive"
+    >
+      {phoneBlockMessage}
+    </div>
+  ) : null;
+
+  if (isAuthenticated) {
+    return (
+      <Container as="main" className="min-w-0 py-10">
+        <header className="max-w-2xl min-w-0">
+          <h1>Checkout</h1>
+          <p className="mt-2 text-muted-foreground">
+            Choose a delivery address and confirm your Cash on Delivery order.
+          </p>
+        </header>
+
+        {phoneBlockBanner ? <div className="mt-6">{phoneBlockBanner}</div> : null}
+
+        <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_18rem]">
+          <div className="min-w-0 space-y-8">
+            <section aria-labelledby="checkout-address-heading">
+              <h2
+                id="checkout-address-heading"
+                className="text-lg font-medium"
+              >
+                Delivery address
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Select a saved address or add a new one.
+              </p>
+              <div className="mt-4">
+                <CheckoutAddressPicker
+                  selectedId={selectedAddressId}
+                  onSelect={setSelectedAddressId}
+                />
+              </div>
+            </section>
+
+            <section aria-labelledby="checkout-payment-heading">
+              <h2
+                id="checkout-payment-heading"
+                className="text-lg font-medium"
+              >
+                Payment
+              </h2>
+              <div className="mt-4 rounded-lg border border-border bg-muted/30 p-4">
+                <p className="font-medium">Cash on Delivery (COD)</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Pay {formatPrice(subtotal)} when your order is delivered.
+                  Online payment is not available.
+                </p>
+              </div>
+            </section>
+
+            <div className="lg:hidden">
+              <Button
+                type="button"
+                className="w-full"
+                disabled={!selectedAddressId || submitting}
+                onClick={() => void onPlaceSignedInOrder()}
+              >
+                {submitting ? "Placing order…" : "Place order"}
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <CheckoutOrderSummary />
+            <Button
+              type="button"
+              className="hidden w-full lg:inline-flex"
+              disabled={!selectedAddressId || submitting}
+              onClick={() => void onPlaceSignedInOrder()}
+            >
+              {submitting ? "Placing order…" : "Place order"}
+            </Button>
+          </div>
+        </div>
+      </Container>
+    );
+  }
+
+  return (
+    <Container as="main" className="min-w-0 py-10">
+      <header className="max-w-2xl min-w-0">
+        <h1>Checkout</h1>
+        <p className="mt-2 text-muted-foreground">
+          Enter your phone and delivery details to place a Cash on Delivery
+          order. No account required.
+        </p>
+      </header>
+
+      {phoneBlockBanner ? <div className="mt-6">{phoneBlockBanner}</div> : null}
+
+      <form
+        className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_18rem]"
+        onSubmit={handleSubmit((values) => void onPlaceGuestOrder(values))}
+        noValidate
+      >
+        <div className="min-w-0 space-y-8">
+          <section aria-labelledby="checkout-contact-heading" className="space-y-4">
+            <div>
+              <h2
+                id="checkout-contact-heading"
+                className="text-lg font-medium"
+              >
+                Contact
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                We use this number for delivery updates.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="guest-phone">Phone number</Label>
+              <Input
+                id="guest-phone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="+251911000000"
+                aria-invalid={Boolean(errors.phone)}
+                disabled={submitting}
+                {...register("phone")}
+              />
+              {errors.phone ? (
+                <p className="text-sm text-destructive">{errors.phone.message}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Formats like 0911…, 911…, or +251911… are accepted.
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="guest-name">Name (optional)</Label>
+              <Input
+                id="guest-name"
+                type="text"
+                autoComplete="name"
+                disabled={submitting}
+                {...register("name")}
+              />
+            </div>
+          </section>
+
+          <section
+            aria-labelledby="checkout-guest-address-heading"
+            className="space-y-4"
+          >
+            <div>
+              <h2
+                id="checkout-guest-address-heading"
+                className="text-lg font-medium"
+              >
+                Delivery address
+              </h2>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="guest-full-name">Full name</Label>
+              <Input
+                id="guest-full-name"
+                type="text"
+                autoComplete="name"
+                aria-invalid={Boolean(errors.fullName)}
+                disabled={submitting}
+                {...register("fullName")}
+              />
+              {errors.fullName ? (
+                <p className="text-sm text-destructive">
+                  {errors.fullName.message}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="guest-address-phone">
+                Delivery phone (optional)
+              </Label>
+              <Input
+                id="guest-address-phone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="Same as contact if left blank"
+                disabled={submitting}
+                {...register("addressPhone")}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="guest-address-line1">Address</Label>
+              <Input
+                id="guest-address-line1"
+                type="text"
+                autoComplete="street-address"
+                aria-invalid={Boolean(errors.addressLine1)}
+                disabled={submitting}
+                {...register("addressLine1")}
+              />
+              {errors.addressLine1 ? (
+                <p className="text-sm text-destructive">
+                  {errors.addressLine1.message}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="guest-address-line2">
+                Address line 2 (optional)
+              </Label>
+              <Input
+                id="guest-address-line2"
+                type="text"
+                disabled={submitting}
+                {...register("addressLine2")}
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="guest-city">City</Label>
+                <Input
+                  id="guest-city"
+                  type="text"
+                  autoComplete="address-level2"
+                  aria-invalid={Boolean(errors.city)}
+                  disabled={submitting}
+                  {...register("city")}
+                />
+                {errors.city ? (
+                  <p className="text-sm text-destructive">{errors.city.message}</p>
+                ) : null}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="guest-state">State / region (optional)</Label>
+                <Input
+                  id="guest-state"
+                  type="text"
+                  autoComplete="address-level1"
+                  disabled={submitting}
+                  {...register("state")}
+                />
+              </div>
+            </div>
+          </section>
+
+          <section aria-labelledby="checkout-guest-payment-heading">
+            <h2
+              id="checkout-guest-payment-heading"
+              className="text-lg font-medium"
+            >
+              Payment
+            </h2>
+            <div className="mt-4 rounded-lg border border-border bg-muted/30 p-4">
+              <p className="font-medium">Cash on Delivery (COD)</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Pay {formatPrice(subtotal)} when your order is delivered. Online
+                payment is not available.
+              </p>
+            </div>
+          </section>
+
+          <div className="lg:hidden">
+            <Button type="submit" className="w-full" disabled={submitting}>
+              {submitting ? "Placing order…" : "Place order"}
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <CheckoutOrderSummary />
+          <Button
+            type="submit"
+            className="hidden w-full lg:inline-flex"
+            disabled={submitting}
+          >
+            {submitting ? "Placing order…" : "Place order"}
+          </Button>
+        </div>
+      </form>
+    </Container>
+  );
+}

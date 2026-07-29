@@ -1,0 +1,57 @@
+{
+  "name": "ecommerce-backend-api",
+  "version": "1.0.0",
+  "description": "Express.js backend API relay for Next.js frontend and Supabase",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "postinstall": "prisma generate",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "db:seed": "prisma db seed",
+    "catalog:wipe": "node scripts/wipe-catalog-data.js",
+    "catalog:seed": "node scripts/run-client-catalog-seed.js",
+    "catalog:reseed": "npm run catalog:wipe && npm run catalog:seed",
+    "seed:test-products": "node scripts/manage-test-products.js seed",
+    "seed:test-products:list": "node scripts/manage-test-products.js list",
+    "seed:test-products:clean": "node scripts/manage-test-products.js clean",
+    "seed:test-products:restore": "node scripts/manage-test-products.js restore",
+    "postman:generate": "node scripts/generate-postman-collection.js",
+    "assets:default-product": "node scripts/generate-default-product-image.js",
+    "test:e2e": "node scripts/e2e-full-scenario.js"
+  },
+  "keywords": [
+    "express",
+    "supabase",
+    "postgresql",
+    "ecommerce",
+    "backend"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "@supabase/supabase-js": "^2.45.4",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.10.0",
+    "multer": "^2.2.0",
+    "pg": "^8.22.0",
+    "prisma": "^7.8.0",
+    "sharp": "^0.35.3"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "nodemon": "^3.1.4"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  }
+}

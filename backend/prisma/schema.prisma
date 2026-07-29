@@ -1,0 +1,366 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  customer
+  admin
+}
+
+enum AuthProvider {
+  phone
+  google
+  guest
+}
+
+enum OrderStatus {
+  Pending
+  Confirmed
+  OutForDelivery
+  Delivered
+  Cancelled
+}
+
+enum PaymentMethod {
+  COD
+}
+
+enum NotificationType {
+  order_status
+  general
+}
+
+model User {
+  id             String       @id @default(uuid()) @db.Uuid
+  supabaseUserId String       @unique
+  name           String?
+  phone          String?      @unique
+  email          String?      @unique
+  authProvider   AuthProvider
+  role           UserRole     @default(customer)
+
+  reputationScore      Int @default(0)
+  deliveredOrderCount  Int @default(0)
+  cancelledOrderCount  Int @default(0)
+
+  pinHash           String?
+  pinSetAt          DateTime?
+  pinFailedAttempts Int       @default(0)
+  pinLockedUntil    DateTime?
+
+  orderBlockedUntil DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  addresses     Address[]
+  authAccounts  AuthAccount[]
+  cart          Cart?
+  orders        Order[]
+  notifications Notification[]
+  otpChallenges OtpChallenge[]
+  refreshTokens RefreshToken[]
+
+  changedOrderStatuses OrderStatusHistory[] @relation("ChangedByUser")
+
+  @@map("users")
+}
+
+model AuthAccount {
+  id String @id @default(uuid()) @db.Uuid
+
+  userId String @db.Uuid
+
+  provider          AuthProvider
+  providerAccountId String
+  email             String?
+  phone             String?
+  isVerified        Boolean @default(false)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@index([phone])
+  @@index([email])
+  @@index([deletedAt])
+  @@map("auth_accounts")
+}
+
+model OtpChallenge {
+  id String @id @default(uuid()) @db.Uuid
+
+  userId String? @db.Uuid
+
+  phone    String
+  codeHash String
+
+  expiresAt          DateTime
+  attempts           Int      @default(0)
+  maxAttempts        Int      @default(5)
+  resendCooldownEnds DateTime?
+  consumedAt         DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([phone])
+  @@index([expiresAt])
+  @@index([consumedAt])
+  @@map("otp_challenges")
+}
+
+model RefreshToken {
+  id String @id @default(uuid()) @db.Uuid
+
+  userId String @db.Uuid
+
+  tokenHash String   @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([revokedAt])
+  @@map("refresh_tokens")
+}
+
+model Address {
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+
+  label        String?
+  fullName     String
+  phone        String
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String?
+  country      String  @default("Ethiopia")
+  latitude     Float?
+  longitude    Float?
+  isDefault    Boolean @default(false)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@map("addresses")
+}
+
+model Category {
+  id          String  @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String  @unique
+  description String?
+  isActive    Boolean @default(true)
+
+  parentId   String? @db.Uuid
+  sortOrder  Int     @default(0)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children Category[] @relation("CategoryTree")
+  products Product[]
+
+  @@index([parentId])
+  @@map("categories")
+}
+
+model Product {
+  id          String  @id @default(uuid()) @db.Uuid
+  name        String
+  slug        String  @unique
+  description String?
+  price       Decimal? @db.Decimal(10, 2)
+
+  categoryId      String   @db.Uuid
+  measurementUnit String
+  volume          Decimal? @db.Decimal(10, 2)
+
+  productType String  @default("Flower")
+  strainType  String?
+  thcPercent  Decimal? @db.Decimal(5, 2)
+  cbdPercent  Decimal? @db.Decimal(5, 2)
+  flavors     Json     @default("[]")
+  effects     Json     @default("[]")
+
+  images          Json @default("[]")
+  coverImageIndex Int  @default(0)
+
+  isVisible  Boolean @default(true)
+  isFeatured Boolean @default(false)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  category  Category   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  cartItems CartItem[]
+
+  @@index([categoryId])
+  @@index([isVisible])
+  @@index([deletedAt])
+  @@map("products")
+}
+
+model Cart {
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @unique @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Restrict)
+  items CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String @id @default(uuid()) @db.Uuid
+  cartId    String @db.Uuid
+  productId String @db.Uuid
+
+  quantity        Int
+  volume          Decimal? @db.Decimal(10, 2)
+  measurementUnit String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@unique([cartId, productId, volume, measurementUnit])
+  @@index([cartId])
+  @@index([productId])
+  @@map("cart_items")
+}
+
+model Order {
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+
+  orderNumber     String        @unique
+  items           Json
+  deliveryAddress Json
+  status          OrderStatus   @default(Pending)
+  totalAmount     Decimal       @db.Decimal(10, 2)
+  paymentMethod   PaymentMethod @default(COD)
+
+  placedAsGuest            Boolean @default(false)
+  matchedExistingAccount   Boolean @default(false)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Restrict)
+  notifications Notification[]
+  statusHistory OrderStatusHistory[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("orders")
+}
+
+model Notification {
+  id      String  @id @default(uuid()) @db.Uuid
+  userId  String  @db.Uuid
+  orderId String? @db.Uuid
+
+  type    NotificationType
+  title   String
+  message String
+  isRead  Boolean          @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  order Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([orderId])
+  @@index([isRead])
+  @@map("notifications")
+}
+
+model AdminSettings {
+  id String @id @default(uuid()) @db.Uuid
+
+  adminPhoneNumbers      Json   @default("[]")
+  smsProviderConfig      Json   @default("{}")
+  defaultMeasurementUnit String @default("pcs")
+  defaultCurrency        String @default("ETB")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admin_settings")
+}
+
+model SmsLog {
+  id String @id @default(uuid()) @db.Uuid
+
+  phone   String
+  message String
+
+  provider     String
+  providerRef  String?
+  status       String
+  errorMessage String?
+  metadata     Json    @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([phone])
+  @@index([provider])
+  @@index([status])
+  @@map("sms_logs")
+}
+
+model OrderStatusHistory {
+  id      String @id @default(uuid()) @db.Uuid
+  orderId String @db.Uuid
+
+  oldStatus OrderStatus?
+  newStatus OrderStatus
+  changedBy String?      @db.Uuid
+  note      String?
+
+  createdAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  admin User? @relation("ChangedByUser", fields: [changedBy], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([changedBy])
+  @@map("order_status_history")
+}
