@@ -19,6 +19,7 @@ import {
   getDashboardStats,
   getRecentOrders,
   type DashboardStats,
+  type SmsDashboardStatus,
 } from "@/lib/api/admin/dashboard.api";
 import { getErrorMessage } from "@/lib/api/errors";
 import { useFormatPrice } from "@/components/providers/store-config-provider";
@@ -52,10 +53,68 @@ function StatCard({
   );
 }
 
+function providerLabel(provider?: string) {
+  if (provider === "twilio") {
+    return "Twilio";
+  }
+  if (provider === "mock") {
+    return "Mock";
+  }
+  return provider || "Unknown";
+}
+
+function SmsStatusCard({ sms }: { sms: SmsDashboardStatus }) {
+  const active = providerLabel(sms.activeProvider);
+  const twilio = sms.twilio;
+  let healthLabel = "Not configured";
+  let healthHint = twilio.error || "Add Twilio env vars on the backend.";
+
+  if (twilio.configured) {
+    if (twilio.reachable === true) {
+      healthLabel = twilio.accountStatus
+        ? `Reachable · ${twilio.accountStatus}`
+        : "Reachable";
+      healthHint = "Twilio account API responded successfully.";
+    } else if (twilio.reachable === false) {
+      healthLabel = "Unreachable";
+      healthHint = twilio.error || "Could not reach Twilio.";
+    } else {
+      healthLabel = "Configured";
+      healthHint = "Credentials present; status not checked.";
+    }
+  }
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-4 sm:col-span-2">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-sm text-muted-foreground">SMS service</p>
+          <p className="mt-2 text-2xl font-semibold tracking-tight">
+            Active: {active}
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Twilio:{" "}
+            <span className="font-medium text-foreground">{healthLabel}</span>
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">{healthHint}</p>
+        </div>
+        <Button
+          render={<Link href="/admin/settings" />}
+          nativeButton={false}
+          variant="outline"
+          size="sm"
+        >
+          Switch provider
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function StatsSkeleton() {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {Array.from({ length: 8 }).map((_, index) => (
+      {Array.from({ length: 9 }).map((_, index) => (
         <Skeleton key={index} className="h-24 rounded-lg" />
       ))}
     </div>
@@ -65,6 +124,7 @@ function StatsSkeleton() {
 function StatsGrid({ stats }: { stats: DashboardStats }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {stats.sms ? <SmsStatusCard sms={stats.sms} /> : null}
       <StatCard label="Total orders" value={stats.totalOrders} />
       <StatCard label="Pending" value={stats.pendingOrders} />
       <StatCard label="Confirmed" value={stats.confirmedOrders} />

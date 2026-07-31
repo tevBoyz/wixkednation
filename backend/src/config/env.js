@@ -82,21 +82,11 @@ const env = {
   cookieSecret: getFirstDefinedEnvValue(["COOKIE_SECRET", "SESSION_SECRET"]),
 
   sms: {
+    // Fallback only when AdminSettings has no provider. Allowed: mock | twilio.
     provider: process.env.SMS_PROVIDER,
-    apiKey: getFirstDefinedEnvValue(["AFROMESSAGE_API_TOKEN", "AFRO_MESSAGE_API_KEY", "SMS_API_KEY"]),
-    // AfroMessage "from" = identifier ID from the dashboard identifiers list.
-    identifierId: getFirstDefinedEnvValue([
-      "AFROMESSAGE_IDENTIFIER_ID",
-      "AFROMESSAGE_SENDER_ID",
-      "SMS_SENDER_ID"
-    ]),
-    // AfroMessage "sender" = verified sender/display name.
-    senderName: getFirstDefinedEnvValue([
-      "AFROMESSAGE_SENDER_NAME",
-      "AFROMESSAGE_SENDER_NAMES",
-      "SMS_SENDER_NAME"
-    ]),
-    baseUrl: process.env.AFROMESSAGE_BASE_URL || "https://api.afromessage.com/api"
+    twilioAccountSid: process.env.TWILIO_ACCOUNT_SID,
+    twilioAuthToken: process.env.TWILIO_AUTH_TOKEN,
+    twilioFromNumber: process.env.TWILIO_FROM_NUMBER
   },
 
   google: {

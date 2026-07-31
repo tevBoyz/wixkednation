@@ -4,11 +4,33 @@ const prisma = require("../../../config/prisma");
 const { isValidEthiopianPhone, normalizePhone } = require("../../../utils/phone");
 
 const ALLOWED_CURRENCIES = new Set(["ETB", "USD", "EUR", "GBP"]);
+const ALLOWED_SMS_PROVIDERS = new Set(["mock", "twilio"]);
 
 function createServiceError(message, statusCode) {
   const error = new Error(message);
   error.statusCode = statusCode;
   return error;
+}
+
+function defaultSmsProviderConfig() {
+  const hasTwilio =
+    Boolean(process.env.TWILIO_ACCOUNT_SID) &&
+    Boolean(process.env.TWILIO_AUTH_TOKEN) &&
+    Boolean(process.env.TWILIO_FROM_NUMBER);
+
+  const envProvider = (process.env.SMS_PROVIDER || "").toLowerCase().trim();
+  let provider = "mock";
+
+  if (ALLOWED_SMS_PROVIDERS.has(envProvider)) {
+    provider = envProvider;
+  } else if (hasTwilio) {
+    provider = "twilio";
+  }
+
+  return {
+    provider,
+    senderId: process.env.TWILIO_FROM_NUMBER || ""
+  };
 }
 
 function normalizeAdminPhones(rawPhones) {
@@ -58,7 +80,10 @@ function sanitizeSmsProviderConfig(rawConfig) {
   const sanitized = {};
 
   if (typeof config.provider === "string" && config.provider.trim()) {
-    sanitized.provider = config.provider.trim().toLowerCase();
+    const provider = config.provider.trim().toLowerCase();
+    if (ALLOWED_SMS_PROVIDERS.has(provider)) {
+      sanitized.provider = provider;
+    }
   }
 
   if (typeof config.senderId === "string" && config.senderId.trim()) {
@@ -107,7 +132,16 @@ async function ensureAdminSettings() {
     const needsPhoneNormalization =
       JSON.stringify(normalizedPhones) !== JSON.stringify(existingPhones);
 
-    if (!needsPhoneNormalization) {
+    const rawProvider =
+      existing.smsProviderConfig &&
+      typeof existing.smsProviderConfig === "object" &&
+      !Array.isArray(existing.smsProviderConfig) &&
+      typeof existing.smsProviderConfig.provider === "string"
+        ? existing.smsProviderConfig.provider.trim().toLowerCase()
+        : "";
+    const needsSmsProviderMigration = !ALLOWED_SMS_PROVIDERS.has(rawProvider);
+
+    if (!needsPhoneNormalization && !needsSmsProviderMigration) {
       return {
         ...existing,
         adminPhoneNumbers: normalizedPhones,
@@ -115,12 +149,20 @@ async function ensureAdminSettings() {
       };
     }
 
+    const nextSmsConfig = needsSmsProviderMigration
+      ? {
+          ...sanitizeSmsProviderConfig(existing.smsProviderConfig),
+          ...defaultSmsProviderConfig()
+        }
+      : sanitizeSmsProviderConfig(existing.smsProviderConfig);
+
     const updated = await prisma.adminSettings.update({
       where: {
         id: existing.id
       },
       data: {
-        adminPhoneNumbers: normalizedPhones
+        ...(needsPhoneNormalization ? { adminPhoneNumbers: normalizedPhones } : {}),
+        ...(needsSmsProviderMigration ? { smsProviderConfig: nextSmsConfig } : {})
       }
     });
 
@@ -134,11 +176,7 @@ async function ensureAdminSettings() {
   const created = await prisma.adminSettings.create({
     data: {
       adminPhoneNumbers: [],
-      smsProviderConfig: {
-        provider: process.env.SMS_PROVIDER || "afromessage",
-        senderId:
-          process.env.AFROMESSAGE_SENDER_ID || process.env.SMS_SENDER_ID || "MYSHOP"
-      },
+      smsProviderConfig: defaultSmsProviderConfig(),
       defaultMeasurementUnit: "pcs",
       defaultCurrency: "ETB"
     }
@@ -152,10 +190,20 @@ async function ensureAdminSettings() {
 }
 
 function formatSettings(settings) {
+  const smsProviderConfig = sanitizeSmsProviderConfig(settings.smsProviderConfig);
+  const defaults = defaultSmsProviderConfig();
+
   return {
     id: settings.id,
     adminPhoneNumbers: normalizeAdminPhones(settings.adminPhoneNumbers),
-    smsProviderConfig: sanitizeSmsProviderConfig(settings.smsProviderConfig),
+    smsProviderConfig: {
+      provider: smsProviderConfig.provider || defaults.provider,
+      ...(smsProviderConfig.senderId
+        ? { senderId: smsProviderConfig.senderId }
+        : defaults.senderId
+          ? { senderId: defaults.senderId }
+          : {})
+    },
     defaultMeasurementUnit: settings.defaultMeasurementUnit,
     defaultCurrency: settings.defaultCurrency || "ETB",
     createdAt: settings.createdAt,
@@ -332,14 +380,24 @@ async function updateSmsSettings(payload = {}) {
     if (typeof payload.provider !== "string" || !payload.provider.trim()) {
       throw createServiceError("provider must be a non-empty string.", 400);
     }
-    patch.provider = payload.provider.trim().toLowerCase();
+    const provider = payload.provider.trim().toLowerCase();
+    if (!ALLOWED_SMS_PROVIDERS.has(provider)) {
+      throw createServiceError(
+        `provider must be one of: ${[...ALLOWED_SMS_PROVIDERS].join(", ")}.`,
+        400
+      );
+    }
+    patch.provider = provider;
   }
 
   if (Object.prototype.hasOwnProperty.call(payload, "senderId")) {
-    if (typeof payload.senderId !== "string" || !payload.senderId.trim()) {
-      throw createServiceError("senderId must be a non-empty string.", 400);
+    if (typeof payload.senderId !== "string") {
+      throw createServiceError("senderId must be a string.", 400);
     }
-    patch.senderId = payload.senderId.trim();
+    const senderId = payload.senderId.trim();
+    if (senderId) {
+      patch.senderId = senderId;
+    }
   }
 
   if (Object.keys(patch).length === 0) {
@@ -348,8 +406,10 @@ async function updateSmsSettings(payload = {}) {
 
   const settings = await ensureAdminSettings();
   const currentConfig = sanitizeSmsProviderConfig(settings.smsProviderConfig);
+  const defaults = defaultSmsProviderConfig();
   const nextConfig = {
-    ...currentConfig,
+    provider: currentConfig.provider || defaults.provider,
+    ...(currentConfig.senderId ? { senderId: currentConfig.senderId } : {}),
     ...patch
   };
 

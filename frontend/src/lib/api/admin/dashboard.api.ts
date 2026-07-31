@@ -2,6 +2,16 @@ import { apiData } from "@/lib/api/client";
 import { toQuery } from "@/lib/api/types";
 import type { OrderStatus } from "@/lib/api/types";
 
+export type SmsDashboardStatus = {
+  activeProvider: "mock" | "twilio" | string;
+  twilio: {
+    configured: boolean;
+    reachable: boolean | null;
+    accountStatus: string | null;
+    error: string | null;
+  };
+};
+
 export type DashboardStats = {
   totalOrders: number;
   pendingOrders: number;
@@ -13,6 +23,7 @@ export type DashboardStats = {
   visibleProducts: number;
   hiddenProducts: number;
   totalCustomers: number;
+  sms?: SmsDashboardStatus;
 };
 
 export type AdminDashboardOrder = {

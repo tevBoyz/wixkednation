@@ -2308,7 +2308,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Status: implemented\nAuth: admin Bearer JWT\nNon-secret fields only.",
+            "description": "Status: implemented\nAuth: admin Bearer JWT\nBody: { provider: \"mock\" | \"twilio\" }. Secrets stay in env (TWILIO_*). AfroMessage is not allowed.",
             "url": {
               "raw": "{{baseUrl}}/api/admin/settings/sms",
               "host": [
@@ -2323,7 +2323,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"provider\": \"afromessage\",\n  \"senderId\": \"MYSHOP\"\n}",
+              "raw": "{\n  \"provider\": \"twilio\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

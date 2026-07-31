@@ -1,5 +1,6 @@
 const prisma = require("../../../config/prisma");
 const { listAdminOrders } = require("../../orders/orders.service");
+const { getSmsStatus } = require("../../../services/sms/sms.service");
 
 async function getDashboardStats() {
   const orderBase = { deletedAt: null };
@@ -15,7 +16,8 @@ async function getDashboardStats() {
     totalProducts,
     visibleProducts,
     hiddenProducts,
-    totalCustomers
+    totalCustomers,
+    sms
   ] = await Promise.all([
     prisma.order.count({ where: orderBase }),
     prisma.order.count({ where: { ...orderBase, status: "Pending" } }),
@@ -31,7 +33,8 @@ async function getDashboardStats() {
         role: "customer",
         deletedAt: null
       }
-    })
+    }),
+    getSmsStatus()
   ]);
 
   return {
@@ -44,7 +47,8 @@ async function getDashboardStats() {
     totalProducts,
     visibleProducts,
     hiddenProducts,
-    totalCustomers
+    totalCustomers,
+    sms
   };
 }
 

@@ -509,9 +509,9 @@ const collection = {
         }),
         req("Patch SMS settings", "PATCH", "/api/admin/settings/sms", {
           auth: "admin",
-          body: { provider: "afromessage", senderId: "MYSHOP" },
+          body: { provider: "twilio" },
           description:
-            "Status: implemented\nAuth: admin Bearer JWT\nNon-secret fields only."
+            "Status: implemented\nAuth: admin Bearer JWT\nBody: { provider: \"mock\" | \"twilio\" }. Secrets stay in env (TWILIO_*). AfroMessage is not allowed."
         })
       ]
     },

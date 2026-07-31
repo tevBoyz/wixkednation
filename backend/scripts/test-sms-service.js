@@ -4,7 +4,7 @@ const prisma = require("../src/config/prisma");
 const { resolveProvider, sendSms } = require("../src/services/sms/sms.service");
 
 async function main() {
-  const provider = resolveProvider();
+  const provider = await resolveProvider();
   const phone = process.env.SEED_ADMIN_PHONE || "+251911676343";
   const message = "Backend SMS abstraction test message.";
 

@@ -1,39 +1,84 @@
 const env = require("../../config/env");
 const prisma = require("../../config/prisma");
-const afromessageProvider = require("./providers/afromessage.provider");
 const mockProvider = require("./providers/mock.provider");
+const twilioProvider = require("./providers/twilio.provider");
 
-function resolveProvider() {
-  const configuredProvider = (env.sms.provider || "").toLowerCase().trim();
+const ALLOWED_PROVIDERS = new Set(["mock", "twilio"]);
+
+async function readDbProviderName() {
+  try {
+    const settings = await prisma.adminSettings.findFirst({
+      orderBy: {
+        createdAt: "asc"
+      },
+      select: {
+        smsProviderConfig: true
+      }
+    });
+
+    const config =
+      settings &&
+      settings.smsProviderConfig &&
+      typeof settings.smsProviderConfig === "object" &&
+      !Array.isArray(settings.smsProviderConfig)
+        ? settings.smsProviderConfig
+        : {};
+
+    if (typeof config.provider === "string" && config.provider.trim()) {
+      return config.provider.trim().toLowerCase();
+    }
+  } catch (error) {
+    console.warn(
+      `[sms] Could not read AdminSettings provider: ${error.message}`
+    );
+  }
+
+  return null;
+}
+
+async function getActiveSmsProviderName() {
+  const fromDb = await readDbProviderName();
+
+  if (fromDb && ALLOWED_PROVIDERS.has(fromDb)) {
+    return fromDb;
+  }
+
+  if (fromDb) {
+    console.warn(
+      `[sms] Ignoring unsupported AdminSettings SMS provider "${fromDb}". ` +
+        `Allowed: mock, twilio.`
+    );
+  }
+
+  const fromEnv = (env.sms.provider || "").toLowerCase().trim();
+
+  if (ALLOWED_PROVIDERS.has(fromEnv)) {
+    return fromEnv;
+  }
+
+  if (fromEnv) {
+    console.warn(
+      `[sms] Ignoring unsupported SMS_PROVIDER="${fromEnv}". Falling back to mock.`
+    );
+  }
+
+  return "mock";
+}
+
+async function resolveProvider() {
+  const configuredProvider = await getActiveSmsProviderName();
+
+  if (configuredProvider === "twilio") {
+    return twilioProvider;
+  }
 
   if (configuredProvider === "mock") {
     return mockProvider;
   }
 
-  if (configuredProvider === "afromessage") {
-    if (!env.sms.apiKey || !env.sms.identifierId || !env.sms.senderName) {
-      console.warn(
-        "[sms] AfroMessage credentials incomplete. Falling back to mock provider."
-      );
-      return mockProvider;
-    }
-
-    return afromessageProvider;
-  }
-
-  if (!configuredProvider) {
-    if (env.sms.apiKey && env.sms.identifierId && env.sms.senderName) {
-      return afromessageProvider;
-    }
-
-    console.warn(
-      "[sms] No SMS provider configured. Falling back to mock provider."
-    );
-    return mockProvider;
-  }
-
+  // Unreachable for normal resolve; never call retired providers (e.g. afromessage).
   console.warn(
-    `[sms] Unknown SMS provider "${configuredProvider}". Falling back to mock provider.`
+    `[sms] Unknown SMS provider "${configuredProvider}". Using mock.`
   );
   return mockProvider;
 }
@@ -90,7 +135,7 @@ async function sendSms({
     throw new Error("Message is required to send SMS.");
   }
 
-  const provider = resolveProvider();
+  const provider = await resolveProvider();
   let result;
 
   try {
@@ -124,7 +169,38 @@ async function sendSms({
   };
 }
 
+async function getSmsStatus() {
+  const activeProvider = await getActiveSmsProviderName();
+  const configured = twilioProvider.isTwilioConfigured();
+
+  if (!configured) {
+    return {
+      activeProvider,
+      twilio: {
+        configured: false,
+        reachable: null,
+        accountStatus: null,
+        error: "Twilio credentials are not fully configured in environment."
+      }
+    };
+  }
+
+  const health = await twilioProvider.checkAccountHealth();
+
+  return {
+    activeProvider,
+    twilio: {
+      configured: health.configured,
+      reachable: health.reachable,
+      accountStatus: health.accountStatus,
+      error: health.error
+    }
+  };
+}
+
 module.exports = {
+  getActiveSmsProviderName,
+  getSmsStatus,
   logSmsResult,
   resolveProvider,
   sendSms

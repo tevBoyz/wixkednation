@@ -15,7 +15,7 @@ Express.js ecommerce **backend API** for a Next.js frontend.
 |------|--------|
 | Stack | Node.js, Express, Prisma, PostgreSQL (Supabase), Supabase Storage |
 | Auth | Express-owned JWT (access + refresh). **Not** Supabase Auth for sessions |
-| SMS | Provider abstraction; `mock` locally, `afromessage` in production |
+| SMS | Provider abstraction; `mock` locally, `twilio` in production (admin can switch). AfroMessage retired. |
 | Payments | COD only |
 | Default port | `5000` |
 | Entry | `src/server.js` → `src/app.js` |
@@ -301,7 +301,7 @@ src/
       media/
   services/
     auth/                   # otp, token, session, google
-    sms/                    # abstraction + mock/afromessage providers
+    sms/                    # abstraction + mock/twilio (afromessage.provider.js retired, not wired)
     storage/
   utils/
 prisma/
@@ -349,8 +349,8 @@ Copy `.env.example` → `.env`. Required (see `src/config/env.js`):
 
 Optional / feature-specific:
 
-- `SMS_PROVIDER=mock` (local) or `afromessage`
-- `AFROMESSAGE_*` — SMS provider credentials
+- `SMS_PROVIDER=mock` (local) or `twilio` — fallback only when AdminSettings has no provider
+- `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER` — required when active provider is twilio
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`
 - `OTP_*` — OTP timing/attempts
 - `INTERNAL_API_KEY`
@@ -495,7 +495,7 @@ Deploy: `npx prisma migrate deploy`
 | Stage | Topic |
 |-------|--------|
 | 1–7 | Env, Supabase, Prisma, schema, seed, JWT, auth middleware |
-| 8 | SMS abstraction (mock + AfroMessage) |
+| 8 | SMS abstraction (mock + Twilio; AfroMessage retired) |
 | 9–13 | OTP send/verify, auth/me, refresh/logout, Google OAuth |
 | 14–22 | Categories, products, admin CRUD, images, storage |
 | 23–24 | Cart + guest merge |
@@ -516,7 +516,7 @@ Deploy: `npx prisma migrate deploy`
 ## 14. Known issues / ops notes
 
 - **DB unreachable:** `P1001 Can't reach database server` on OTP send = Supabase pooler/network/env issue, not necessarily code regression.
-- **AfroMessage SMS:** Can be flaky in dev; use `SMS_PROVIDER=mock` locally.
+- **SMS:** Use `SMS_PROVIDER=mock` or set AdminSettings provider to `mock` locally. Live sends need `TWILIO_*` env + provider `twilio`. AfroMessage is disabled and not callable.
 - **Google OAuth:** E2E only checks start endpoint reachability; full flow needs real Google credentials.
 - **`prisma/seed.js` log:** May still reference removed `allowCustomerCancellation` field in console output — cosmetic only.
 - **`baseDocs/` folder:** May be absent if not committed; restore from git or regenerate artifacts.

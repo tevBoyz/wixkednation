@@ -2,7 +2,7 @@ const crypto = require("crypto");
 
 const env = require("../../config/env");
 const prisma = require("../../config/prisma");
-const { resolveProvider, sendSms } = require("../sms/sms.service");
+const { getActiveSmsProviderName, sendSms } = require("../sms/sms.service");
 const {
   buildPinSetupResponse,
   issueAuthTokens,
@@ -24,10 +24,13 @@ function hashOtpCode(code) {
   return crypto.createHash("sha256").update(code).digest("hex");
 }
 
-function shouldLogOtpToConsole() {
-  const provider = resolveProvider();
+async function shouldLogOtpToConsole() {
+  if (env.nodeEnv === "development") {
+    return true;
+  }
 
-  return env.nodeEnv === "development" || provider.name === "mock";
+  const provider = await getActiveSmsProviderName();
+  return provider === "mock";
 }
 
 function createAuthError(message, statusCode) {
@@ -141,7 +144,7 @@ async function createAndSendPhoneOtp(phone, { purpose } = {}) {
     }
   });
 
-  if (shouldLogOtpToConsole()) {
+  if (await shouldLogOtpToConsole()) {
     console.log(`[otp-dev] phone=${phone} otp=${otpCode}`);
   }
 

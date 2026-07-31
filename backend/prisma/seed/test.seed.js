@@ -19,7 +19,7 @@ async function seedTestData() {
       data: {
         adminPhoneNumbers: ["+251911000000"],
         smsProviderConfig: {
-          provider: "afromessage",
+          provider: "mock",
           senderId: "MYSHOP"
         },
         defaultMeasurementUnit: "pcs"

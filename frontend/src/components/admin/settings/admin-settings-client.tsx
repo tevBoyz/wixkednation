@@ -51,8 +51,9 @@ const generalSchema = z.object({
 });
 
 const smsSchema = z.object({
-  provider: z.string().trim().min(1, "Provider is required"),
-  senderId: z.string().trim().min(1, "Sender ID is required"),
+  provider: z.enum(["mock", "twilio"], {
+    message: "Select mock or twilio",
+  }),
 });
 
 const phoneSchema = z.object({
@@ -97,7 +98,7 @@ export function AdminSettingsClient() {
 
   const smsForm = useForm<z.infer<typeof smsSchema>>({
     resolver: zodResolver(smsSchema),
-    defaultValues: { provider: "afromessage", senderId: "" },
+    defaultValues: { provider: "mock" },
   });
 
   const phoneForm = useForm<z.infer<typeof phoneSchema>>({
@@ -117,8 +118,10 @@ export function AdminSettingsClient() {
     });
 
     smsForm.reset({
-      provider: settingsQuery.data.smsProviderConfig?.provider || "afromessage",
-      senderId: settingsQuery.data.smsProviderConfig?.senderId || "",
+      provider:
+        settingsQuery.data.smsProviderConfig?.provider === "twilio"
+          ? "twilio"
+          : "mock",
     });
   }, [settingsQuery.data, generalForm, smsForm]);
 
@@ -143,10 +146,11 @@ export function AdminSettingsClient() {
     onSuccess: async (settings) => {
       await queryClient.invalidateQueries({ queryKey: adminSettingsQueryKey });
       smsForm.reset({
-        provider: settings.smsProviderConfig?.provider || "afromessage",
-        senderId: settings.smsProviderConfig?.senderId || "",
+        provider:
+          settings.smsProviderConfig?.provider === "twilio" ? "twilio" : "mock",
       });
       toast.success("SMS settings saved");
+      await queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
     },
     onError: (error) => {
       toast.error(getErrorMessage(error, "Could not save SMS settings"));
@@ -433,10 +437,10 @@ export function AdminSettingsClient() {
 
       <section className="space-y-4 rounded-lg border border-border p-4">
         <div>
-          <h3 className="text-lg font-medium">SMS provider metadata</h3>
+          <h3 className="text-lg font-medium">SMS provider</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Non-secret provider settings only. Tokens and API keys are configured
-            in backend environment variables.
+            Switch between Mock (dev / fallback) and Twilio. Account SID, auth
+            token, and from-number stay in backend environment variables.
           </p>
         </div>
 
@@ -445,39 +449,26 @@ export function AdminSettingsClient() {
           onSubmit={smsForm.handleSubmit((values) => {
             saveSmsMutation.mutate({
               provider: values.provider,
-              senderId: values.senderId,
             });
           })}
         >
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="sms-provider">Provider</Label>
-              <Input
-                id="sms-provider"
-                disabled={saveSmsMutation.isPending}
-                aria-invalid={Boolean(smsForm.formState.errors.provider)}
-                {...smsForm.register("provider")}
-              />
-              {smsForm.formState.errors.provider ? (
-                <p className="text-sm text-destructive">
-                  {smsForm.formState.errors.provider.message}
-                </p>
-              ) : null}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="sms-sender-id">Sender ID</Label>
-              <Input
-                id="sms-sender-id"
-                disabled={saveSmsMutation.isPending}
-                aria-invalid={Boolean(smsForm.formState.errors.senderId)}
-                {...smsForm.register("senderId")}
-              />
-              {smsForm.formState.errors.senderId ? (
-                <p className="text-sm text-destructive">
-                  {smsForm.formState.errors.senderId.message}
-                </p>
-              ) : null}
-            </div>
+          <div className="space-y-2 max-w-sm">
+            <Label htmlFor="sms-provider">Active provider</Label>
+            <select
+              id="sms-provider"
+              disabled={saveSmsMutation.isPending}
+              aria-invalid={Boolean(smsForm.formState.errors.provider)}
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
+              {...smsForm.register("provider")}
+            >
+              <option value="mock">Mock</option>
+              <option value="twilio">Twilio</option>
+            </select>
+            {smsForm.formState.errors.provider ? (
+              <p className="text-sm text-destructive">
+                {smsForm.formState.errors.provider.message}
+              </p>
+            ) : null}
           </div>
 
           <Button type="submit" disabled={saveSmsMutation.isPending}>

@@ -18,8 +18,18 @@ async function seedAdminSettings() {
         }
       ],
       smsProviderConfig: {
-        provider: process.env.SMS_PROVIDER || "afromessage",
-        senderId: process.env.AFROMESSAGE_SENDER_ID || process.env.SMS_SENDER_ID || "MYSHOP"
+        provider: (() => {
+          const hasTwilio =
+            Boolean(process.env.TWILIO_ACCOUNT_SID) &&
+            Boolean(process.env.TWILIO_AUTH_TOKEN) &&
+            Boolean(process.env.TWILIO_FROM_NUMBER);
+          const envProvider = (process.env.SMS_PROVIDER || "").toLowerCase().trim();
+          if (envProvider === "mock" || envProvider === "twilio") {
+            return envProvider;
+          }
+          return hasTwilio ? "twilio" : "mock";
+        })(),
+        senderId: process.env.TWILIO_FROM_NUMBER || ""
       },
       defaultMeasurementUnit: "pcs",
       defaultCurrency: "ETB"
