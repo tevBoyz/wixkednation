@@ -18,7 +18,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Address } from "@/lib/api/types";
 import type { AddressBody } from "@/lib/api/addresses.api";
-import { isValidEthiopianPhone, normalizePhone } from "@/lib/phone";
+import {
+  DELIVERY_AREA_MESSAGE,
+  isInDeliveryArea,
+  isValidUsPhone,
+  normalizePhone,
+} from "@/lib/phone";
 
 const addressSchema = z.object({
   label: z.string().max(80, "Label is too long"),
@@ -26,8 +31,11 @@ const addressSchema = z.object({
   phone: z
     .string()
     .min(1, "Phone is required")
-    .refine((value) => isValidEthiopianPhone(value), {
-      message: "Enter a valid Ethiopian mobile (+2519… or +2517…)",
+    .refine((value) => isValidUsPhone(value), {
+      message: "Enter a valid US mobile (e.g. +17035551234 or 7035551234)",
+    })
+    .refine((value) => isInDeliveryArea(value), {
+      message: DELIVERY_AREA_MESSAGE,
     }),
   addressLine1: z.string().trim().min(1, "Address is required").max(200),
   addressLine2: z.string().max(200),
@@ -168,7 +176,7 @@ export function AddressFormDialog({
               type="tel"
               inputMode="tel"
               autoComplete="tel"
-              placeholder="+251911000000"
+              placeholder="+17035551234"
               aria-invalid={Boolean(errors.phone)}
               disabled={submitting}
               {...register("phone")}

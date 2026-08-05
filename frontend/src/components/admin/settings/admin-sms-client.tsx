@@ -17,7 +17,7 @@ import {
   formatSmsLogMessage,
   getSmsLogPurpose,
 } from "@/lib/admin/sms-log";
-import { isValidEthiopianPhone, normalizePhone } from "@/lib/phone";
+import { isValidUsPhone, normalizePhone } from "@/lib/phone";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,8 +43,8 @@ const testSmsSchema = z.object({
     .string()
     .trim()
     .min(1, "Phone is required")
-    .refine((value) => isValidEthiopianPhone(value), {
-      message: "Enter a valid Ethiopian mobile (+2519… or +2517…)",
+    .refine((value) => isValidUsPhone(value), {
+      message: "Enter a valid US mobile (e.g. +17035551234)",
     }),
   message: z.string().max(500, "Message is too long").optional(),
 });
@@ -174,7 +174,7 @@ function AdminSmsContent() {
               <Input
                 id="test-sms-phone"
                 type="tel"
-                placeholder="+251911…"
+                placeholder="+17035551234"
                 disabled={testMutation.isPending}
                 aria-invalid={Boolean(testForm.formState.errors.phone)}
                 {...testForm.register("phone")}

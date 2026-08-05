@@ -218,13 +218,35 @@ model Product {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  category  Category   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  category  Category     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   cartItems CartItem[]
+  skus      ProductSku[]
 
   @@index([categoryId])
   @@index([isVisible])
   @@index([deletedAt])
   @@map("products")
+}
+
+model ProductSku {
+  id              String  @id @default(uuid()) @db.Uuid
+  productId       String  @db.Uuid
+  label           String?
+  volume          Decimal @db.Decimal(10, 2)
+  measurementUnit String
+  price          Decimal @db.Decimal(10, 2)
+  sortOrder       Int     @default(0)
+  isVisible       Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product   Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cartItems CartItem[]
+
+  @@unique([productId, volume, measurementUnit])
+  @@index([productId, sortOrder])
+  @@map("product_skus")
 }
 
 model Cart {
@@ -244,6 +266,7 @@ model CartItem {
   id        String @id @default(uuid()) @db.Uuid
   cartId    String @db.Uuid
   productId String @db.Uuid
+  skuId     String @db.Uuid
 
   quantity        Int
   volume          Decimal? @db.Decimal(10, 2)
@@ -252,12 +275,14 @@ model CartItem {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  cart    Cart       @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product    @relation(fields: [productId], references: [id], onDelete: Restrict)
+  sku     ProductSku @relation(fields: [skuId], references: [id], onDelete: Restrict)
 
-  @@unique([cartId, productId, volume, measurementUnit])
+  @@unique([cartId, productId, skuId])
   @@index([cartId])
   @@index([productId])
+  @@index([skuId])
   @@map("cart_items")
 }
 

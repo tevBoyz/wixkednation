@@ -23,15 +23,24 @@ import {
   getOrderSubmitErrorMessage,
 } from "@/lib/api/errors";
 import { saveGuestOrderSnapshot } from "@/lib/orders/guest-order-snapshot";
-import { isValidEthiopianPhone, normalizePhone } from "@/lib/phone";
+import {
+  DELIVERY_AREA_MESSAGE,
+  isInDeliveryArea,
+  isValidDeliveryPhone,
+  isValidUsPhone,
+  normalizePhone,
+} from "@/lib/phone";
 import { useGuestCartStore } from "@/stores/guest-cart-store";
 
 const guestCheckoutSchema = z.object({
   phone: z
     .string()
     .min(1, "Phone number is required")
-    .refine((value) => isValidEthiopianPhone(value), {
-      message: "Enter a valid Ethiopian mobile (+2519… or +2517…)",
+    .refine((value) => isValidUsPhone(value), {
+      message: "Enter a valid US mobile (e.g. +17035551234 or 7035551234)",
+    })
+    .refine((value) => isInDeliveryArea(value), {
+      message: DELIVERY_AREA_MESSAGE,
     }),
   name: z.string().max(120),
   fullName: z.string().trim().min(1, "Full name is required").max(120),
@@ -137,8 +146,14 @@ export function CheckoutPageClient() {
       ? normalizePhone(addressPhoneRaw)
       : phone;
 
-    if (addressPhoneRaw && !isValidEthiopianPhone(addressPhoneRaw)) {
-      toast.error("Enter a valid delivery phone (+2519… or +2517…)");
+    if (addressPhoneRaw && !isValidUsPhone(addressPhoneRaw)) {
+      toast.error("Enter a valid US delivery phone (e.g. +17035551234).");
+      submitLockRef.current = false;
+      setSubmitting(false);
+      return;
+    }
+    if (addressPhoneRaw && !isValidDeliveryPhone(addressPhoneRaw)) {
+      toast.error(DELIVERY_AREA_MESSAGE);
       submitLockRef.current = false;
       setSubmitting(false);
       return;
@@ -151,6 +166,7 @@ export function CheckoutPageClient() {
         paymentMethod: "COD",
         items: items.map((item) => ({
           productId: item.productId,
+          skuId: item.skuId,
           quantity: item.quantity,
         })),
         address: {
@@ -332,7 +348,7 @@ export function CheckoutPageClient() {
                 type="tel"
                 inputMode="tel"
                 autoComplete="tel"
-                placeholder="+251911000000"
+                placeholder="+17035551234"
                 aria-invalid={Boolean(errors.phone)}
                 disabled={submitting}
                 {...register("phone")}
@@ -341,7 +357,7 @@ export function CheckoutPageClient() {
                 <p className="text-sm text-destructive">{errors.phone.message}</p>
               ) : (
                 <p className="text-xs text-muted-foreground">
-                  Formats like 0911…, 911…, or +251911… are accepted.
+                  Delivery phones must use a served area code (703, 571, 202, 301, 240, 771).
                 </p>
               )}
             </div>

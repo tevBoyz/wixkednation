@@ -36,6 +36,11 @@ export function StoreNavLinks({
         {showInfoLinks ? (
           <>
             <li>
+              <Link href="/delivery" onClick={onNavigate} className={linkClassName}>
+                Delivery
+              </Link>
+            </li>
+            <li>
               <Link href="/faqs" onClick={onNavigate} className={linkClassName}>
                 FAQ
               </Link>

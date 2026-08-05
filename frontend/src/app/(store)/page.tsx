@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import { CategoryCard } from "@/components/catalog/category-card";
 import { HeroBrandDescription } from "@/components/catalog/hero-brand-description";
@@ -9,10 +10,19 @@ import {
 import { ProductCard } from "@/components/catalog/product-card";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
+import { SITE_DEFAULT_TITLE, SITE_DESCRIPTION } from "@/config/brand";
 import { listCategories } from "@/lib/api/categories.api";
 import { listFeaturedProducts } from "@/lib/api/products.api";
 import { getErrorMessage } from "@/lib/api/errors";
 import { getProductCoverUrl } from "@/lib/catalog/format";
+import { buildPageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata: Metadata = buildPageMetadata({
+  title: SITE_DEFAULT_TITLE,
+  description: SITE_DESCRIPTION,
+  path: "/",
+  absoluteTitle: true,
+});
 
 export default async function HomePage() {
   let featured: Awaited<ReturnType<typeof listFeaturedProducts>> = [];
@@ -45,11 +55,16 @@ export default async function HomePage() {
         <Container className="grid min-h-[min(70vh,40rem)] min-w-0 items-center gap-8 py-12 sm:gap-10 sm:py-16 md:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,38rem)] lg:gap-10 xl:gap-14">
           <div className="flex min-w-0 flex-col justify-center gap-6 sm:gap-7">
             <div className="flex max-w-2xl flex-col gap-6 sm:gap-8">
-              <p className="text-5xl font-semibold tracking-tight sm:text-6xl md:text-7xl lg:text-8xl">
+              <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl md:text-7xl lg:text-8xl">
                 <span className="text-primary">Gas</span>
                 <span className="text-foreground">Nation</span>
-              </p>
+              </h1>
               <HeroBrandDescription />
+              <p className="max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                Same-day cannabis delivery across Northern Virginia and
+                Washington, DC. Premium flower, edibles, vapes, and
+                concentrates. Flat $20 delivery. 21+ with valid ID.
+              </p>
             </div>
             <p className="max-w-xl text-pretty text-base text-muted-foreground sm:text-lg">
               Browse our <span className="text-primary">Fresh</span> catalog of Indica, Sativa, and Hybrid strains.

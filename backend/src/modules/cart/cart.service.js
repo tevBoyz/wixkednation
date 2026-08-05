@@ -24,20 +24,6 @@ function parsePositiveInteger(value, fieldName) {
   return parsed;
 }
 
-function parseOptionalVolume(value) {
-  if (value === undefined || value === null || value === "") {
-    return null;
-  }
-
-  const parsed = Number(value);
-
-  if (!Number.isFinite(parsed) || parsed < 0) {
-    throw createServiceError("volume must be a non-negative number.", 400);
-  }
-
-  return parsed.toFixed(2);
-}
-
 function mapCartProduct(product) {
   if (!product) {
     return null;
@@ -56,30 +42,61 @@ function mapCartProduct(product) {
   };
 }
 
+function mapCartSku(sku) {
+  if (!sku) {
+    return null;
+  }
+
+  return {
+    id: sku.id,
+    label: sku.label || null,
+    volume: serializeDecimal(sku.volume),
+    measurementUnit: sku.measurementUnit,
+    price: serializeDecimal(sku.price),
+    sortOrder: sku.sortOrder,
+    isVisible: sku.isVisible
+  };
+}
+
+function resolveLineUnitPrice(item) {
+  if (item.sku && item.sku.price != null) {
+    return Number(item.sku.price);
+  }
+
+  if (item.product && item.product.price != null) {
+    return Number(item.product.price);
+  }
+
+  return null;
+}
+
 function mapCartItem(item) {
   const baseVolume =
     item.volume != null
       ? Number(item.volume)
-      : item.product?.volume != null
-        ? Number(item.product.volume)
-        : null;
+      : item.sku?.volume != null
+        ? Number(item.sku.volume)
+        : item.product?.volume != null
+          ? Number(item.product.volume)
+          : null;
   const effectiveVolume =
     baseVolume != null && Number.isFinite(baseVolume)
       ? (baseVolume * item.quantity).toFixed(2)
       : null;
+  const unitPrice = resolveLineUnitPrice(item);
 
   return {
     id: item.id,
     productId: item.productId,
+    skuId: item.skuId,
     quantity: item.quantity,
-    volume: serializeDecimal(item.volume),
+    volume: serializeDecimal(item.volume ?? item.sku?.volume),
     effectiveVolume,
-    measurementUnit: item.measurementUnit,
+    measurementUnit: item.measurementUnit || item.sku?.measurementUnit || null,
+    sku: mapCartSku(item.sku),
     product: mapCartProduct(item.product),
     lineTotal:
-      item.product && item.product.price != null
-        ? (Number(item.product.price) * item.quantity).toFixed(2)
-        : null,
+      unitPrice != null ? (unitPrice * item.quantity).toFixed(2) : null,
     createdAt: item.createdAt,
     updatedAt: item.updatedAt
   };
@@ -107,7 +124,8 @@ const cartItemInclude = {
     include: {
       category: true
     }
-  }
+  },
+  sku: true
 };
 
 async function getOrCreateCart(userId) {
@@ -155,6 +173,16 @@ function isPurchasableProduct(product) {
   );
 }
 
+function isPurchasableSku(sku, productId) {
+  return Boolean(
+    sku &&
+      sku.isVisible === true &&
+      sku.price != null &&
+      Number(sku.volume) > 0 &&
+      (!productId || sku.productId === productId)
+  );
+}
+
 async function getPurchasableProduct(productId) {
   const product = await prisma.product.findUnique({
     where: {
@@ -169,26 +197,35 @@ async function getPurchasableProduct(productId) {
     throw createServiceError("Product is unavailable.", 400);
   }
 
-  if (product.price == null) {
-    throw createServiceError(
-      "Price not set - contact for price. This product cannot be added to cart.",
-      400
-    );
-  }
-
-  if (product.volume == null || Number(product.volume) <= 0) {
-    throw createServiceError(
-      "Product pack volume is not set. Admin must define volume with price (e.g. 1 g).",
-      400
-    );
-  }
-
   return product;
+}
+
+async function getPurchasableSku(productId, skuId) {
+  if (!skuId || typeof skuId !== "string") {
+    throw createServiceError("skuId is required.", 400);
+  }
+
+  const sku = await prisma.productSku.findUnique({
+    where: { id: skuId }
+  });
+
+  if (!isPurchasableSku(sku, productId)) {
+    throw createServiceError(
+      "Selected pack is unavailable. Choose another size or contact support.",
+      400
+    );
+  }
+
+  return sku;
 }
 
 async function removeInvalidCartItems(cart) {
   const invalidIds = (cart.items || [])
-    .filter((item) => !isPurchasableProduct(item.product))
+    .filter(
+      (item) =>
+        !isPurchasableProduct(item.product) ||
+        !isPurchasableSku(item.sku, item.productId)
+    )
     .map((item) => item.id);
 
   if (invalidIds.length === 0) {
@@ -212,59 +249,30 @@ async function getCartForUser(userId) {
   return mapCart(cart);
 }
 
-async function findMatchingCartItem(cartId, productId, volume, measurementUnit) {
-  const items = await prisma.cartItem.findMany({
+async function findMatchingCartItem(cartId, productId, skuId) {
+  return prisma.cartItem.findFirst({
     where: {
       cartId,
       productId,
-      measurementUnit
+      skuId
     },
     include: cartItemInclude
   });
-
-  const normalizedVolume = volume === null ? null : Number(volume).toFixed(2);
-
-  return (
-    items.find((item) => {
-      const itemVolume =
-        item.volume === null || item.volume === undefined
-          ? null
-          : Number(item.volume).toFixed(2);
-
-      return itemVolume === normalizedVolume;
-    }) || null
-  );
 }
 
 async function addCartItem(userId, payload = {}) {
-  const { productId, quantity, volume, measurementUnit } = payload;
+  const { productId, skuId, quantity } = payload;
 
   if (!productId || typeof productId !== "string") {
     throw createServiceError("productId is required.", 400);
   }
 
   const parsedQuantity = parsePositiveInteger(quantity, "quantity");
-  const product = await getPurchasableProduct(productId);
-
-  const resolvedMeasurementUnit =
-    typeof measurementUnit === "string" && measurementUnit.trim()
-      ? measurementUnit.trim()
-      : product.measurementUnit;
-
-  const resolvedVolume =
-    volume !== undefined
-      ? parseOptionalVolume(volume)
-      : product.volume != null
-        ? Number(product.volume).toFixed(2)
-        : null;
+  await getPurchasableProduct(productId);
+  const sku = await getPurchasableSku(productId, skuId);
 
   const cart = await getOrCreateCart(userId);
-  const existingItem = await findMatchingCartItem(
-    cart.id,
-    productId,
-    resolvedVolume,
-    resolvedMeasurementUnit
-  );
+  const existingItem = await findMatchingCartItem(cart.id, productId, sku.id);
 
   if (existingItem) {
     await prisma.cartItem.update({
@@ -280,9 +288,10 @@ async function addCartItem(userId, payload = {}) {
       data: {
         cartId: cart.id,
         productId,
+        skuId: sku.id,
         quantity: parsedQuantity,
-        volume: resolvedVolume,
-        measurementUnit: resolvedMeasurementUnit
+        volume: Number(sku.volume).toFixed(2),
+        measurementUnit: sku.measurementUnit
       }
     });
   }
@@ -314,13 +323,19 @@ async function getOwnedCartItem(userId, itemId) {
 async function updateCartItem(userId, itemId, payload = {}) {
   const item = await getOwnedCartItem(userId, itemId);
 
-  if (!isPurchasableProduct(item.product)) {
+  if (
+    !isPurchasableProduct(item.product) ||
+    !isPurchasableSku(item.sku, item.productId)
+  ) {
     await prisma.cartItem.delete({
       where: {
         id: item.id
       }
     });
-    throw createServiceError("Product is unavailable and was removed from cart.", 400);
+    throw createServiceError(
+      "Pack is unavailable and was removed from cart.",
+      400
+    );
   }
 
   const data = {};
@@ -329,42 +344,28 @@ async function updateCartItem(userId, itemId, payload = {}) {
     data.quantity = parsePositiveInteger(payload.quantity, "quantity");
   }
 
-  if (payload.volume !== undefined) {
-    data.volume = parseOptionalVolume(payload.volume);
-  }
-
-  if (payload.measurementUnit !== undefined) {
-    if (
-      !payload.measurementUnit ||
-      typeof payload.measurementUnit !== "string" ||
-      !payload.measurementUnit.trim()
-    ) {
-      throw createServiceError("measurementUnit cannot be empty.", 400);
-    }
-
-    data.measurementUnit = payload.measurementUnit.trim();
+  if (payload.skuId !== undefined) {
+    const nextSku = await getPurchasableSku(item.productId, payload.skuId);
+    data.skuId = nextSku.id;
+    data.volume = Number(nextSku.volume).toFixed(2);
+    data.measurementUnit = nextSku.measurementUnit;
   }
 
   if (Object.keys(data).length === 0) {
     throw createServiceError("No cart item fields provided to update.", 400);
   }
 
-  const nextVolume = data.volume !== undefined ? data.volume : item.volume;
-  const nextUnit =
-    data.measurementUnit !== undefined
-      ? data.measurementUnit
-      : item.measurementUnit;
+  const nextSkuId = data.skuId !== undefined ? data.skuId : item.skuId;
 
   const conflict = await findMatchingCartItem(
     item.cartId,
     item.productId,
-    nextVolume != null ? Number(nextVolume).toFixed(2) : null,
-    nextUnit
+    nextSkuId
   );
 
   if (conflict && conflict.id !== item.id) {
     throw createServiceError(
-      "Another cart item already exists for this product/volume combination.",
+      "Another cart item already exists for this product pack.",
       409
     );
   }
@@ -403,8 +404,12 @@ async function clearCart(userId) {
   return getCartForUser(userId);
 }
 
-async function findProductForMerge(productId) {
+async function findProductAndSkuForMerge(productId, skuId) {
   if (!productId || typeof productId !== "string") {
+    return null;
+  }
+
+  if (!skuId || typeof skuId !== "string") {
     return null;
   }
 
@@ -421,15 +426,15 @@ async function findProductForMerge(productId) {
     return null;
   }
 
-  if (product.price == null) {
+  const sku = await prisma.productSku.findUnique({
+    where: { id: skuId }
+  });
+
+  if (!isPurchasableSku(sku, productId)) {
     return null;
   }
 
-  if (product.volume == null || Number(product.volume) <= 0) {
-    return null;
-  }
-
-  return product;
+  return { product, sku };
 }
 
 async function mergeGuestCart(userId, payload = {}) {
@@ -456,7 +461,7 @@ async function mergeGuestCart(userId, payload = {}) {
 
     try {
       quantity = parsePositiveInteger(guestItem.quantity, "quantity");
-    } catch (error) {
+    } catch {
       summary.skipped += 1;
       if (guestItem.productId) {
         summary.skippedProductIds.push(guestItem.productId);
@@ -464,9 +469,12 @@ async function mergeGuestCart(userId, payload = {}) {
       continue;
     }
 
-    const product = await findProductForMerge(guestItem.productId);
+    const resolved = await findProductAndSkuForMerge(
+      guestItem.productId,
+      guestItem.skuId
+    );
 
-    if (!product) {
+    if (!resolved) {
       summary.skipped += 1;
       if (guestItem.productId) {
         summary.skippedProductIds.push(guestItem.productId);
@@ -474,32 +482,11 @@ async function mergeGuestCart(userId, payload = {}) {
       continue;
     }
 
-    const resolvedMeasurementUnit =
-      typeof guestItem.measurementUnit === "string" &&
-      guestItem.measurementUnit.trim()
-        ? guestItem.measurementUnit.trim()
-        : product.measurementUnit;
-
-    let resolvedVolume;
-
-    try {
-      resolvedVolume =
-        guestItem.volume !== undefined
-          ? parseOptionalVolume(guestItem.volume)
-          : product.volume != null
-            ? Number(product.volume).toFixed(2)
-            : null;
-    } catch (error) {
-      summary.skipped += 1;
-      summary.skippedProductIds.push(product.id);
-      continue;
-    }
-
+    const { product, sku } = resolved;
     const existingItem = await findMatchingCartItem(
       cart.id,
       product.id,
-      resolvedVolume,
-      resolvedMeasurementUnit
+      sku.id
     );
 
     if (existingItem) {
@@ -516,9 +503,10 @@ async function mergeGuestCart(userId, payload = {}) {
         data: {
           cartId: cart.id,
           productId: product.id,
+          skuId: sku.id,
           quantity,
-          volume: resolvedVolume,
-          measurementUnit: resolvedMeasurementUnit
+          volume: Number(sku.volume).toFixed(2),
+          measurementUnit: sku.measurementUnit
         }
       });
     }

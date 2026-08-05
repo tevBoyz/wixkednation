@@ -51,14 +51,32 @@ function parseNumericAmount(
   return Number.isFinite(amount) ? amount : null;
 }
 
-/** Sellable pack: price set and volume > 0. */
-export function hasSellablePack(product: {
+function isSellablePackFields(pack: {
   price?: number | string | null;
   volume?: number | string | null;
 }): boolean {
-  const price = parseNumericAmount(product.price);
-  const volume = parseNumericAmount(product.volume);
+  const price = parseNumericAmount(pack.price);
+  const volume = parseNumericAmount(pack.volume);
   return price != null && volume != null && volume > 0;
+}
+
+/** Sellable pack: any visible SKU, or legacy product-level price + volume. */
+export function hasSellablePack(product: {
+  price?: number | string | null;
+  volume?: number | string | null;
+  skus?: Array<{
+    price?: number | string | null;
+    volume?: number | string | null;
+    isVisible?: boolean;
+  }> | null;
+}): boolean {
+  const skus = product.skus;
+  if (skus && skus.length > 0) {
+    return skus.some(
+      (sku) => sku.isVisible !== false && isSellablePackFields(sku),
+    );
+  }
+  return isSellablePackFields(product);
 }
 
 /** Storefront product price - contact CTA when pack is not sellable. */
@@ -73,14 +91,15 @@ export function formatProductPrice(
 }
 
 /**
- * Pack price label, e.g. `Br 2,800 / 1 g`.
- * Falls back to contact CTA when price or volume is unset.
+ * Pack price label from primary denormalized fields, e.g. `$100 / 1 g`.
+ * Prefixes with `from ` when the product has multiple visible SKUs.
  */
 export function formatPackPrice(
   product: {
     price?: number | string | null;
     volume?: number | string | null;
     measurementUnit?: string | null;
+    skus?: Array<{ isVisible?: boolean }> | null;
   },
   currency: StoreCurrency | string = DEFAULT_CURRENCY,
 ): string {
@@ -89,7 +108,52 @@ export function formatPackPrice(
   }
   const pack = formatVolumeUnit(product.volume, product.measurementUnit);
   const priceLabel = formatPrice(product.price, currency);
-  return pack ? `${priceLabel} / ${pack}` : priceLabel;
+  const base = pack ? `${priceLabel} / ${pack}` : priceLabel;
+  const visibleSkuCount = (product.skus ?? []).filter(
+    (sku) => sku.isVisible !== false,
+  ).length;
+  if (visibleSkuCount > 1) {
+    return `from ${base}`;
+  }
+  return base;
+}
+
+/** SKU display label: custom label, else volume + unit. */
+export function formatSkuLabel(sku: {
+  label?: string | null;
+  volume?: number | string | null;
+  measurementUnit?: string | null;
+}): string {
+  const custom = sku.label?.trim();
+  if (custom) {
+    return custom;
+  }
+  return formatVolumeUnit(sku.volume, sku.measurementUnit) ?? "Pack";
+}
+
+/** Visible/sellable SKUs for PDP radios, sorted by sortOrder. */
+export function resolveProductSkus(product: {
+  skus?: Array<{
+    id: string;
+    label?: string | null;
+    volume: number | string;
+    measurementUnit: string;
+    price: number | string;
+    sortOrder: number;
+    isVisible?: boolean;
+  }> | null;
+}): Array<{
+  id: string;
+  label?: string | null;
+  volume: number | string;
+  measurementUnit: string;
+  price: number | string;
+  sortOrder: number;
+  isVisible?: boolean;
+}> {
+  return [...(product.skus ?? [])]
+    .filter((sku) => sku.isVisible !== false && isSellablePackFields(sku))
+    .sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
 /** volume × quantity (or API effectiveVolume when provided). */

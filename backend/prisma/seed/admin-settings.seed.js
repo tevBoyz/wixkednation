@@ -2,11 +2,43 @@ const crypto = require("crypto");
 
 const prisma = require("../../src/config/prisma");
 
+const CLIENT_ADMIN_PHONE = process.env.SEED_ADMIN_PHONE || "+14696571013";
+
+function phoneEntryKey(entry) {
+  if (typeof entry === "string") {
+    return entry.trim();
+  }
+  if (entry && typeof entry.phone === "string") {
+    return entry.phone.trim();
+  }
+  return "";
+}
+
 async function seedAdminSettings() {
   const existingSettings = await prisma.adminSettings.findFirst();
 
   if (existingSettings) {
-    return existingSettings;
+    const phones = Array.isArray(existingSettings.adminPhoneNumbers)
+      ? [...existingSettings.adminPhoneNumbers]
+      : [];
+    const hasClientPhone = phones.some(
+      (entry) => phoneEntryKey(entry) === CLIENT_ADMIN_PHONE
+    );
+
+    if (hasClientPhone) {
+      return existingSettings;
+    }
+
+    phones.push({
+      id: crypto.randomUUID(),
+      phone: CLIENT_ADMIN_PHONE,
+      showOnBanner: true
+    });
+
+    return prisma.adminSettings.update({
+      where: { id: existingSettings.id },
+      data: { adminPhoneNumbers: phones }
+    });
   }
 
   return prisma.adminSettings.create({
@@ -14,7 +46,8 @@ async function seedAdminSettings() {
       adminPhoneNumbers: [
         {
           id: crypto.randomUUID(),
-          phone: process.env.SEED_ADMIN_PHONE || "+251911000000"
+          phone: CLIENT_ADMIN_PHONE,
+          showOnBanner: true
         }
       ],
       smsProviderConfig: {
@@ -23,7 +56,9 @@ async function seedAdminSettings() {
             Boolean(process.env.TWILIO_ACCOUNT_SID) &&
             Boolean(process.env.TWILIO_AUTH_TOKEN) &&
             Boolean(process.env.TWILIO_FROM_NUMBER);
-          const envProvider = (process.env.SMS_PROVIDER || "").toLowerCase().trim();
+          const envProvider = (process.env.SMS_PROVIDER || "")
+            .toLowerCase()
+            .trim();
           if (envProvider === "mock" || envProvider === "twilio") {
             return envProvider;
           }

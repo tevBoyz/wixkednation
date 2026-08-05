@@ -24,7 +24,7 @@ import {
   CURRENCY_LABELS,
   DEFAULT_CURRENCY,
 } from "@/lib/catalog/currency";
-import { isValidEthiopianPhone, normalizePhone } from "@/lib/phone";
+import { isValidUsPhone, normalizePhone } from "@/lib/phone";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,8 +61,8 @@ const phoneSchema = z.object({
     .string()
     .trim()
     .min(1, "Phone is required")
-    .refine((value) => isValidEthiopianPhone(value), {
-      message: "Enter a valid Ethiopian mobile (+2519… or +2517…)",
+    .refine((value) => isValidUsPhone(value), {
+      message: "Enter a valid US mobile (e.g. +17035551234)",
     }),
   showOnBanner: z.boolean(),
 });
@@ -404,7 +404,7 @@ export function AdminSettingsClient() {
               <Input
                 id="admin-alert-phone"
                 type="tel"
-                placeholder="+251911…"
+                placeholder="+14696571013"
                 disabled={addPhoneMutation.isPending}
                 aria-invalid={Boolean(phoneForm.formState.errors.phone)}
                 className={cn(

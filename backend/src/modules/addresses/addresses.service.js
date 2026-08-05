@@ -1,5 +1,5 @@
 const prisma = require("../../config/prisma");
-const { isValidEthiopianPhone, normalizePhone } = require("../../utils/phone");
+const { assertDeliveryPhone } = require("../../utils/phone");
 
 function createServiceError(message, statusCode) {
   const error = new Error(message);
@@ -94,16 +94,7 @@ function parseOptionalCoordinate(value, fieldName) {
 }
 
 function normalizeAddressPhone(phone) {
-  const normalized = normalizePhone(phone);
-
-  if (!normalized || !isValidEthiopianPhone(normalized)) {
-    throw createServiceError(
-      "phone must be a valid Ethiopian number (+2519XXXXXXXX or +2517XXXXXXXX).",
-      400
-    );
-  }
-
-  return normalized;
+  return assertDeliveryPhone(phone, createServiceError);
 }
 
 async function clearDefaultAddresses(userId, excludeId = null) {

@@ -87,6 +87,7 @@ const collection = {
     { key: "categoryId", value: "" },
     { key: "categorySlug", value: "vegetables" },
     { key: "productId", value: "" },
+    { key: "skuId", value: "" },
     { key: "productSlug", value: "fresh-tomato" },
     { key: "imageId", value: "" },
     { key: "itemId", value: "" },
@@ -271,19 +272,28 @@ const collection = {
           body: {
             name: "E2E Product",
             categoryId: "{{categoryId}}",
-            price: 99.5,
-            measurementUnit: "kg",
-            volume: 1,
+            measurementUnit: "g",
+            skus: [
+              { volume: 1, measurementUnit: "g", price: 100, sortOrder: 0, isVisible: true },
+              { volume: 0.5, measurementUnit: "g", price: 60, sortOrder: 1, isVisible: true }
+            ],
             isVisible: true,
             isFeatured: false
-          }
+          },
+          description:
+            "Status: implemented\nAuth: admin Bearer JWT\nBody: product fields + skus[1–3] { volume, measurementUnit, price, sortOrder?, isVisible?, label? }.\nLegacy single pack still accepted via price+volume+measurementUnit."
         }),
         req("Get product", "GET", "/api/admin/products/{{productId}}", {
           auth: "admin"
         }),
         req("Update product", "PATCH", "/api/admin/products/{{productId}}", {
           auth: "admin",
-          body: { name: "E2E Product Updated", price: 110 }
+          body: {
+            name: "E2E Product Updated",
+            skus: [
+              { volume: 1, measurementUnit: "g", price: 110, sortOrder: 0, isVisible: true }
+            ]
+          }
         }),
         req("Toggle visibility", "PATCH", "/api/admin/products/{{productId}}/visibility", {
           auth: "admin",
@@ -325,7 +335,9 @@ const collection = {
         req("Get cart", "GET", "/api/cart", { auth: "customer" }),
         req("Add cart item", "POST", "/api/cart/items", {
           auth: "customer",
-          body: { productId: "{{productId}}", quantity: 1 }
+          body: { productId: "{{productId}}", skuId: "{{skuId}}", quantity: 1 },
+          description:
+            "Status: implemented\nAuth: customer Bearer JWT\nBody: { productId, skuId, quantity }. Different skuId → separate cart lines."
         }),
         req("Update cart item", "PATCH", "/api/cart/items/{{itemId}}", {
           auth: "customer",
@@ -338,7 +350,7 @@ const collection = {
         req("Merge guest cart", "POST", "/api/cart/merge", {
           auth: "customer",
           body: {
-            items: [{ productId: "{{productId}}", quantity: 1 }]
+            items: [{ productId: "{{productId}}", skuId: "{{skuId}}", quantity: 1 }]
           }
         })
       ]
@@ -378,16 +390,20 @@ const collection = {
             phone: "{{guestPhone}}",
             name: "Guest Customer",
             paymentMethod: "COD",
-            items: [{ productId: "{{productId}}", quantity: 1 }],
+            items: [
+              { productId: "{{productId}}", skuId: "{{skuId}}", quantity: 1 }
+            ],
             address: {
               fullName: "Guest Customer",
               phone: "{{guestPhone}}",
-              addressLine1: "Bole Road",
-              city: "Addis Ababa"
+              addressLine1: "1200 Wilson Blvd",
+              city: "Arlington",
+              state: "VA",
+              country: "US"
             }
           },
           description:
-            "Status: implemented\nAuth: none (public)\nNo OTP/PIN at checkout.\nBody: { phone, name?, paymentMethod?: \"COD\", items[{ productId, quantity, volume?, measurementUnit? }], address{ fullName, phone?, addressLine1, city, ... } }.\nFinds/creates User by phone (guest registry). Response: order (placedAsGuest, matchedExistingAccount, risk), smsAlert, customer { hasPin, postOrderCta: register|login }.\nRate limit: >10 orders/hour → 429 code ORDER_PHONE_BLOCKED + blockedUntil + try-again message.\nDoes not clear authenticated server cart / does not break POST /api/cart/merge."
+            "Status: implemented\nAuth: none (public)\nNo OTP/PIN at checkout.\nBody: { phone, name?, paymentMethod?: \"COD\", items[{ productId, skuId, quantity }], address{ fullName, phone?, addressLine1, city, ... } }.\nFinds/creates User by phone (guest registry). Response: order (placedAsGuest, matchedExistingAccount, risk), smsAlert, customer { hasPin, postOrderCta: register|login }.\nRate limit: >10 orders/hour → 429 code ORDER_PHONE_BLOCKED + blockedUntil + try-again message.\nDoes not clear authenticated server cart / does not break POST /api/cart/merge."
         }),
         req("Create order", "POST", "/api/orders", {
           auth: "customer",
@@ -494,9 +510,9 @@ const collection = {
         }),
         req("Add admin phone", "POST", "/api/admin/settings/admin-phones", {
           auth: "admin",
-          body: { phone: "+251911111111", showOnBanner: true },
+          body: { phone: "+17035551111", showOnBanner: true },
           description:
-            "Status: implemented\nAuth: admin Bearer JWT\nBody: { phone, showOnBanner?: boolean }.\nshowOnBanner defaults false — when true, phone appears on store order-contact banner."
+            "Status: implemented\nAuth: admin Bearer JWT\nBody: { phone, showOnBanner?: boolean }.\nphone must be US E.164. showOnBanner defaults false — when true, phone appears on store order-contact banner."
         }),
         req("Patch admin phone", "PATCH", "/api/admin/settings/admin-phones/{{adminPhoneId}}", {
           auth: "admin",

@@ -13,8 +13,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # NEXT_PUBLIC_* is inlined at build time - pass real production values as build args.
+# APP URL defaults to the live storefront; API URL must be provided from .env.
 ARG NEXT_PUBLIC_API_URL
-ARG NEXT_PUBLIC_APP_URL
+ARG NEXT_PUBLIC_APP_URL=https://gasnationweed.com
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 ENV NEXT_TELEMETRY_DISABLED=1

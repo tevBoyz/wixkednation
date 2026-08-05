@@ -43,6 +43,10 @@
       "value": ""
     },
     {
+      "key": "skuId",
+      "value": ""
+    },
+    {
       "key": "productSlug",
       "value": "fresh-tomato"
     },
@@ -1017,7 +1021,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Status: implemented\nAuth: admin",
+            "description": "Status: implemented\nAuth: admin Bearer JWT\nBody: product fields + skus[1–3] { volume, measurementUnit, price, sortOrder?, isVisible?, label? }.\nLegacy single pack still accepted via price+volume+measurementUnit.",
             "url": {
               "raw": "{{baseUrl}}/api/admin/products",
               "host": [
@@ -1031,7 +1035,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"E2E Product\",\n  \"categoryId\": \"{{categoryId}}\",\n  \"price\": 99.5,\n  \"measurementUnit\": \"kg\",\n  \"volume\": 1,\n  \"isVisible\": true,\n  \"isFeatured\": false\n}",
+              "raw": "{\n  \"name\": \"E2E Product\",\n  \"categoryId\": \"{{categoryId}}\",\n  \"measurementUnit\": \"g\",\n  \"skus\": [\n    {\n      \"volume\": 1,\n      \"measurementUnit\": \"g\",\n      \"price\": 100,\n      \"sortOrder\": 0,\n      \"isVisible\": true\n    },\n    {\n      \"volume\": 0.5,\n      \"measurementUnit\": \"g\",\n      \"price\": 60,\n      \"sortOrder\": 1,\n      \"isVisible\": true\n    }\n  ],\n  \"isVisible\": true,\n  \"isFeatured\": false\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1094,7 +1098,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"E2E Product Updated\",\n  \"price\": 110\n}",
+              "raw": "{\n  \"name\": \"E2E Product Updated\",\n  \"skus\": [\n    {\n      \"volume\": 1,\n      \"measurementUnit\": \"g\",\n      \"price\": 110,\n      \"sortOrder\": 0,\n      \"isVisible\": true\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1366,7 +1370,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Status: implemented\nAuth: customer",
+            "description": "Status: implemented\nAuth: customer Bearer JWT\nBody: { productId, skuId, quantity }. Different skuId → separate cart lines.",
             "url": {
               "raw": "{{baseUrl}}/api/cart/items",
               "host": [
@@ -1380,7 +1384,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 1\n}",
+              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"skuId\": \"{{skuId}}\",\n  \"quantity\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1503,7 +1507,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 1\n    }\n  ]\n}",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"skuId\": \"{{skuId}}\",\n      \"quantity\": 1\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1660,7 +1664,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Status: implemented\nAuth: none (public)\nNo OTP/PIN at checkout.\nBody: { phone, name?, paymentMethod?: \"COD\", items[{ productId, quantity, volume?, measurementUnit? }], address{ fullName, phone?, addressLine1, city, ... } }.\nFinds/creates User by phone (guest registry). Response: order (placedAsGuest, matchedExistingAccount, risk), smsAlert, customer { hasPin, postOrderCta: register|login }.\nRate limit: >10 orders/hour → 429 code ORDER_PHONE_BLOCKED + blockedUntil + try-again message.\nDoes not clear authenticated server cart / does not break POST /api/cart/merge.",
+            "description": "Status: implemented\nAuth: none (public)\nNo OTP/PIN at checkout.\nBody: { phone, name?, paymentMethod?: \"COD\", items[{ productId, skuId, quantity }], address{ fullName, phone?, addressLine1, city, ... } }.\nFinds/creates User by phone (guest registry). Response: order (placedAsGuest, matchedExistingAccount, risk), smsAlert, customer { hasPin, postOrderCta: register|login }.\nRate limit: >10 orders/hour → 429 code ORDER_PHONE_BLOCKED + blockedUntil + try-again message.\nDoes not clear authenticated server cart / does not break POST /api/cart/merge.",
             "url": {
               "raw": "{{baseUrl}}/api/orders/guest",
               "host": [
@@ -1674,7 +1678,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone\": \"{{guestPhone}}\",\n  \"name\": \"Guest Customer\",\n  \"paymentMethod\": \"COD\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"address\": {\n    \"fullName\": \"Guest Customer\",\n    \"phone\": \"{{guestPhone}}\",\n    \"addressLine1\": \"Bole Road\",\n    \"city\": \"Addis Ababa\"\n  }\n}",
+              "raw": "{\n  \"phone\": \"{{guestPhone}}\",\n  \"name\": \"Guest Customer\",\n  \"paymentMethod\": \"COD\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"skuId\": \"{{skuId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"address\": {\n    \"fullName\": \"Guest Customer\",\n    \"phone\": \"{{guestPhone}}\",\n    \"addressLine1\": \"1200 Wilson Blvd\",\n    \"city\": \"Arlington\",\n    \"state\": \"VA\",\n    \"country\": \"US\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2205,7 +2209,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Status: implemented\nAuth: admin Bearer JWT\nBody: { phone, showOnBanner?: boolean }.\nshowOnBanner defaults false — when true, phone appears on store order-contact banner.",
+            "description": "Status: implemented\nAuth: admin Bearer JWT\nBody: { phone, showOnBanner?: boolean }.\nphone must be US E.164. showOnBanner defaults false — when true, phone appears on store order-contact banner.",
             "url": {
               "raw": "{{baseUrl}}/api/admin/settings/admin-phones",
               "host": [
@@ -2220,7 +2224,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone\": \"+251911111111\",\n  \"showOnBanner\": true\n}",
+              "raw": "{\n  \"phone\": \"+17035551111\",\n  \"showOnBanner\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"

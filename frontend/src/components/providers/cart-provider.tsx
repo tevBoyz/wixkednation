@@ -21,7 +21,11 @@ import {
 } from "@/lib/api/cart.api";
 import { ApiError, getErrorMessage } from "@/lib/api/errors";
 import type { Cart } from "@/lib/api/types";
-import { getProductCoverUrl, resolveEffectiveVolume } from "@/lib/catalog/format";
+import {
+  formatSkuLabel,
+  getProductCoverUrl,
+  resolveEffectiveVolume,
+} from "@/lib/catalog/format";
 import type { GuestCartLine } from "@/lib/cart/guest-cart";
 import {
   computeCartItemCount,
@@ -41,9 +45,10 @@ function isCustomerCartForbidden(error: unknown): boolean {
 }
 
 export type CartLine = {
-  /** Guest: productId. Server: cart item id. */
+  /** Guest: skuId. Server: cart item id. */
   key: string;
   productId: string;
+  skuId: string;
   name: string;
   image: string | null;
   quantity: number;
@@ -52,18 +57,21 @@ export type CartLine = {
   effectiveVolume: number | string | null;
   measurementUnit: string;
   price: number | string;
+  skuLabel?: string | null;
   slug?: string;
   lineTotal: number;
 };
 
 export type AddToCartInput = {
   productId: string;
+  skuId: string;
   name: string;
   image?: string | null;
   quantity?: number;
   volume?: number | string | null;
   measurementUnit: string;
   price: number | string;
+  skuLabel?: string | null;
   slug?: string;
 };
 
@@ -86,8 +94,9 @@ function mapGuestLines(items: GuestCartLine[]): CartLine[] {
   return items.map((item) => {
     const price = toCartAmount(item.price);
     return {
-      key: item.productId,
+      key: item.skuId,
       productId: item.productId,
+      skuId: item.skuId,
       name: item.name,
       image: item.image,
       quantity: item.quantity,
@@ -95,6 +104,7 @@ function mapGuestLines(items: GuestCartLine[]): CartLine[] {
       effectiveVolume: resolveEffectiveVolume(item.volume, item.quantity),
       measurementUnit: item.measurementUnit,
       price: item.price,
+      skuLabel: item.skuLabel,
       slug: item.slug,
       lineTotal: price * item.quantity,
     };
@@ -108,31 +118,42 @@ function mapServerCart(cart: Cart | null): CartLine[] {
 
   return cart.items.map((item) => {
     const product = item.product;
+    const sku = item.sku;
+    const unitFromLine =
+      item.quantity > 0 ? toCartAmount(item.lineTotal) / item.quantity : 0;
     const unitPrice =
-      product?.price != null
-        ? toCartAmount(product.price)
-        : item.quantity > 0
-          ? toCartAmount(item.lineTotal) / item.quantity
-          : 0;
+      sku?.price != null
+        ? toCartAmount(sku.price)
+        : product?.price != null
+          ? toCartAmount(product.price)
+          : unitFromLine;
+    const volume = item.volume ?? sku?.volume ?? product?.volume ?? null;
+    const measurementUnit =
+      item.measurementUnit ||
+      sku?.measurementUnit ||
+      product?.measurementUnit ||
+      "";
+    const skuLabel =
+      item.skuLabel ??
+      (sku ? formatSkuLabel(sku) : null) ??
+      null;
 
     return {
       key: item.id,
       productId: item.productId,
+      skuId: item.skuId || sku?.id || "",
       name: product?.name || "Product",
       image: getProductCoverUrl(product || {}),
       quantity: item.quantity,
-      volume: item.volume ?? product?.volume ?? null,
+      volume,
       effectiveVolume: resolveEffectiveVolume(
-        item.volume ?? product?.volume ?? null,
+        volume,
         item.quantity,
         item.effectiveVolume,
       ),
-      measurementUnit:
-        item.measurementUnit || product?.measurementUnit || "",
-      price:
-        product?.price != null && product.price !== ""
-          ? product.price
-          : unitPrice,
+      measurementUnit,
+      price: unitPrice,
+      skuLabel,
       slug: product?.slug,
       lineTotal:
         item.lineTotal != null
@@ -261,12 +282,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (!isServerCart) {
         guestAdd({
           productId: input.productId,
+          skuId: input.skuId,
           name: input.name,
           image: input.image ?? null,
           quantity,
           volume: input.volume ?? null,
           measurementUnit: input.measurementUnit,
           price: input.price,
+          skuLabel: input.skuLabel ?? null,
           slug: input.slug,
         });
         toast.success("Added to cart");
@@ -277,9 +300,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       try {
         const cart = await addServerCartItem({
           productId: input.productId,
+          skuId: input.skuId,
           quantity,
-          volume: input.volume,
-          measurementUnit: input.measurementUnit,
         });
         setServerCart(cart);
         toast.success("Added to cart");

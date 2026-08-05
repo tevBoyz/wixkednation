@@ -1,29 +1,16 @@
 import type { Metadata } from "next";
 
 import { Container } from "@/components/layout/container";
-import {
-  BRAND_OG_IMAGE_PATH,
-  getBrandOgImageMetadata,
-} from "@/lib/seo/site-metadata";
+import { JsonLd } from "@/components/seo/json-ld";
+import { buildBreadcrumbJsonLd } from "@/lib/seo/json-ld";
+import { buildPageMetadata } from "@/lib/seo/site-metadata";
 
-export const metadata: Metadata = {
-  title: "About GasNation",
+export const metadata: Metadata = buildPageMetadata({
+  title: "About GasNation | Premium Cannabis Delivery",
   description:
-    "Premium cannabis delivered across Northern Virginia and Washington, DC with clear communication and discreet delivery.",
-  openGraph: {
-    title: "About GasNation",
-    description:
-      "Premium cannabis delivered across Northern Virginia and Washington, DC with clear communication and discreet delivery.",
-    images: [getBrandOgImageMetadata()],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "About GasNation",
-    description:
-      "Premium cannabis delivered across Northern Virginia and Washington, DC with clear communication and discreet delivery.",
-    images: [BRAND_OG_IMAGE_PATH],
-  },
-};
+    "Premium cannabis delivered across Northern Virginia and Washington, DC. Clear communication, discreet same-day delivery, and a curated online dispensary menu. 21+.",
+  path: "/about",
+});
 
 const BASICS = [
   { label: "Delivery hours", value: "10 AM to 10 PM, seven days a week" },
@@ -35,6 +22,12 @@ const BASICS = [
 export default function AboutPage() {
   return (
     <main className="min-w-0 overflow-x-clip">
+      <JsonLd
+        data={buildBreadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "About", path: "/about" },
+        ])}
+      />
       <Container className="min-w-0 py-10 sm:py-14">
         <section className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-[color-mix(in_srgb,#148547_14%,transparent)] via-background to-background px-6 py-8 shadow-sm sm:px-8 sm:py-10">
           <div

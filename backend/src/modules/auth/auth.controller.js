@@ -1,4 +1,4 @@
-const { normalizePhone, isValidEthiopianPhone } = require("../../utils/phone");
+const { normalizePhone, isValidAccessPhone } = require("../../utils/phone");
 const {
   createAndSendPhoneOtp,
   verifyPhoneOtp
@@ -32,10 +32,11 @@ async function sendPhoneOtp(req, res, next) {
       });
     }
 
-    if (!isValidEthiopianPhone(phone)) {
+    if (!isValidAccessPhone(phone)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid phone number. Use Ethiopian format like +251911000000."
+        message:
+          "Invalid phone number. Use a US number (e.g. +17035551234) or a test Ethiopian number (+2519… / +2517…)."
       });
     }
 
@@ -74,10 +75,11 @@ async function verifyOtp(req, res, next) {
       });
     }
 
-    if (!isValidEthiopianPhone(phone)) {
+    if (!isValidAccessPhone(phone)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid phone number. Use Ethiopian format like +251911000000."
+        message:
+          "Invalid phone number. Use a US number (e.g. +17035551234) or a test Ethiopian number (+2519… / +2517…)."
       });
     }
 

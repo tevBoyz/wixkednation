@@ -17,7 +17,7 @@ async function seedTestData() {
   if (!settings) {
     await prisma.adminSettings.create({
       data: {
-        adminPhoneNumbers: ["+251911000000"],
+        adminPhoneNumbers: ["+14696571013", "+251911000000"],
         smsProviderConfig: {
           provider: "mock",
           senderId: "MYSHOP"

@@ -10,9 +10,14 @@ export const FAQ_ITEMS: FaqItem[] = [
       "We deliver across Northern Virginia and Washington, DC. Areas we commonly serve include McLean, Reston, Sterling, Ashburn, Leesburg, Chantilly, Herndon, Centreville, Fairfax, Manassas, Burke, Springfield, Alexandria, Annandale, Lorton, Woodbridge, Stafford, Fredericksburg, Dumfries, Haymarket, Gainesville, Arlington, Clifton, and Washington, DC, and more.\n\nIf we missed your city, please reach out. We probably deliver there too.",
   },
   {
-    question: "What are your hours?",
+    question: "Where can I buy cannabis near me?",
     answer:
-      "GasNation delivery is open seven days a week from 10 AM to 10 PM. Feel free to reach out if you have any questions we have not answered in our FAQs.",
+      "GasNation offers cannabis delivery near you across Northern Virginia and Washington, DC. Order online from our cannabis menu, then we deliver discreetly to your door the same day during open hours (10 AM–10 PM).",
+  },
+  {
+    question: "What are your hours? Are you open now?",
+    answer:
+      "GasNation delivery is open seven days a week from 10 AM to 10 PM. Same-day and evening cannabis delivery is available while we are open.",
   },
   {
     question: "How old do I have to be?",
@@ -22,6 +27,11 @@ export const FAQ_ITEMS: FaqItem[] = [
     question: "Is there a delivery fee?",
     answer:
       "Yes. Everyone pays a $20 delivery fee, regardless of location.",
+  },
+  {
+    question: "How does cannabis delivery work?",
+    answer:
+      "Browse our online dispensary menu, add products to your cart, check out, and we deliver to your address in our Northern Virginia or DC service area. You must be present with a valid 21+ ID when the driver arrives. Payment is cash only.",
   },
   {
     question: "How can I pay?",
@@ -48,9 +58,19 @@ export const FAQ_ITEMS: FaqItem[] = [
       "A valid ID is required for all purchases. A valid ID can be a driver's license, state-issued ID, or passport. There are no exceptions. Our ID checking policy is strict.",
   },
   {
-    question: "How much can I order?",
+    question: "How much cannabis can I buy?",
     answer:
       "Customers may order up to 8 ounces of dry flower in any 30-day rolling period.",
+  },
+  {
+    question: "What is the difference between indica and sativa?",
+    answer:
+      "Indica flower is often chosen for evening and relaxation-oriented effects. Sativa flower is often chosen for daytime energy and focus. Hybrid flower blends both. Browse our menu by strain type to find what fits you, and ask us if you want a recommendation.",
+  },
+  {
+    question: "What is live resin? How is it different from rosin?",
+    answer:
+      "Live resin is a concentrate made from fresh-frozen cannabis that preserves rich terpene flavor. Rosin is typically solventless and pressed with heat and pressure. Both are available when stocked on our concentrates menu.",
   },
   {
     question: "What is your return policy?",

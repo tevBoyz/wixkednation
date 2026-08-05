@@ -4,35 +4,52 @@ import { useState } from "react";
 
 import { useCart } from "@/components/providers/cart-provider";
 import { Button } from "@/components/ui/button";
-import { getProductCoverUrl, hasSellablePack } from "@/lib/catalog/format";
+import {
+  formatSkuLabel,
+  getProductCoverUrl,
+  resolveProductSkus,
+} from "@/lib/catalog/format";
 import type { Product } from "@/lib/api/types";
 
 type AddToCartButtonProps = {
   product: Product;
+  /** Defaults to first visible SKU. */
+  skuId?: string;
+  quantity?: number;
 };
 
-export function AddToCartButton({ product }: AddToCartButtonProps) {
+/** Quick add using a specific SKU (defaults to first visible pack). Prefer ProductPurchasePanel on PDP. */
+export function AddToCartButton({
+  product,
+  skuId,
+  quantity = 1,
+}: AddToCartButtonProps) {
   const { addItem } = useCart();
   const [pending, setPending] = useState(false);
+  const skus = resolveProductSkus(product);
+  const selected =
+    skus.find((sku) => sku.id === skuId) ?? skus[0] ?? null;
 
-  if (!hasSellablePack(product) || product.price == null) {
+  if (!selected) {
     return null;
   }
 
   async function onAdd() {
-    if (!hasSellablePack(product) || product.price == null) {
+    if (!selected) {
       return;
     }
     setPending(true);
     try {
       await addItem({
         productId: product.id,
+        skuId: selected.id,
         name: product.name,
         image: getProductCoverUrl(product),
-        quantity: 1,
-        volume: product.volume ?? null,
-        measurementUnit: product.measurementUnit,
-        price: product.price,
+        quantity,
+        volume: selected.volume,
+        measurementUnit: selected.measurementUnit,
+        price: selected.price,
+        skuLabel: formatSkuLabel(selected),
         slug: product.slug,
       });
     } finally {

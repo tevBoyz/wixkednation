@@ -1,25 +1,26 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  isInDeliveryArea,
+  isValidAccessPhone,
+  isValidDeliveryPhone,
   isValidEthiopianPhone,
+  isValidUsPhone,
   normalizePhone,
 } from "@/lib/phone";
 
 describe("normalizePhone", () => {
-  it("normalizes local 09… numbers to +2519…", () => {
+  it("normalizes US 10-digit and formatted numbers to +1…", () => {
+    expect(normalizePhone("7035551234")).toBe("+17035551234");
+    expect(normalizePhone("(703) 555-1234")).toBe("+17035551234");
+    expect(normalizePhone("1-703-555-1234")).toBe("+17035551234");
+    expect(normalizePhone("+1 703 555 1234")).toBe("+17035551234");
+  });
+
+  it("still normalizes Ethiopian local forms for test access", () => {
     expect(normalizePhone("0911676343")).toBe("+251911676343");
-  });
-
-  it("normalizes local 07… numbers to +2517…", () => {
     expect(normalizePhone("0711223344")).toBe("+251711223344");
-  });
-
-  it("adds + to bare 251… numbers", () => {
     expect(normalizePhone("251911676343")).toBe("+251911676343");
-  });
-
-  it("strips spaces", () => {
-    expect(normalizePhone(" +251 911 676 343 ")).toBe("+251911676343");
   });
 
   it("returns empty for blank input", () => {
@@ -27,16 +28,27 @@ describe("normalizePhone", () => {
   });
 });
 
-describe("isValidEthiopianPhone", () => {
-  it("accepts valid ETB mobile numbers", () => {
-    expect(isValidEthiopianPhone("+251911676343")).toBe(true);
-    expect(isValidEthiopianPhone("0911676343")).toBe(true);
-    expect(isValidEthiopianPhone("+251711223344")).toBe(true);
+describe("isValidUsPhone / access / delivery", () => {
+  it("accepts valid US numbers", () => {
+    expect(isValidUsPhone("+17035551234")).toBe(true);
+    expect(isValidUsPhone("7035551234")).toBe(true);
+    expect(isValidAccessPhone("+14696571013")).toBe(true);
   });
 
-  it("rejects invalid numbers", () => {
-    expect(isValidEthiopianPhone("+251811223344")).toBe(false);
-    expect(isValidEthiopianPhone("123")).toBe(false);
-    expect(isValidEthiopianPhone("+15551234567")).toBe(false);
+  it("keeps Ethiopian numbers for access only", () => {
+    expect(isValidEthiopianPhone("+251911676343")).toBe(true);
+    expect(isValidAccessPhone("0911676343")).toBe(true);
+    expect(isValidUsPhone("+251911676343")).toBe(false);
+    expect(isValidDeliveryPhone("+251911676343")).toBe(false);
+  });
+
+  it("enforces delivery area codes (NoVA, DC, South MD)", () => {
+    expect(isInDeliveryArea("+17035551234")).toBe(true);
+    expect(isInDeliveryArea("+15715551234")).toBe(true);
+    expect(isInDeliveryArea("+12025551234")).toBe(true);
+    expect(isInDeliveryArea("+13015551234")).toBe(true);
+    expect(isValidDeliveryPhone("+17035551234")).toBe(true);
+    expect(isInDeliveryArea("+14696571013")).toBe(false);
+    expect(isValidDeliveryPhone("+14696571013")).toBe(false);
   });
 });

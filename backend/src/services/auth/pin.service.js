@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 
 const env = require("../../config/env");
 const prisma = require("../../config/prisma");
-const { normalizePhone, isValidEthiopianPhone } = require("../../utils/phone");
+const { normalizePhone, isValidAccessPhone } = require("../../utils/phone");
 const {
   buildAuthTokenPayload,
   signAccessToken,
@@ -207,9 +207,9 @@ async function findUserForPinLogin({ phone, email }) {
   if (hasPhone) {
     const normalized = normalizePhone(phone);
 
-    if (!isValidEthiopianPhone(normalized)) {
+    if (!isValidAccessPhone(normalized)) {
       throw createPinError(
-        "Invalid phone number. Use Ethiopian format like +251911000000.",
+        "Invalid phone number. Use a US number (e.g. +17035551234) or a test Ethiopian number (+2519… / +2517…).",
         400
       );
     }

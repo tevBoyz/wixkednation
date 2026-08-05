@@ -61,6 +61,32 @@ function mapProductImagesForResponse(productId, images) {
   }));
 }
 
+function mapSku(sku, { includeVisibility = false } = {}) {
+  if (!sku) {
+    return null;
+  }
+
+  return {
+    id: sku.id,
+    label: sku.label || null,
+    volume: serializeDecimal(sku.volume),
+    measurementUnit: sku.measurementUnit,
+    price: serializeDecimal(sku.price),
+    sortOrder: sku.sortOrder,
+    ...(includeVisibility ? { isVisible: sku.isVisible } : {})
+  };
+}
+
+function mapProductSkus(product, { publicOnly = false } = {}) {
+  const skus = Array.isArray(product.skus) ? product.skus : [];
+  const filtered = publicOnly ? skus.filter((sku) => sku.isVisible) : skus;
+
+  return filtered
+    .slice()
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.createdAt - b.createdAt)
+    .map((sku) => mapSku(sku, { includeVisibility: !publicOnly }));
+}
+
 function mapPublicProduct(product) {
   return {
     id: product.id,
@@ -78,6 +104,7 @@ function mapPublicProduct(product) {
       : undefined,
     measurementUnit: product.measurementUnit,
     volume: serializeDecimal(product.volume),
+    skus: mapProductSkus(product, { publicOnly: true }),
     productType: product.productType || "Flower",
     strainType: product.strainType || null,
     thcPercent: serializeDecimal(product.thcPercent),
@@ -99,6 +126,9 @@ const publicProductInclude = {
       name: true,
       slug: true
     }
+  },
+  skus: {
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
   }
 };
 
@@ -303,6 +333,7 @@ async function getPublicProductBySlug(slug) {
 function mapAdminProduct(product) {
   return {
     ...mapPublicProduct(product),
+    skus: mapProductSkus(product, { publicOnly: false }),
     isVisible: product.isVisible,
     deletedAt: product.deletedAt
   };
@@ -410,6 +441,144 @@ function assertPackPricing({ price, volume }) {
   if (hasVolume && Number(volume) <= 0) {
     throw createServiceError("volume must be greater than 0 for a sellable pack.", 400);
   }
+}
+
+const MAX_PRODUCT_SKUS = 3;
+
+/**
+ * Normalize admin `skus` payload into create rows + primary product fields.
+ * Requires 1–3 sellable packs (price + volume > 0 each).
+ */
+function parseSkusPayload(skusInput, { measurementUnitFallback = null } = {}) {
+  if (!Array.isArray(skusInput)) {
+    throw createServiceError("skus must be an array of pack options.", 400);
+  }
+
+  if (skusInput.length < 1) {
+    throw createServiceError("At least one SKU is required.", 400);
+  }
+
+  if (skusInput.length > MAX_PRODUCT_SKUS) {
+    throw createServiceError(
+      `A product may have at most ${MAX_PRODUCT_SKUS} SKUs.`,
+      400
+    );
+  }
+
+  const seen = new Set();
+  const rows = skusInput.map((entry, index) => {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      throw createServiceError(`skus[${index}] must be an object.`, 400);
+    }
+
+    const unitRaw =
+      typeof entry.measurementUnit === "string" && entry.measurementUnit.trim()
+        ? entry.measurementUnit.trim()
+        : measurementUnitFallback;
+
+    if (!unitRaw) {
+      throw createServiceError(
+        `skus[${index}].measurementUnit is required.`,
+        400
+      );
+    }
+
+    const price = parseDecimalInput(entry.price, `skus[${index}].price`, {
+      required: true
+    });
+    const volume = parseDecimalInput(entry.volume, `skus[${index}].volume`, {
+      required: true
+    });
+
+    if (price == null || Number(price) < 0) {
+      throw createServiceError(`skus[${index}].price must be a non-negative number.`, 400);
+    }
+
+    if (volume == null || Number(volume) <= 0) {
+      throw createServiceError(
+        `skus[${index}].volume must be greater than 0.`,
+        400
+      );
+    }
+
+    const key = `${Number(volume).toFixed(2)}|${unitRaw.toLowerCase()}`;
+    if (seen.has(key)) {
+      throw createServiceError(
+        "Each SKU must have a unique volume + measurementUnit combination.",
+        400
+      );
+    }
+    seen.add(key);
+
+    const sortOrder =
+      entry.sortOrder !== undefined && entry.sortOrder !== null
+        ? parseIntegerInput(entry.sortOrder, `skus[${index}].sortOrder`, {
+            min: 0
+          })
+        : index;
+
+    const isVisible =
+      entry.isVisible === undefined
+        ? true
+        : parseOptionalBoolean(entry.isVisible, `skus[${index}].isVisible`);
+
+    const label =
+      typeof entry.label === "string" && entry.label.trim()
+        ? entry.label.trim()
+        : null;
+
+    return {
+      id: typeof entry.id === "string" && entry.id.trim() ? entry.id.trim() : undefined,
+      label,
+      volume,
+      measurementUnit: unitRaw,
+      price,
+      sortOrder,
+      isVisible
+    };
+  });
+
+  rows.sort((a, b) => a.sortOrder - b.sortOrder);
+  rows.forEach((row, index) => {
+    row.sortOrder = index;
+  });
+
+  const primary = rows[0];
+
+  return {
+    rows,
+    primaryPrice: primary.price,
+    primaryVolume: primary.volume,
+    primaryMeasurementUnit: primary.measurementUnit
+  };
+}
+
+function legacySkusFromProductFields({
+  price,
+  volume,
+  measurementUnit
+}) {
+  assertPackPricing({ price, volume });
+
+  if (price == null || volume == null) {
+    throw createServiceError(
+      "Provide skus (1–3 packs) or both price and volume for a single primary pack.",
+      400
+    );
+  }
+
+  return parseSkusPayload(
+    [
+      {
+        price,
+        volume,
+        measurementUnit,
+        sortOrder: 0,
+        isVisible: true
+      }
+    ],
+    { measurementUnitFallback: measurementUnit }
+  );
 }
 
 function parseIntegerInput(value, fieldName, { min = 0 } = {}) {
@@ -534,6 +703,7 @@ async function createAdminProduct(payload = {}) {
     categoryId,
     measurementUnit,
     volume,
+    skus,
     productType,
     strainType,
     thcPercent,
@@ -546,10 +716,6 @@ async function createAdminProduct(payload = {}) {
 
   if (!name || typeof name !== "string" || !name.trim()) {
     throw createServiceError("Product name is required.", 400);
-  }
-
-  if (!measurementUnit || typeof measurementUnit !== "string" || !measurementUnit.trim()) {
-    throw createServiceError("measurementUnit is required.", 400);
   }
 
   await assertCategoryExists(categoryId);
@@ -574,9 +740,23 @@ async function createAdminProduct(payload = {}) {
       ? strainType.trim()
       : null;
 
-  const parsedPrice = parseDecimalInput(price, "price", { required: false });
-  const parsedVolume = parseDecimalInput(volume, "volume");
-  assertPackPricing({ price: parsedPrice, volume: parsedVolume });
+  const unitFallback =
+    typeof measurementUnit === "string" && measurementUnit.trim()
+      ? measurementUnit.trim()
+      : null;
+
+  const parsedSkus =
+    skus !== undefined
+      ? parseSkusPayload(skus, { measurementUnitFallback: unitFallback })
+      : legacySkusFromProductFields({
+          price: parseDecimalInput(price, "price", { required: false }),
+          volume: parseDecimalInput(volume, "volume"),
+          measurementUnit: unitFallback
+        });
+
+  if (!unitFallback && !parsedSkus.primaryMeasurementUnit) {
+    throw createServiceError("measurementUnit is required.", 400);
+  }
 
   const product = await prisma.product.create({
     data: {
@@ -584,10 +764,10 @@ async function createAdminProduct(payload = {}) {
       slug: normalizedSlug,
       description:
         typeof description === "string" ? description.trim() || null : null,
-      price: parsedPrice,
+      price: parsedSkus.primaryPrice,
       categoryId,
-      measurementUnit: measurementUnit.trim(),
-      volume: parsedVolume,
+      measurementUnit: parsedSkus.primaryMeasurementUnit,
+      volume: parsedSkus.primaryVolume,
       productType: normalizedProductType,
       strainType: normalizedStrainType,
       thcPercent: parseDecimalInput(thcPercent, "thcPercent"),
@@ -597,7 +777,17 @@ async function createAdminProduct(payload = {}) {
       images: [],
       coverImageIndex: 0,
       isVisible: parseOptionalBoolean(isVisible, "isVisible") ?? true,
-      isFeatured: parseOptionalBoolean(isFeatured, "isFeatured") ?? false
+      isFeatured: parseOptionalBoolean(isFeatured, "isFeatured") ?? false,
+      skus: {
+        create: parsedSkus.rows.map((row) => ({
+          label: row.label,
+          volume: row.volume,
+          measurementUnit: row.measurementUnit,
+          price: row.price,
+          sortOrder: row.sortOrder,
+          isVisible: row.isVisible
+        }))
+      }
     },
     include: publicProductInclude
   });
@@ -605,10 +795,81 @@ async function createAdminProduct(payload = {}) {
   return mapAdminProduct(product);
 }
 
+async function replaceProductSkus(productId, parsedSkus) {
+  const existing = await prisma.productSku.findMany({
+    where: { productId },
+    select: { id: true }
+  });
+  const existingIds = new Set(existing.map((row) => row.id));
+  const keepIds = parsedSkus.rows
+    .map((row) => row.id)
+    .filter((id) => id && existingIds.has(id));
+
+  await prisma.$transaction(async (tx) => {
+    if (keepIds.length) {
+      await tx.cartItem.deleteMany({
+        where: {
+          productId,
+          skuId: { notIn: keepIds }
+        }
+      });
+      await tx.productSku.deleteMany({
+        where: {
+          productId,
+          id: { notIn: keepIds }
+        }
+      });
+    } else {
+      await tx.cartItem.deleteMany({ where: { productId } });
+      await tx.productSku.deleteMany({ where: { productId } });
+    }
+
+    for (const row of parsedSkus.rows) {
+      if (row.id && existingIds.has(row.id)) {
+        await tx.productSku.update({
+          where: { id: row.id },
+          data: {
+            label: row.label,
+            volume: row.volume,
+            measurementUnit: row.measurementUnit,
+            price: row.price,
+            sortOrder: row.sortOrder,
+            isVisible: row.isVisible
+          }
+        });
+      } else {
+        await tx.productSku.create({
+          data: {
+            productId,
+            label: row.label,
+            volume: row.volume,
+            measurementUnit: row.measurementUnit,
+            price: row.price,
+            sortOrder: row.sortOrder,
+            isVisible: row.isVisible
+          }
+        });
+      }
+    }
+
+    await tx.product.update({
+      where: { id: productId },
+      data: {
+        price: parsedSkus.primaryPrice,
+        volume: parsedSkus.primaryVolume,
+        measurementUnit: parsedSkus.primaryMeasurementUnit
+      }
+    });
+  });
+}
+
 async function updateAdminProduct(id, payload = {}) {
   const existing = await prisma.product.findUnique({
     where: {
       id
+    },
+    include: {
+      skus: true
     }
   });
 
@@ -644,29 +905,9 @@ async function updateAdminProduct(id, payload = {}) {
         : null;
   }
 
-  if (payload.price !== undefined) {
-    data.price = parseDecimalInput(payload.price, "price", { required: false });
-  }
-
   if (payload.categoryId !== undefined) {
     await assertCategoryExists(payload.categoryId);
     data.categoryId = payload.categoryId;
-  }
-
-  if (payload.measurementUnit !== undefined) {
-    if (
-      !payload.measurementUnit ||
-      typeof payload.measurementUnit !== "string" ||
-      !payload.measurementUnit.trim()
-    ) {
-      throw createServiceError("measurementUnit cannot be empty.", 400);
-    }
-
-    data.measurementUnit = payload.measurementUnit.trim();
-  }
-
-  if (payload.volume !== undefined) {
-    data.volume = parseDecimalInput(payload.volume, "volume");
   }
 
   if (payload.productType !== undefined) {
@@ -720,20 +961,85 @@ async function updateAdminProduct(id, payload = {}) {
     data.isFeatured = parseOptionalBoolean(payload.isFeatured, "isFeatured");
   }
 
-  if (payload.price !== undefined || payload.volume !== undefined) {
+  let parsedSkus = null;
+
+  if (payload.skus !== undefined) {
+    const unitFallback =
+      payload.measurementUnit !== undefined &&
+      typeof payload.measurementUnit === "string" &&
+      payload.measurementUnit.trim()
+        ? payload.measurementUnit.trim()
+        : existing.measurementUnit;
+    parsedSkus = parseSkusPayload(payload.skus, {
+      measurementUnitFallback: unitFallback
+    });
+    data.price = parsedSkus.primaryPrice;
+    data.volume = parsedSkus.primaryVolume;
+    data.measurementUnit = parsedSkus.primaryMeasurementUnit;
+  } else if (
+    payload.price !== undefined ||
+    payload.volume !== undefined ||
+    payload.measurementUnit !== undefined
+  ) {
+    // Legacy single-pack patch: update primary SKU fields + product denormalized columns.
     const nextPrice =
-      data.price !== undefined
-        ? data.price
+      payload.price !== undefined
+        ? parseDecimalInput(payload.price, "price", { required: false })
         : existing.price != null
           ? Number(existing.price).toFixed(2)
           : null;
     const nextVolume =
-      data.volume !== undefined
-        ? data.volume
+      payload.volume !== undefined
+        ? parseDecimalInput(payload.volume, "volume")
         : existing.volume != null
           ? Number(existing.volume).toFixed(2)
           : null;
+    const nextUnit =
+      payload.measurementUnit !== undefined
+        ? String(payload.measurementUnit).trim()
+        : existing.measurementUnit;
+
+    if (!nextUnit) {
+      throw createServiceError("measurementUnit cannot be empty.", 400);
+    }
+
     assertPackPricing({ price: nextPrice, volume: nextVolume });
+
+    data.price = nextPrice;
+    data.volume = nextVolume;
+    data.measurementUnit = nextUnit;
+
+    const primarySku =
+      (existing.skus || []).slice().sort((a, b) => a.sortOrder - b.sortOrder)[0] ||
+      null;
+
+    if (nextPrice != null && nextVolume != null) {
+      if (primarySku) {
+        await prisma.productSku.update({
+          where: { id: primarySku.id },
+          data: {
+            price: nextPrice,
+            volume: nextVolume,
+            measurementUnit: nextUnit
+          }
+        });
+      } else {
+        await prisma.productSku.create({
+          data: {
+            productId: id,
+            price: nextPrice,
+            volume: nextVolume,
+            measurementUnit: nextUnit,
+            sortOrder: 0,
+            isVisible: true
+          }
+        });
+      }
+    }
+  }
+
+  if (parsedSkus) {
+    await replaceProductSkus(id, parsedSkus);
   }
 
   const product = await prisma.product.update({

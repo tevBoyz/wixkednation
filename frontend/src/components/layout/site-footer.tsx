@@ -25,7 +25,8 @@ export function SiteFooter() {
         <div>
           <GasNationLogo asLink variant="mark" size="md" markClassName="size-12" />
           <p className="mt-2 text-sm text-muted-foreground">
-            Online storefront - more pages coming in later stages.
+            Premium cannabis delivery across Northern Virginia and Washington,
+            DC. 21+ only.
           </p>
         </div>
         <nav aria-label="Footer">
@@ -35,7 +36,15 @@ export function SiteFooter() {
                 href="/products"
                 className="text-muted-foreground hover:text-foreground"
               >
-                Products
+                Menu
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/delivery"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Delivery areas
               </Link>
             </li>
             <li>

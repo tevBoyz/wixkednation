@@ -53,7 +53,9 @@ function OrderItemsList({ items }: { items: OrderItemSnapshot[] }) {
   return (
     <ul className="divide-y divide-border rounded-lg border border-border">
       {items.map((item) => {
-        const packLabel = formatVolumeUnit(item.volume, item.measurementUnit);
+        const packLabel =
+          item.skuLabel?.trim() ||
+          formatVolumeUnit(item.volume, item.measurementUnit);
         const totalVolumeLabel = formatVolumeUnit(
           item.effectiveVolume ??
             (item.volume != null
@@ -64,7 +66,7 @@ function OrderItemsList({ items }: { items: OrderItemSnapshot[] }) {
 
         return (
           <li
-            key={`${item.productId}-${item.name}-${item.unitPrice}`}
+            key={`${item.skuId ?? item.productId}-${item.name}-${item.unitPrice}`}
             className="flex flex-col gap-2 p-4 sm:flex-row sm:items-start sm:justify-between"
           >
             <div className="min-w-0">

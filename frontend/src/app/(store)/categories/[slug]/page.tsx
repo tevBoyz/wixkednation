@@ -17,10 +17,7 @@ import {
   sortCategoryTree,
 } from "@/lib/catalog/category-tree";
 import { SITE_NAME } from "@/config/brand";
-import {
-  BRAND_OG_IMAGE_PATH,
-  getBrandOgImageMetadata,
-} from "@/lib/seo/site-metadata";
+import { buildPageMetadata } from "@/lib/seo/site-metadata";
 
 type CategoryPageProps = {
   params: Promise<{ slug: string }>;
@@ -38,23 +35,13 @@ export async function generateMetadata({
     const category = await fetchCategoryBySlug(slug);
     const description =
       category.description?.trim() ||
-      `Browse ${category.name} on ${SITE_NAME}.`;
+      `Shop ${category.name} cannabis products with same-day delivery from ${SITE_NAME} across Northern Virginia and Washington, DC.`;
 
-    return {
-      title: category.name,
+    return buildPageMetadata({
+      title: `${category.name} | Cannabis Menu`,
       description,
-      openGraph: {
-        title: category.name,
-        description,
-        images: [getBrandOgImageMetadata()],
-      },
-      twitter: {
-        card: "summary_large_image",
-        title: category.name,
-        description,
-        images: [BRAND_OG_IMAGE_PATH],
-      },
-    };
+      path: `/categories/${slug}`,
+    });
   } catch {
     return { title: "Category" };
   }

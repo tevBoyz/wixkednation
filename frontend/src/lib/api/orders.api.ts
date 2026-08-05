@@ -42,7 +42,7 @@ export async function createGuestOrder(body: {
   phone: string;
   name?: string;
   paymentMethod?: "COD";
-  items: Array<{ productId: string; quantity: number }>;
+  items: Array<{ productId: string; skuId: string; quantity: number }>;
   address: GuestOrderAddressBody;
 }) {
   return apiData<CreateGuestOrderResult>("/api/orders/guest", {

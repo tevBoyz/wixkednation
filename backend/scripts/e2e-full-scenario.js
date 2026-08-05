@@ -599,6 +599,7 @@ async function runScenario() {
   assertPostmanCoverage();
 
   const { adminPhone, customerPhone } = await resolveSeedUsers();
+  const deliveryPhone = `+1703555${String(Date.now()).slice(-4)}`;
   console.log(`\nAdmin phone: ${adminPhone}`);
   console.log(`Customer phone: ${customerPhone}\n`);
 
@@ -911,6 +912,19 @@ async function runScenario() {
   );
   const productId = createdProduct.data.data.product.id;
   const productSlug = createdProduct.data.data.product.slug;
+  const productSkuId =
+    createdProduct.data.data.product.skus?.[0]?.id ||
+    (await (async () => {
+      const detail = await expectOk(
+        "GET product for skuId",
+        "GET",
+        `/api/admin/products/${productId}`,
+        { token: admin.accessToken },
+        (res) => Boolean(res.data?.data?.product?.skus?.[0]?.id)
+      );
+      return detail.data.data.product.skus[0].id;
+    })());
+  assert("productSkuId present", Boolean(productSkuId));
 
   await expectOk("GET /api/admin/products", "GET", "/api/admin/products", {
     token: admin.accessToken
@@ -1116,7 +1130,7 @@ async function runScenario() {
     "/api/cart/items",
     {
       token: customer.accessToken,
-      body: { productId, quantity: 1 }
+      body: { productId, skuId: productSkuId, quantity: 1 }
     },
     (res) => (res.data?.data?.cart?.items || []).length >= 1
   );
@@ -1142,7 +1156,7 @@ async function runScenario() {
   await expectOk("POST /api/cart/merge", "POST", "/api/cart/merge", {
     token: customer.accessToken,
     body: {
-      items: [{ productId, quantity: 1 }]
+      items: [{ productId, skuId: productSkuId, quantity: 1 }]
     }
   });
 
@@ -1156,10 +1170,11 @@ async function runScenario() {
       body: {
         label: `E2E ${stamp}`,
         fullName: "E2E Customer",
-        phone: customerPhone,
-        addressLine1: "Bole",
-        city: "Addis Ababa",
-        country: "ET",
+        phone: deliveryPhone,
+        addressLine1: "1200 Wilson Blvd",
+        city: "Arlington",
+        state: "VA",
+        country: "US",
         isDefault: true
       }
     },
@@ -1252,16 +1267,16 @@ async function runScenario() {
     "/api/admin/settings/admin-phones",
     {
       token: admin.accessToken,
-      body: { phone: "+251911222333", showOnBanner: false }
+      body: { phone: "+17035552233", showOnBanner: false }
     },
     (res) =>
       (res.data?.data?.settings?.adminPhoneNumbers || []).some(
-        (entry) => entry.phone === "+251911222333" && entry.showOnBanner === false
+        (entry) => entry.phone === "+17035552233" && entry.showOnBanner === false
       )
   );
   const adminPhoneId = (
     phoneAdd.data.data.settings.adminPhoneNumbers || []
-  ).find((entry) => entry.phone === "+251911222333")?.id;
+  ).find((entry) => entry.phone === "+17035552233")?.id;
   assert("adminPhoneId present", Boolean(adminPhoneId));
 
   await expectOk(
@@ -1285,7 +1300,7 @@ async function runScenario() {
     {},
     (res) =>
       (res.data?.data?.orderContactPhones || []).some(
-        (entry) => entry.phone === "+251911222333"
+        (entry) => entry.phone === "+17035552233"
       )
   );
 
@@ -1293,12 +1308,12 @@ async function runScenario() {
   await expectOk("POST /api/admin/sms/test", "POST", "/api/admin/sms/test", {
     token: admin.accessToken,
     body: {
-      phone: customerPhone,
+      phone: deliveryPhone,
       message: `E2E test SMS ${stamp}`
     }
   });
   await waitForMockSms({
-    phone: customerPhone,
+    phone: deliveryPhone,
     includes: `E2E test SMS ${stamp}`,
     sinceMs: smsSince
   });
@@ -1314,7 +1329,7 @@ async function runScenario() {
   console.log("\n9) Orders + notifications + cancel + reputation");
   await expectOk("Ensure cart item for order", "POST", "/api/cart/items", {
     token: customer.accessToken,
-    body: { productId, quantity: 1 }
+    body: { productId, skuId: productSkuId, quantity: 1 }
   });
 
   const orderSince = Date.now();
@@ -1384,7 +1399,7 @@ async function runScenario() {
   );
 
   console.log("\n9b) Guest checkout + phone burst block + cart merge intact");
-  const guestPhone = `+2519${String(stamp).slice(-8)}`;
+  const guestPhone = `+1703555${String(stamp).slice(-4)}`;
   const guestOrder = await expectOk(
     "POST /api/orders/guest",
     "POST",
@@ -1394,12 +1409,14 @@ async function runScenario() {
         phone: guestPhone,
         name: "E2E Guest",
         paymentMethod: "COD",
-        items: [{ productId, quantity: 1 }],
+        items: [{ productId, skuId: productSkuId, quantity: 1 }],
         address: {
           fullName: "E2E Guest",
           phone: guestPhone,
-          addressLine1: "Guest Street 1",
-          city: "Addis Ababa"
+          addressLine1: "1200 Wilson Blvd",
+          city: "Arlington",
+          state: "VA",
+          country: "US"
         }
       }
     },
@@ -1460,11 +1477,13 @@ async function runScenario() {
     {
       body: {
         phone: guestPhone,
-        items: [{ productId, quantity: 1 }],
+        items: [{ productId, skuId: productSkuId, quantity: 1 }],
         address: {
           fullName: "E2E Guest",
-          addressLine1: "Guest Street 1",
-          city: "Addis Ababa"
+          addressLine1: "1200 Wilson Blvd",
+          city: "Arlington",
+          state: "VA",
+          country: "US"
         }
       }
     }
@@ -1484,7 +1503,7 @@ async function runScenario() {
     {
       token: customer.accessToken,
       body: {
-        items: [{ productId, quantity: 1 }]
+        items: [{ productId, skuId: productSkuId, quantity: 1 }]
       }
     },
     (res) => Boolean(res.data?.data?.cart)
@@ -1608,7 +1627,7 @@ async function runScenario() {
   // Second order for cancel-from-Confirmed path
   await expectOk("Cart for cancel order", "POST", "/api/cart/items", {
     token: customer.accessToken,
-    body: { productId, quantity: 1 }
+    body: { productId, skuId: productSkuId, quantity: 1 }
   });
   const cancelOrder = await expectOk(
     "Create order for cancel",

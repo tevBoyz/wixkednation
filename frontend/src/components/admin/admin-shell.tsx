@@ -91,17 +91,17 @@ export function AdminHeader() {
 
 export function AdminSidebar() {
   return (
-    <aside className="hidden w-60 shrink-0 border-r border-border bg-muted/20 lg:flex lg:flex-col">
-      <div className="border-b border-border px-4 py-4">
+    <aside className="hidden h-dvh w-60 shrink-0 flex-col border-r border-border bg-muted/20 lg:flex">
+      <div className="shrink-0 border-b border-border px-4 py-4">
         <GasNationLogo asLink size="sm" />
         <p className="mt-2 text-xs font-medium text-muted-foreground">
           Admin console
         </p>
       </div>
-      <div className="flex-1 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 overflow-y-auto p-3">
         <AdminSidebarNav />
       </div>
-      <div className="border-t border-border p-3">
+      <div className="shrink-0 border-t border-border p-3">
         <Button
           render={<Link href="/" />}
           nativeButton={false}
@@ -118,11 +118,13 @@ export function AdminSidebar() {
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-dvh bg-background">
+    <div className="flex h-dvh overflow-hidden bg-background">
       <AdminSidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <AdminHeader />
-        <main className="flex-1 px-4 py-6 sm:px-6">{children}</main>
+        <main className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6">
+          {children}
+        </main>
       </div>
     </div>
   );

@@ -130,7 +130,7 @@ Auth header: `Authorization: Bearer <accessToken>` where noted.
 - `GET /api/products/featured`
 - `GET /api/products/:slug`
 
-Product payloads include nullable `price`, plus `productType`, `strainType`, `thcPercent`, `cbdPercent`, `flavors`, `effects`. **Pack pricing:** when `price` is set, `volume` must be set — price is for one pack; qty multiplies charge and effective volume. Max **4** images.
+Product payloads include `skus[]` (1–3 packs: `volume`, `measurementUnit`, `price`, `sortOrder`, `isVisible`, optional `label`). Public lists filter to visible SKUs. Top-level `price`/`volume`/`measurementUnit` mirror the primary SKU. **Cart/orders require `skuId`.** Max **4** images.
 
 ### Admin categories (6) — admin JWT
 

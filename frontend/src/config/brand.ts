@@ -1,7 +1,19 @@
 /** Public brand identity for GasNation storefront. */
 export const SITE_NAME = "GasNation";
-export const SITE_DESCRIPTION = "Premium cannabis delivered in North Virginia, Washington DC, South Maryland.";
-export const SITE_TAGLINE = "Premium cannabis delivered in North Virginia, Washington DC, South Maryland.";
+
+/** Canonical production storefront origin (default when APP_URL unset / localhost). */
+export const PRODUCTION_SITE_ORIGIN = "https://gasnationweed.com";
+
+export const SITE_TAGLINE =
+  "Premium cannabis delivery across Northern Virginia and Washington, DC.";
+
+export const SITE_DESCRIPTION =
+  "Shop premium cannabis with same-day delivery in Northern Virginia and Washington, DC. Browse flower, edibles, vapes, concentrates, and more. 21+ with valid ID. Flat $20 delivery, 10 AM–10 PM daily.";
+
+/** Default document title for SERPs (brand + primary intent + market). */
+export const SITE_DEFAULT_TITLE =
+  "Cannabis Delivery in Northern Virginia & DC | Fast Same-Day Delivery | GasNation";
+
 export const BRAND_PRIMARY = "#148547";
 
 /** Public brand asset paths (under /public). */

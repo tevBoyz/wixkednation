@@ -3,6 +3,12 @@ import { Geist, Geist_Mono } from "next/font/google";
 
 import { SiteAtmosphere } from "@/components/brand/site-atmosphere";
 import { AppProviders } from "@/components/providers/app-providers";
+import { JsonLd } from "@/components/seo/json-ld";
+import {
+  buildLocalBusinessJsonLd,
+  buildOrganizationJsonLd,
+  buildWebSiteJsonLd,
+} from "@/lib/seo/json-ld";
 import { buildDefaultMetadata } from "@/lib/seo/site-metadata";
 
 import "./globals.css";
@@ -34,6 +40,9 @@ export default function RootLayout({
         className="relative flex min-h-dvh flex-col bg-background font-sans"
         suppressHydrationWarning
       >
+        <JsonLd data={buildOrganizationJsonLd()} />
+        <JsonLd data={buildWebSiteJsonLd()} />
+        <JsonLd data={buildLocalBusinessJsonLd()} />
         <AppProviders>
           <SiteAtmosphere />
           <div className="relative z-10 flex min-h-dvh min-w-0 flex-1 flex-col">

@@ -3,13 +3,25 @@ import { sortAdminProducts } from "@/lib/admin/sort-admin-products";
 import type { Product } from "@/lib/api/types";
 import { toQuery } from "@/lib/api/types";
 
+export type AdminProductSkuBody = {
+  id?: string;
+  label?: string | null;
+  volume: number;
+  measurementUnit: string;
+  price: number;
+  sortOrder: number;
+  isVisible: boolean;
+};
+
 export type AdminProductBody = {
   name: string;
   categoryId: string;
-  /** Pack price; null with null volume = contact for price. */
+  /** Pack price; null with null volume = contact for price (legacy / no sellable packs). */
   price: number | null;
   measurementUnit: string;
   volume?: number | null;
+  /** Prefer nested SKUs (1–3). Replaces full set on update when sent. */
+  skus?: AdminProductSkuBody[];
   description?: string | null;
   productType?: string;
   strainType?: string | null;

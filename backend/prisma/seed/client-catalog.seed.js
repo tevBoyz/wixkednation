@@ -119,19 +119,60 @@ async function upsertProduct(productDef, categoryId) {
   };
 
   if (existing) {
-    return prisma.product.update({
+    const updated = await prisma.product.update({
       where: {
         id: existing.id
       },
       data
     });
+    await syncPrimarySku(updated);
+    return updated;
   }
 
-  return prisma.product.create({
+  const created = await prisma.product.create({
     data: {
       ...data,
       images: [],
       coverImageIndex: 0
+    }
+  });
+  await syncPrimarySku(created);
+  return created;
+}
+
+async function syncPrimarySku(product) {
+  if (product.price == null || product.volume == null || Number(product.volume) <= 0) {
+    return;
+  }
+
+  const existingSkus = await prisma.productSku.findMany({
+    where: { productId: product.id },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
+  });
+
+  const primary = existingSkus[0];
+  if (primary) {
+    await prisma.productSku.update({
+      where: { id: primary.id },
+      data: {
+        price: String(product.price),
+        volume: String(product.volume),
+        measurementUnit: product.measurementUnit || "g",
+        sortOrder: 0,
+        isVisible: true
+      }
+    });
+    return;
+  }
+
+  await prisma.productSku.create({
+    data: {
+      productId: product.id,
+      price: String(product.price),
+      volume: String(product.volume),
+      measurementUnit: product.measurementUnit || "g",
+      sortOrder: 0,
+      isVisible: true
     }
   });
 }

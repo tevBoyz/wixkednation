@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 
 const prisma = require("../../../config/prisma");
-const { isValidEthiopianPhone, normalizePhone } = require("../../../utils/phone");
+const { isValidUsPhone, normalizePhone } = require("../../../utils/phone");
 
 const ALLOWED_CURRENCIES = new Set(["ETB", "USD", "EUR", "GBP"]);
 const ALLOWED_SMS_PROVIDERS = new Set(["mock", "twilio"]);
@@ -263,9 +263,9 @@ async function addAdminPhone(payload = {}) {
 
   const phone = normalizePhone(payload.phone);
 
-  if (!isValidEthiopianPhone(phone)) {
+  if (!isValidUsPhone(phone)) {
     throw createServiceError(
-      "phone must be a valid Ethiopian number (+2519XXXXXXXX or +2517XXXXXXXX).",
+      "phone must be a valid US number (e.g. +17035551234 or 7035551234).",
       400
     );
   }

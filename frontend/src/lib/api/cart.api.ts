@@ -10,9 +10,8 @@ export async function getCart(): Promise<Cart> {
 
 export async function addCartItem(body: {
   productId: string;
+  skuId: string;
   quantity: number;
-  volume?: number | string | null;
-  measurementUnit?: string;
 }): Promise<Cart> {
   const data = await apiData<CartEnvelope>("/api/cart/items", {
     method: "POST",
@@ -47,9 +46,8 @@ export async function clearCart(): Promise<Cart> {
 export async function mergeCart(
   items: Array<{
     productId: string;
+    skuId: string;
     quantity: number;
-    volume?: number | string | null;
-    measurementUnit?: string;
   }>,
 ) {
   return apiData<{

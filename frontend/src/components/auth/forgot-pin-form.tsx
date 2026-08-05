@@ -23,14 +23,14 @@ import { Label } from "@/components/ui/label";
 import { getGoogleStartUrl, sendOtp } from "@/lib/api/auth.api";
 import { getErrorMessage } from "@/lib/api/errors";
 import { clearAuthRedirect } from "@/lib/auth/redirect";
-import { isValidEthiopianPhone, normalizePhone } from "@/lib/phone";
+import { isValidAccessPhone, normalizePhone } from "@/lib/phone";
 
 const forgotSchema = z.object({
   phone: z
     .string()
     .min(1, "Phone number is required")
-    .refine((value) => isValidEthiopianPhone(value), {
-      message: "Enter a valid Ethiopian mobile (+2519… or +2517…)",
+    .refine((value) => isValidAccessPhone(value), {
+      message: "Enter a valid US mobile (+1…) or test Ethiopian (+2519… / +2517…)",
     }),
 });
 
@@ -54,7 +54,7 @@ function ForgotPinForm() {
   useEffect(() => {
     const raw = searchParams.get("phone") || "";
     const phone = normalizePhone(raw);
-    if (phone && isValidEthiopianPhone(phone)) {
+    if (phone && isValidAccessPhone(phone)) {
       setValue("phone", phone, { shouldValidate: true });
     }
   }, [searchParams, setValue]);
@@ -103,7 +103,7 @@ function ForgotPinForm() {
               type="tel"
               inputMode="tel"
               autoComplete="tel"
-              placeholder="+251911000000"
+              placeholder="+17035551234"
               aria-invalid={Boolean(errors.phone)}
               disabled={submitting}
               {...register("phone")}

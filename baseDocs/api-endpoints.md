@@ -118,7 +118,7 @@ Example category tree node:
 | PATCH | `/api/admin/products/:id/images/:imageId/cover` |
 | DELETE | `/api/admin/products/:id/images/:imageId` |
 
-**Product fields (public + admin responses):** `price` may be **`null`** (“contact for price”); when priced, **`volume` is required** — price is the fixed charge for one pack of that volume (e.g. 1 g = 2800). Cart/order `lineTotal = price × quantity`; responses include `effectiveVolume = volume × quantity`. Also: `productType`, `strainType`, `thcPercent`, `cbdPercent`, `flavors[]`, `effects[]`. Max **4** images. Cart rejects null-price or missing-volume products (400).
+**Product fields (public + admin responses):** Products expose **`skus[]`** (1–3 pack options). Public responses include **visible** SKUs only; admin includes `isVisible` on each SKU. Top-level `price` / `volume` / `measurementUnit` remain as the **primary** (lowest `sortOrder`) denormalized fields for list cards. Cart/order lines use **`skuId`**; `lineTotal = sku.price × quantity`; `effectiveVolume = volume × quantity`. Max **4** images. Cart rejects missing/hidden SKUs (400).
 
 ---
 
@@ -178,7 +178,7 @@ POST /api/orders/guest
   "phone": "+2519XXXXXXXX",
   "name": "Optional",
   "paymentMethod": "COD",
-  "items": [{ "productId": "uuid", "quantity": 1, "volume": 1, "measurementUnit": "g" }],
+  "items": [{ "productId": "uuid", "skuId": "uuid", "quantity": 1 }],
   "address": {
     "fullName": "Required",
     "phone": "+2519XXXXXXXX",

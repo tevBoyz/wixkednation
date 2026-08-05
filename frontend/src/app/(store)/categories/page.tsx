@@ -6,28 +6,15 @@ import { Container } from "@/components/layout/container";
 import { listCategories } from "@/lib/api/categories.api";
 import { getErrorMessage } from "@/lib/api/errors";
 import { sortCategoryTree } from "@/lib/catalog/category-tree";
-import { SITE_NAME } from "@/config/brand";
-import {
-  BRAND_OG_IMAGE_PATH,
-  getBrandOgImageMetadata,
-} from "@/lib/seo/site-metadata";
+import { buildPageMetadata } from "@/lib/seo/site-metadata";
 import type { Category } from "@/lib/api/types";
 
-export const metadata: Metadata = {
-  title: "Categories",
-  description: `Browse all product categories on ${SITE_NAME}.`,
-  openGraph: {
-    title: "Categories",
-    description: `Browse all product categories on ${SITE_NAME}.`,
-    images: [getBrandOgImageMetadata()],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Categories",
-    description: `Browse all product categories on ${SITE_NAME}.`,
-    images: [BRAND_OG_IMAGE_PATH],
-  },
-};
+export const metadata: Metadata = buildPageMetadata({
+  title: "Cannabis Categories | Flower, Edibles, Vapes & More",
+  description:
+    "Shop GasNation categories: indica, sativa, hybrid flower, edibles, carts, concentrates, and accessories. Online dispensary with delivery across Northern Virginia and DC.",
+  path: "/categories",
+});
 
 function CategoryTreeBranch({ category }: { category: Category }) {
   const children = sortCategoryTree(category.children ?? []);

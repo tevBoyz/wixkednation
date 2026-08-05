@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 
 import { ProductCard } from "@/components/catalog/product-card";
 import { ProductsFilters } from "@/components/catalog/products-filters";
@@ -7,6 +8,14 @@ import { Container } from "@/components/layout/container";
 import { listCategories } from "@/lib/api/categories.api";
 import { fetchProductsPage } from "@/lib/api/products.api";
 import { getErrorMessage } from "@/lib/api/errors";
+import { buildPageMetadata } from "@/lib/seo/site-metadata";
+
+export const metadata: Metadata = buildPageMetadata({
+  title: "Cannabis Menu | Flower, Edibles, Vapes & Concentrates",
+  description:
+    "Browse GasNation’s online cannabis menu: premium flower, pre-rolls, edibles, vape cartridges, disposable vapes, concentrates, and accessories. Same-day delivery in Northern Virginia and DC.",
+  path: "/products",
+});
 
 type ProductsPageProps = {
   searchParams: Promise<{

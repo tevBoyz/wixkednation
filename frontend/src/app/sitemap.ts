@@ -7,7 +7,11 @@ import { getSiteOrigin } from "@/lib/seo/site-metadata";
 
 function entry(
   path: string,
-  options?: { lastModified?: Date; changeFrequency?: MetadataRoute.Sitemap[0]["changeFrequency"]; priority?: number },
+  options?: {
+    lastModified?: Date;
+    changeFrequency?: MetadataRoute.Sitemap[0]["changeFrequency"];
+    priority?: number;
+  },
 ): MetadataRoute.Sitemap[0] {
   return {
     url: `${getSiteOrigin()}${path}`,
@@ -41,6 +45,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entry("/", { changeFrequency: "daily", priority: 1 }),
     entry("/products", { changeFrequency: "daily", priority: 0.9 }),
     entry("/categories", { changeFrequency: "weekly", priority: 0.8 }),
+    entry("/delivery", { changeFrequency: "weekly", priority: 0.9 }),
+    entry("/faqs", { changeFrequency: "monthly", priority: 0.7 }),
+    entry("/about", { changeFrequency: "monthly", priority: 0.6 }),
   ];
 
   let categoryRoutes: MetadataRoute.Sitemap = [];

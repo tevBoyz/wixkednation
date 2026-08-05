@@ -33,7 +33,11 @@ export function CheckoutOrderSummary() {
                 <p className="font-medium">{line.name}</p>
                 <p className="text-muted-foreground">
                   Qty {line.quantity}
-                  {packLabel ? ` · ${formatPrice(line.price)} / ${packLabel}` : null}
+                  {line.skuLabel
+                    ? ` · ${formatPrice(line.price)} / ${line.skuLabel}`
+                    : packLabel
+                      ? ` · ${formatPrice(line.price)} / ${packLabel}`
+                      : null}
                 </p>
                 {totalVolumeLabel ? (
                   <p className="text-xs text-muted-foreground">

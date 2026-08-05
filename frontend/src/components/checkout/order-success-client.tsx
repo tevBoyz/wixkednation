@@ -16,14 +16,14 @@ import {
   type GuestOrderSnapshot,
 } from "@/lib/orders/guest-order-snapshot";
 import type { Order } from "@/lib/api/types";
-import { isValidEthiopianPhone, normalizePhone } from "@/lib/phone";
+import { isValidUsPhone, normalizePhone } from "@/lib/phone";
 
 function phoneQueryHref(path: string, phone?: string | null) {
   if (!phone) {
     return path;
   }
   const normalized = normalizePhone(phone);
-  if (!normalized || !isValidEthiopianPhone(normalized)) {
+  if (!normalized || !isValidUsPhone(normalized)) {
     return path;
   }
   const params = new URLSearchParams({ phone: normalized });

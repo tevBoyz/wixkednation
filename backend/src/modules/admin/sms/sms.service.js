@@ -1,5 +1,5 @@
 const { sendSms } = require("../../../services/sms/sms.service");
-const { isValidEthiopianPhone, normalizePhone } = require("../../../utils/phone");
+const { isValidUsPhone, normalizePhone } = require("../../../utils/phone");
 const prisma = require("../../../config/prisma");
 
 function createServiceError(message, statusCode) {
@@ -17,9 +17,9 @@ async function sendAdminTestSms(payload = {}, adminUserId = null) {
 
   const phone = normalizePhone(payload.phone);
 
-  if (!isValidEthiopianPhone(phone)) {
+  if (!isValidUsPhone(phone)) {
     throw createServiceError(
-      "phone must be a valid Ethiopian number (+2519XXXXXXXX or +2517XXXXXXXX).",
+      "phone must be a valid US number (e.g. +17035551234 or 7035551234).",
       400
     );
   }

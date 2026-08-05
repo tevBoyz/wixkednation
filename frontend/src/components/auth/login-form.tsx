@@ -24,7 +24,7 @@ import { pinLogin } from "@/lib/api/auth.api";
 import { ApiError, getErrorMessage } from "@/lib/api/errors";
 import { pinSchema } from "@/lib/auth/pin";
 import { clearAuthRedirect, POST_AUTH_HOME } from "@/lib/auth/redirect";
-import { isValidEthiopianPhone, normalizePhone } from "@/lib/phone";
+import { isValidAccessPhone, normalizePhone } from "@/lib/phone";
 import { cn } from "@/lib/utils";
 
 const loginSchema = z
@@ -42,11 +42,11 @@ const loginSchema = z
           path: ["phone"],
           message: "Phone number is required",
         });
-      } else if (!isValidEthiopianPhone(values.phone)) {
+      } else if (!isValidAccessPhone(values.phone)) {
         ctx.addIssue({
           code: "custom",
           path: ["phone"],
-          message: "Enter a valid Ethiopian mobile (+2519… or +2517…)",
+          message: "Enter a valid US mobile (+1…) or test Ethiopian (+2519… / +2517…)",
         });
       }
       return;
@@ -98,7 +98,7 @@ function LoginForm() {
   useEffect(() => {
     const raw = searchParams.get("phone") || "";
     const phone = normalizePhone(raw);
-    if (phone && isValidEthiopianPhone(phone)) {
+    if (phone && isValidAccessPhone(phone)) {
       setMode("phone");
       setValue("mode", "phone");
       setValue("phone", phone, { shouldValidate: true });
@@ -192,7 +192,7 @@ function LoginForm() {
                 id="login-phone"
                 type="tel"
                 inputMode="tel"
-                placeholder="+251911000000"
+                placeholder="+17035551234"
                 aria-invalid={Boolean(errors.phone)}
                 disabled={submitting}
                 readOnly={phoneLocked}
@@ -213,7 +213,7 @@ function LoginForm() {
                 <p className="text-sm text-destructive">{errors.phone.message}</p>
               ) : (
                 <p className="text-xs text-muted-foreground">
-                  Formats like 0911…, 911…, or +251911… are accepted.
+                  US numbers preferred (+1…). Test Ethiopian +2519… / +2517… still work for login.
                 </p>
               )}
             </div>

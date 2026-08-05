@@ -49,16 +49,29 @@ export type ProductImage = {
   sortOrder?: number;
 };
 
+export type ProductSku = {
+  id: string;
+  label?: string | null;
+  volume: number | string;
+  measurementUnit: string;
+  price: number | string;
+  sortOrder: number;
+  /** Present on admin responses; public list is already filtered to visible. */
+  isVisible?: boolean;
+};
+
 export type Product = {
   id: string;
   name: string;
   slug: string;
   description?: string | null;
-  /** Pack price; null with null volume = contact for price. */
+  /** Primary denormalized pack price for catalog cards. */
   price: number | string | null;
   measurementUnit: string;
-  /** Base pack size; qty multiplies this. */
+  /** Primary denormalized pack size for catalog cards. */
   volume?: number | string | null;
+  /** Visible SKUs only on public APIs, sorted by sortOrder. */
+  skus?: ProductSku[];
   productType?: string;
   strainType?: string | null;
   thcPercent?: string | number | null;
@@ -87,12 +100,15 @@ export type ProductsListResult = {
 export type CartItem = {
   id: string;
   productId: string;
+  skuId?: string;
   quantity: number;
   volume?: number | string | null;
   /** volume × quantity from API */
   effectiveVolume?: number | string | null;
   measurementUnit?: string | null;
   lineTotal?: number | string | null;
+  sku?: ProductSku | null;
+  skuLabel?: string | null;
   product?: Product | null;
   createdAt?: string;
   updatedAt?: string;
@@ -131,6 +147,7 @@ export type OrderStatus =
 
 export type OrderItemSnapshot = {
   productId: string;
+  skuId?: string;
   name: string;
   slug?: string;
   unitPrice: number | string;
@@ -139,6 +156,7 @@ export type OrderItemSnapshot = {
   /** volume × quantity */
   effectiveVolume?: number | string | null;
   measurementUnit?: string | null;
+  skuLabel?: string | null;
   lineTotal: number | string;
 };
 

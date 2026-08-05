@@ -44,29 +44,48 @@ describe("parseGuestCart", () => {
     expect(parseGuestCart("[]")).toEqual([]);
   });
 
+  it("drops lines missing skuId", () => {
+    const raw = JSON.stringify([
+      {
+        productId: "p1",
+        name: "Legacy",
+        image: null,
+        quantity: 1,
+        volume: 1,
+        measurementUnit: "g",
+        price: "40",
+      },
+    ]);
+    expect(parseGuestCart(raw)).toEqual([]);
+  });
+
   it("parses a valid guest cart array", () => {
     const raw = JSON.stringify([
       {
         productId: "p1",
-        name: "Onion",
+        skuId: "sku-1",
+        name: "Blue Dream",
         image: null,
         quantity: 2,
         volume: 1,
-        measurementUnit: "kg",
-        price: "40",
-        slug: "onion",
+        measurementUnit: "g",
+        price: "100",
+        skuLabel: "1 g",
+        slug: "blue-dream",
       },
     ]);
     expect(parseGuestCart(raw)).toEqual([
       {
         productId: "p1",
-        name: "Onion",
+        skuId: "sku-1",
+        name: "Blue Dream",
         image: null,
         quantity: 2,
         volume: 1,
-        measurementUnit: "kg",
-        price: "40",
-        slug: "onion",
+        measurementUnit: "g",
+        price: "100",
+        skuLabel: "1 g",
+        slug: "blue-dream",
       },
     ]);
   });
@@ -75,35 +94,42 @@ describe("parseGuestCart", () => {
 describe("mergeGuestLine", () => {
   const base: GuestCartLine = {
     productId: "p1",
-    name: "Onion",
+    skuId: "sku-1g",
+    name: "Blue Dream",
     image: null,
     quantity: 1,
     volume: 1,
-    measurementUnit: "kg",
-    price: 40,
-    slug: "onion",
+    measurementUnit: "g",
+    price: 100,
+    skuLabel: "1 g",
+    slug: "blue-dream",
   };
 
-  it("appends a new product", () => {
-    const next = mergeGuestLine([], {
-      productId: "p2",
-      name: "Rice",
-      image: null,
-      measurementUnit: "kg",
-      price: 50,
-    });
-    expect(next).toHaveLength(1);
-    expect(next[0]?.productId).toBe("p2");
-    expect(next[0]?.quantity).toBe(1);
-  });
-
-  it("increments quantity for an existing product", () => {
+  it("appends a different SKU as a new line", () => {
     const next = mergeGuestLine([base], {
       productId: "p1",
-      name: "Onion",
+      skuId: "sku-half",
+      name: "Blue Dream",
       image: null,
-      measurementUnit: "kg",
-      price: 40,
+      volume: 0.5,
+      measurementUnit: "g",
+      price: 60,
+      skuLabel: "0.5 g",
+    });
+    expect(next).toHaveLength(2);
+    expect(next[1]?.skuId).toBe("sku-half");
+    expect(next[1]?.quantity).toBe(1);
+  });
+
+  it("increments quantity for the same SKU", () => {
+    const next = mergeGuestLine([base], {
+      productId: "p1",
+      skuId: "sku-1g",
+      name: "Blue Dream",
+      image: null,
+      volume: 1,
+      measurementUnit: "g",
+      price: 100,
       quantity: 2,
     });
     expect(next).toHaveLength(1);

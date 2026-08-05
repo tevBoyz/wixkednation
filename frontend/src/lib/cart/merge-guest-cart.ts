@@ -19,9 +19,8 @@ export async function mergeGuestCartWithServer(
 ): Promise<MergeGuestCartResult> {
   const payload = items.map((item) => ({
     productId: item.productId,
+    skuId: item.skuId,
     quantity: item.quantity,
-    volume: item.volume,
-    measurementUnit: item.measurementUnit,
   }));
 
   const data = await mergeCart(payload);

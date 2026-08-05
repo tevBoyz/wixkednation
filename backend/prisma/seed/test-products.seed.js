@@ -235,7 +235,18 @@ async function seedTestProducts() {
         images: [],
         coverImageIndex: 0,
         isVisible: product.isVisible,
-        isFeatured: product.isFeatured
+        isFeatured: product.isFeatured,
+        skus: {
+          create: [
+            {
+              price: product.price,
+              volume: product.volume,
+              measurementUnit: product.measurementUnit,
+              sortOrder: 0,
+              isVisible: true
+            }
+          ]
+        }
       },
       update: {
         name: product.name,
@@ -249,6 +260,35 @@ async function seedTestProducts() {
         deletedAt: null
       }
     });
+
+    const primarySku = await prisma.productSku.findFirst({
+      where: { productId: saved.id },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }]
+    });
+
+    if (primarySku) {
+      await prisma.productSku.update({
+        where: { id: primarySku.id },
+        data: {
+          price: product.price,
+          volume: product.volume,
+          measurementUnit: product.measurementUnit,
+          sortOrder: 0,
+          isVisible: true
+        }
+      });
+    } else if (product.price != null && product.volume != null) {
+      await prisma.productSku.create({
+        data: {
+          productId: saved.id,
+          price: product.price,
+          volume: product.volume,
+          measurementUnit: product.measurementUnit,
+          sortOrder: 0,
+          isVisible: true
+        }
+      });
+    }
 
     summary.products.push({
       id: saved.id,

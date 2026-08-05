@@ -2,9 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
-import { AddToCartButton } from "@/components/catalog/add-to-cart-button";
 import { ProductBackButton } from "@/components/catalog/product-back-button";
 import { ProductGallery } from "@/components/catalog/product-gallery";
+import { ProductPurchasePanel } from "@/components/catalog/product-purchase-panel";
 import { Container } from "@/components/layout/container";
 import { fetchProductBySlug } from "@/lib/api/products.api";
 import { getStoreConfig } from "@/lib/api/store-config.api";
@@ -12,13 +12,16 @@ import { ApiError } from "@/lib/api/errors";
 import {
   formatCannabinoidLine,
   formatPackPrice,
-  hasSellablePack,
+  getProductCoverUrl,
+  resolveProductSkus,
 } from "@/lib/catalog/format";
 import { SITE_NAME } from "@/config/brand";
+import { JsonLd } from "@/components/seo/json-ld";
 import {
-  BRAND_OG_IMAGE_PATH,
-  getBrandOgImageMetadata,
-} from "@/lib/seo/site-metadata";
+  buildBreadcrumbJsonLd,
+  buildProductJsonLd,
+} from "@/lib/seo/json-ld";
+import { buildPageMetadata } from "@/lib/seo/site-metadata";
 
 type ProductPageProps = {
   params: Promise<{ slug: string }>;
@@ -47,24 +50,13 @@ export async function generateMetadata({
     ]);
     const description =
       product.description?.trim() ||
-      `${product.name} - ${formatPackPrice(product, storeConfig.defaultCurrency)} on ${SITE_NAME}`;
+      `Buy ${product.name} with cannabis delivery from ${SITE_NAME} in Northern Virginia and Washington, DC. ${formatPackPrice(product, storeConfig.defaultCurrency)}.`;
 
-    return {
-      title: product.name,
+    return buildPageMetadata({
+      title: `${product.name} | Buy Online`,
       description,
-      openGraph: {
-        title: product.name,
-        description,
-        type: "website",
-        images: [getBrandOgImageMetadata()],
-      },
-      twitter: {
-        card: "summary_large_image",
-        title: product.name,
-        description,
-        images: [BRAND_OG_IMAGE_PATH],
-      },
-    };
+      path: `/products/${slug}`,
+    });
   } catch {
     return {
       title: `Product | ${SITE_NAME}`,
@@ -104,7 +96,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   const images = product.images ?? [];
   const flavors = (product.flavors ?? []).map((f) => f.trim()).filter(Boolean);
   const effects = (product.effects ?? []).map((e) => e.trim()).filter(Boolean);
-  const sellable = hasSellablePack(product);
+  const sellable = resolveProductSkus(product).length > 0;
   const packLabel = formatPackPrice(product, storeConfig.defaultCurrency);
   const subtitleParts = [
     product.category?.name,
@@ -114,6 +106,32 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
   return (
     <Container as="main" className="min-w-0 py-10">
+      <JsonLd
+        data={buildProductJsonLd({
+          name: product.name,
+          description:
+            product.description?.trim() ||
+            `${product.name} available for cannabis delivery from ${SITE_NAME}.`,
+          slug: product.slug,
+          imageUrl: getProductCoverUrl(product),
+          priceLabel: packLabel,
+        })}
+      />
+      <JsonLd
+        data={buildBreadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Products", path: "/products" },
+          ...(product.category?.slug
+            ? [
+                {
+                  name: product.category.name,
+                  path: `/categories/${product.category.slug}`,
+                },
+              ]
+            : []),
+          { name: product.name, path: `/products/${product.slug}` },
+        ])}
+      />
       <nav className="text-sm text-muted-foreground">
         <Link href="/products" className="hover:text-foreground">
           Products
@@ -175,15 +193,17 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           <ChipList label="Flavors" items={flavors} />
           <ChipList label="Effects" items={effects} />
 
-          <div className="flex flex-wrap items-center gap-3 pt-2">
+          <div className="flex flex-col gap-4 pt-2">
             {sellable ? (
-              <AddToCartButton product={product} />
+              <ProductPurchasePanel product={product} />
             ) : (
               <p className="text-sm text-muted-foreground">
                 Contact us for pricing on this strain.
               </p>
             )}
-            <ProductBackButton />
+            <div>
+              <ProductBackButton />
+            </div>
           </div>
         </div>
       </div>

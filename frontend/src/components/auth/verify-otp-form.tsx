@@ -30,7 +30,7 @@ import {
 import { getErrorMessage } from "@/lib/api/errors";
 import { clearAuthRedirect, POST_AUTH_HOME } from "@/lib/auth/redirect";
 import { setSetupToken } from "@/lib/auth/setup-token-storage";
-import { isValidEthiopianPhone, normalizePhone } from "@/lib/phone";
+import { isValidAccessPhone, normalizePhone } from "@/lib/phone";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -81,7 +81,7 @@ function VerifyOtpForm() {
     return () => window.clearInterval(id);
   }, [cooldown]);
 
-  if (!phone || !isValidEthiopianPhone(phone)) {
+  if (!phone || !isValidAccessPhone(phone)) {
     return (
       <Card className="w-full max-w-md">
         <CardHeader>

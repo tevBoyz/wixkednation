@@ -15,8 +15,8 @@ type GuestCartState = {
   addItem: (
     item: Omit<GuestCartLine, "quantity"> & { quantity?: number },
   ) => void;
-  setQuantity: (productId: string, quantity: number) => void;
-  removeItem: (productId: string) => void;
+  setQuantity: (skuId: string, quantity: number) => void;
+  removeItem: (skuId: string) => void;
   clear: () => void;
 };
 
@@ -32,7 +32,10 @@ const safeStorage = createJSONStorage(() => ({
       try {
         const parsed = JSON.parse(raw) as unknown;
         if (Array.isArray(parsed)) {
-          return JSON.stringify({ state: { items: parseGuestCart(raw) }, version: 0 });
+          return JSON.stringify({
+            state: { items: parseGuestCart(raw) },
+            version: 0,
+          });
         }
         if (
           parsed &&
@@ -79,25 +82,23 @@ export const useGuestCartStore = create<GuestCartState>()(
       addItem: (item) => {
         set({ items: mergeGuestLine(get().items, item) });
       },
-      setQuantity: (productId, quantity) => {
+      setQuantity: (skuId, quantity) => {
         const nextQty = Math.floor(quantity);
         if (nextQty < 1) {
           set({
-            items: get().items.filter((item) => item.productId !== productId),
+            items: get().items.filter((item) => item.skuId !== skuId),
           });
           return;
         }
         set({
           items: get().items.map((item) =>
-            item.productId === productId
-              ? { ...item, quantity: nextQty }
-              : item,
+            item.skuId === skuId ? { ...item, quantity: nextQty } : item,
           ),
         });
       },
-      removeItem: (productId) => {
+      removeItem: (skuId) => {
         set({
-          items: get().items.filter((item) => item.productId !== productId),
+          items: get().items.filter((item) => item.skuId !== skuId),
         });
       },
       clear: () => set({ items: [] }),

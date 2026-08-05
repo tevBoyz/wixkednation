@@ -8,7 +8,7 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from "react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ const MEASUREMENT_UNITS = [
 ] as const;
 
 const STRAIN_TYPES = ["Indica", "Sativa", "Hybrid"] as const;
+const MAX_SKUS = 3;
 
 const selectClassName =
   "h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50";
@@ -51,6 +52,15 @@ const optionalNonNegative = z
   )
   .optional();
 
+const skuRowSchema = z.object({
+  id: z.string().optional(),
+  label: z.string(),
+  volume: z.string(),
+  measurementUnit: z.string().trim().min(1, "Unit is required").max(40),
+  price: z.string(),
+  isVisible: z.boolean(),
+});
+
 const productFormSchema = z
   .object({
     name: z
@@ -60,14 +70,7 @@ const productFormSchema = z
       .max(200, "Name is too long"),
     description: z.string().max(2000, "Description is too long"),
     contactForPrice: z.boolean(),
-    price: z.string(),
     categoryId: z.string().min(1, "Category is required"),
-    measurementUnit: z
-      .string()
-      .trim()
-      .min(1, "Measurement unit is required")
-      .max(40),
-    volume: z.string(),
     productType: z
       .string()
       .trim()
@@ -80,65 +83,66 @@ const productFormSchema = z
     effects: z.array(z.string()),
     isVisible: z.boolean(),
     isFeatured: z.boolean(),
+    skus: z.array(skuRowSchema).max(MAX_SKUS),
   })
   .superRefine((values, ctx) => {
     if (values.contactForPrice) {
       return;
     }
 
-    const priceRaw = values.price.trim();
-    const volumeRaw = values.volume.trim();
-    const hasPrice = Boolean(priceRaw);
-    const hasVolume = Boolean(volumeRaw);
-
-    if (!hasPrice && !hasVolume) {
+    if (values.skus.length < 1) {
       ctx.addIssue({
         code: "custom",
-        path: ["price"],
-        message: "Set pack price and volume, or enable Contact for price.",
+        path: ["skus"],
+        message: "Add at least one pack SKU, or enable Contact for price.",
       });
       return;
     }
 
-    if (hasPrice && !hasVolume) {
+    if (!values.skus.some((sku) => sku.isVisible)) {
       ctx.addIssue({
         code: "custom",
-        path: ["volume"],
-        message:
-          "Volume is required when price is set. Price is the fixed charge for that pack size.",
+        path: ["skus"],
+        message: "At least one SKU must be visible.",
       });
     }
 
-    if (hasVolume && !hasPrice) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["price"],
-        message:
-          "Price is required when volume is set. Clear both for contact-for-price, or set both as a pack.",
-      });
-    }
+    const seen = new Set<string>();
+    values.skus.forEach((sku, index) => {
+      const volumeRaw = sku.volume.trim();
+      const priceRaw = sku.price.trim();
+      const volume = Number.parseFloat(volumeRaw);
+      const price = Number.parseFloat(priceRaw);
 
-    if (hasPrice) {
-      const amount = Number.parseFloat(priceRaw);
-      if (!Number.isFinite(amount) || amount <= 0) {
+      if (!volumeRaw || !Number.isFinite(volume) || volume <= 0) {
         ctx.addIssue({
           code: "custom",
-          path: ["price"],
+          path: ["skus", index, "volume"],
+          message: "Volume must be greater than 0",
+        });
+      }
+
+      if (!priceRaw || !Number.isFinite(price) || price <= 0) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["skus", index, "price"],
           message: "Price must be greater than 0",
         });
       }
-    }
 
-    if (hasVolume) {
-      const amount = Number.parseFloat(volumeRaw);
-      if (!Number.isFinite(amount) || amount <= 0) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["volume"],
-          message: "Volume must be greater than 0 for a sellable pack",
-        });
+      const unit = sku.measurementUnit.trim().toLowerCase();
+      if (Number.isFinite(volume) && volume > 0 && unit) {
+        const key = `${volume}|${unit}`;
+        if (seen.has(key)) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["skus", index, "volume"],
+            message: "Volume + unit must be unique across SKUs",
+          });
+        }
+        seen.add(key);
       }
-    }
+    });
   });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -152,14 +156,25 @@ type AdminProductFormProps = {
   imagesSection?: ReactNode;
 };
 
+function defaultSkuRow(
+  overrides?: Partial<ProductFormValues["skus"][number]>,
+): ProductFormValues["skus"][number] {
+  return {
+    id: undefined,
+    label: "",
+    volume: "1",
+    measurementUnit: "g",
+    price: "",
+    isVisible: true,
+    ...overrides,
+  };
+}
+
 const emptyValues: ProductFormValues = {
   name: "",
   description: "",
   contactForPrice: false,
-  price: "",
   categoryId: "",
-  measurementUnit: "g",
-  volume: "1",
   productType: "Flower",
   strainType: "",
   thcPercent: "",
@@ -168,6 +183,7 @@ const emptyValues: ProductFormValues = {
   effects: [],
   isVisible: true,
   isFeatured: false,
+  skus: [defaultSkuRow()],
 };
 
 function parseOptionalNumber(value: string | undefined): number | null {
@@ -178,15 +194,86 @@ function parseOptionalNumber(value: string | undefined): number | null {
   return Number.parseFloat(trimmed);
 }
 
+function skusFromProduct(product: Product): ProductFormValues["skus"] {
+  const apiSkus = product.skus ?? [];
+  if (apiSkus.length > 0) {
+    return apiSkus.slice(0, MAX_SKUS).map((sku) => ({
+      id: sku.id,
+      label: sku.label?.trim() || "",
+      volume: String(sku.volume),
+      measurementUnit: sku.measurementUnit || "g",
+      price: String(sku.price),
+      isVisible: sku.isVisible !== false,
+    }));
+  }
+
+  const priced =
+    product.price != null &&
+    product.price !== "" &&
+    product.volume != null &&
+    product.volume !== "";
+
+  if (priced) {
+    return [
+      defaultSkuRow({
+        volume: String(product.volume),
+        measurementUnit: product.measurementUnit ?? "g",
+        price: String(product.price),
+        isVisible: true,
+      }),
+    ];
+  }
+
+  return [defaultSkuRow()];
+}
+
 function toBody(values: ProductFormValues): AdminProductBody {
   const contact = values.contactForPrice;
+  const primaryUnit =
+    values.skus[0]?.measurementUnit.trim() ||
+    values.skus.find((s) => s.isVisible)?.measurementUnit.trim() ||
+    "g";
+
+  if (contact) {
+    return {
+      name: values.name.trim(),
+      description: values.description.trim() || null,
+      price: null,
+      categoryId: values.categoryId,
+      measurementUnit: primaryUnit,
+      volume: null,
+      productType: values.productType.trim() || "Flower",
+      strainType: values.strainType.trim() || null,
+      thcPercent: parseOptionalNumber(values.thcPercent),
+      cbdPercent: parseOptionalNumber(values.cbdPercent),
+      flavors: values.flavors.map((f) => f.trim()).filter(Boolean),
+      effects: values.effects.map((e) => e.trim()).filter(Boolean),
+      isVisible: values.isVisible,
+      isFeatured: values.isFeatured,
+    };
+  }
+
+  const skus = values.skus.map((sku, index) => ({
+    ...(sku.id ? { id: sku.id } : {}),
+    label: sku.label.trim() || null,
+    volume: Number.parseFloat(sku.volume),
+    measurementUnit: sku.measurementUnit.trim(),
+    price: Number.parseFloat(sku.price),
+    sortOrder: index,
+    isVisible: sku.isVisible,
+  }));
+
+  const primary =
+    skus.find((sku) => sku.isVisible) ?? skus[0] ?? null;
+
   return {
     name: values.name.trim(),
     description: values.description.trim() || null,
-    price: contact ? null : Number.parseFloat(values.price),
+    price: primary?.price ?? null,
     categoryId: values.categoryId,
-    measurementUnit: values.measurementUnit.trim(),
-    volume: contact ? null : parseOptionalNumber(values.volume),
+    measurementUnit: primary?.measurementUnit ?? primaryUnit,
+    volume: primary?.volume ?? null,
+    skus,
     productType: values.productType.trim() || "Flower",
     strainType: values.strainType.trim() || null,
     thcPercent: parseOptionalNumber(values.thcPercent),
@@ -293,11 +380,17 @@ export function AdminProductForm({
     handleSubmit,
     reset,
     setValue,
+    control,
     watch,
     formState: { errors },
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
     defaultValues: emptyValues,
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "skus",
   });
 
   const flavors = watch("flavors");
@@ -306,19 +399,24 @@ export function AdminProductForm({
 
   useEffect(() => {
     if (product) {
-      const priced =
+      const skus = skusFromProduct(product);
+      const hasSellableApi = (product.skus ?? []).some(
+        (sku) =>
+          sku.isVisible !== false &&
+          sku.price != null &&
+          sku.volume != null,
+      );
+      const hasSellableLegacy =
         product.price != null &&
         product.price !== "" &&
         product.volume != null &&
         product.volume !== "";
+
       reset({
         name: product.name,
         description: product.description ?? "",
-        contactForPrice: !priced,
-        price: priced ? String(product.price) : "",
+        contactForPrice: !(hasSellableApi || hasSellableLegacy),
         categoryId: product.categoryId ?? product.category?.id ?? "",
-        measurementUnit: product.measurementUnit ?? "g",
-        volume: priced ? String(product.volume) : "",
         productType: product.productType?.trim() || "Flower",
         strainType: product.strainType?.trim() || "",
         thcPercent:
@@ -333,6 +431,7 @@ export function AdminProductForm({
         effects: product.effects ?? [],
         isVisible: product.isVisible !== false,
         isFeatured: Boolean(product.isFeatured),
+        skus,
       });
       return;
     }
@@ -340,6 +439,7 @@ export function AdminProductForm({
     reset({
       ...emptyValues,
       categoryId: defaultCategoryId,
+      skus: [defaultSkuRow()],
     });
   }, [product, categories, defaultCategoryId, reset]);
 
@@ -348,12 +448,6 @@ export function AdminProductForm({
       shouldDirty: true,
       shouldValidate: true,
     });
-    if (checked) {
-      setValue("price", "", { shouldDirty: true, shouldValidate: true });
-      setValue("volume", "", { shouldDirty: true, shouldValidate: true });
-    } else {
-      setValue("volume", "1", { shouldDirty: true, shouldValidate: true });
-    }
   }
 
   return (
@@ -554,15 +648,11 @@ export function AdminProductForm({
 
       <section className="grid gap-4 rounded-lg border border-border p-4 sm:p-6">
         <div className="space-y-1">
-          <h3 className="text-base font-medium">Pack pricing</h3>
+          <h3 className="text-base font-medium">Pack SKUs</h3>
           <p className="text-sm text-muted-foreground">
-            Price is for this amount only. Example: Volume{" "}
-            <span className="font-medium text-foreground">1</span>, Unit{" "}
-            <span className="font-medium text-foreground">g</span>, Price{" "}
-            <span className="font-medium text-foreground">500</span> means{" "}
-            <span className="font-medium text-foreground">1 g costs 500</span>.
-            If the customer buys qty 2, they get{" "}
-            <span className="font-medium text-foreground">2 g for 1000</span>.
+            Add 1–{MAX_SKUS} pack sizes. Each SKU is a separate cart line.
+            Hide a SKU to remove it from the storefront without deleting it.
+            Primary catalog price uses the first visible SKU.
           </p>
         </div>
 
@@ -577,71 +667,148 @@ export function AdminProductForm({
           <span>
             <span className="font-medium">Contact for price</span>
             <span className="mt-0.5 block text-muted-foreground">
-              Clears price and volume together. Product cannot be added to cart
-              until a pack is set.
+              Skip pack SKUs. Product cannot be added to cart until packs are
+              set.
             </span>
           </span>
         </label>
 
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="space-y-2">
-            <Label htmlFor="product-volume">Volume</Label>
-            <Input
-              id="product-volume"
-              type="number"
-              step="0.01"
-              min="0"
-              inputMode="decimal"
-              placeholder="e.g. 1"
-              aria-invalid={Boolean(errors.volume)}
-              disabled={submitting || contactForPrice}
-              {...register("volume")}
-            />
-            {errors.volume ? (
-              <p className="text-sm text-destructive">{errors.volume.message}</p>
-            ) : null}
-          </div>
+        {errors.skus?.message || errors.skus?.root?.message ? (
+          <p className="text-sm text-destructive">
+            {errors.skus.message || errors.skus.root?.message}
+          </p>
+        ) : null}
 
-          <div className="space-y-2">
-            <Label htmlFor="product-measurement-unit">Unit</Label>
-            <select
-              id="product-measurement-unit"
-              className={selectClassName}
-              disabled={submitting}
-              aria-invalid={Boolean(errors.measurementUnit)}
-              {...register("measurementUnit")}
-            >
-              {MEASUREMENT_UNITS.map((unit) => (
-                <option key={unit} value={unit}>
-                  {unit}
-                </option>
-              ))}
-            </select>
-            {errors.measurementUnit ? (
-              <p className="text-sm text-destructive">
-                {errors.measurementUnit.message}
-              </p>
-            ) : null}
-          </div>
+        {!contactForPrice ? (
+          <div className="space-y-4">
+            {fields.map((field, index) => (
+              <div
+                key={field.id}
+                className="space-y-3 rounded-lg border border-border/80 bg-muted/20 p-3 sm:p-4"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-medium">SKU {index + 1}</p>
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        className="size-4 rounded border-input"
+                        disabled={submitting}
+                        {...register(`skus.${index}.isVisible`)}
+                      />
+                      Visible
+                    </label>
+                    {fields.length > 1 ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={submitting}
+                        onClick={() => remove(index)}
+                      >
+                        Remove
+                      </Button>
+                    ) : null}
+                  </div>
+                </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="product-price">Price ({currency})</Label>
-            <Input
-              id="product-price"
-              type="number"
-              step="0.01"
-              min="0"
-              inputMode="decimal"
-              placeholder="Pack price"
-              aria-invalid={Boolean(errors.price)}
-              disabled={submitting || contactForPrice}
-              {...register("price")}
-            />
-            {errors.price ? (
-              <p className="text-sm text-destructive">{errors.price.message}</p>
+                <input type="hidden" {...register(`skus.${index}.id`)} />
+
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="space-y-2">
+                    <Label htmlFor={`sku-volume-${index}`}>Volume</Label>
+                    <Input
+                      id={`sku-volume-${index}`}
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      inputMode="decimal"
+                      placeholder="e.g. 1"
+                      disabled={submitting}
+                      aria-invalid={Boolean(errors.skus?.[index]?.volume)}
+                      {...register(`skus.${index}.volume`)}
+                    />
+                    {errors.skus?.[index]?.volume ? (
+                      <p className="text-sm text-destructive">
+                        {errors.skus[index]?.volume?.message}
+                      </p>
+                    ) : null}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor={`sku-unit-${index}`}>Unit</Label>
+                    <select
+                      id={`sku-unit-${index}`}
+                      className={selectClassName}
+                      disabled={submitting}
+                      aria-invalid={Boolean(
+                        errors.skus?.[index]?.measurementUnit,
+                      )}
+                      {...register(`skus.${index}.measurementUnit`)}
+                    >
+                      {MEASUREMENT_UNITS.map((unit) => (
+                        <option key={unit} value={unit}>
+                          {unit}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.skus?.[index]?.measurementUnit ? (
+                      <p className="text-sm text-destructive">
+                        {errors.skus[index]?.measurementUnit?.message}
+                      </p>
+                    ) : null}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor={`sku-price-${index}`}>
+                      Price ({currency})
+                    </Label>
+                    <Input
+                      id={`sku-price-${index}`}
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      inputMode="decimal"
+                      placeholder="Pack price"
+                      disabled={submitting}
+                      aria-invalid={Boolean(errors.skus?.[index]?.price)}
+                      {...register(`skus.${index}.price`)}
+                    />
+                    {errors.skus?.[index]?.price ? (
+                      <p className="text-sm text-destructive">
+                        {errors.skus[index]?.price?.message}
+                      </p>
+                    ) : null}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor={`sku-label-${index}`}>
+                      Label (optional)
+                    </Label>
+                    <Input
+                      id={`sku-label-${index}`}
+                      autoComplete="off"
+                      placeholder="e.g. Eighth"
+                      disabled={submitting}
+                      {...register(`skus.${index}.label`)}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {fields.length < MAX_SKUS ? (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={submitting}
+                onClick={() => append(defaultSkuRow())}
+              >
+                Add SKU
+              </Button>
             ) : null}
           </div>
-        </div>
+        ) : null}
       </section>
 
       {imagesSection ? (

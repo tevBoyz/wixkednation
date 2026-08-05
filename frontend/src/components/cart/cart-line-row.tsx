@@ -44,7 +44,11 @@ export function CartLineRow({ line }: CartLineRowProps) {
             </Link>
             <p className="mt-1 text-sm text-muted-foreground">
               {formatPrice(line.price)}
-              {packLabel ? ` / ${packLabel}` : null}
+              {line.skuLabel
+                ? ` / ${line.skuLabel}`
+                : packLabel
+                  ? ` / ${packLabel}`
+                  : null}
             </p>
             {totalVolumeLabel ? (
               <p className="mt-0.5 text-xs text-muted-foreground">

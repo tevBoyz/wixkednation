@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 import { AGE_GATE_COOKIE } from "@/lib/age-gate/constants";
+import { isSearchCrawlerUserAgent } from "@/lib/seo/is-search-crawler";
 
 const PUBLIC_PATHS = ["/age-gate", "/blocked", "/auth/google/callback"];
 
@@ -21,7 +22,7 @@ function isPublicPath(pathname: string): boolean {
   return false;
 }
 
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/dev")) {
@@ -46,6 +47,12 @@ export function proxy(request: NextRequest) {
       }
     }
 
+    return NextResponse.next();
+  }
+
+  // Let search engines index storefront pages with full meta + content.
+  // Humans without an age-gate cookie still go through /age-gate.
+  if (isSearchCrawlerUserAgent(request.headers.get("user-agent"))) {
     return NextResponse.next();
   }
 

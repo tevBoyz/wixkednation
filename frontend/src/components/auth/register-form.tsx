@@ -23,14 +23,14 @@ import { Label } from "@/components/ui/label";
 import { getGoogleStartUrl, sendOtp } from "@/lib/api/auth.api";
 import { getErrorMessage } from "@/lib/api/errors";
 import { clearAuthRedirect } from "@/lib/auth/redirect";
-import { isValidEthiopianPhone, normalizePhone } from "@/lib/phone";
+import { isValidAccessPhone, normalizePhone } from "@/lib/phone";
 
 const registerSchema = z.object({
   phone: z
     .string()
     .min(1, "Phone number is required")
-    .refine((value) => isValidEthiopianPhone(value), {
-      message: "Enter a valid Ethiopian mobile (+2519… or +2517…)",
+    .refine((value) => isValidAccessPhone(value), {
+      message: "Enter a valid US mobile (+1…) or test Ethiopian (+2519… / +2517…)",
     }),
 });
 
@@ -54,7 +54,7 @@ function RegisterForm() {
   useEffect(() => {
     const raw = searchParams.get("phone") || "";
     const phone = normalizePhone(raw);
-    if (phone && isValidEthiopianPhone(phone)) {
+    if (phone && isValidAccessPhone(phone)) {
       setValue("phone", phone, { shouldValidate: true });
     }
   }, [searchParams, setValue]);
@@ -108,7 +108,7 @@ function RegisterForm() {
               type="tel"
               inputMode="tel"
               autoComplete="tel"
-              placeholder="+251911000000"
+              placeholder="+17035551234"
               aria-invalid={Boolean(errors.phone)}
               disabled={submitting}
               {...register("phone")}
@@ -117,7 +117,7 @@ function RegisterForm() {
               <p className="text-sm text-destructive">{errors.phone.message}</p>
             ) : (
               <p className="text-xs text-muted-foreground">
-                Formats like 0911…, 911…, or +251911… are accepted.
+                US numbers preferred (+1…). Test Ethiopian +2519… / +2517… still work for access.
               </p>
             )}
           </div>

@@ -2,7 +2,7 @@ const crypto = require("crypto");
 
 const prisma = require("../../config/prisma");
 const { sendSms } = require("../../services/sms/sms.service");
-const { isValidEthiopianPhone, normalizePhone } = require("../../utils/phone");
+const { assertDeliveryPhone } = require("../../utils/phone");
 const {
   getOrCreateCart,
   removeInvalidCartItems
@@ -82,22 +82,30 @@ function mapAddressSnapshot(address) {
 
 function mapOrderItemSnapshot(cartItem) {
   const product = cartItem.product;
+  const sku = cartItem.sku;
 
-  if (product.price == null) {
+  if (!sku || sku.price == null) {
     throw createServiceError(
-      `Price not set - contact for price (${product.name || "product"}).`,
+      `Selected pack is unavailable (${product?.name || "product"}).`,
       400
     );
   }
 
-  const unitPrice = Number(product.price);
+  if (sku.isVisible === false) {
+    throw createServiceError(
+      `Selected pack is hidden (${product?.name || "product"}). Choose another size.`,
+      400
+    );
+  }
+
+  const unitPrice = Number(sku.price);
   const quantity = cartItem.quantity;
   const lineTotal = (unitPrice * quantity).toFixed(2);
   const baseVolume =
     cartItem.volume != null
       ? Number(cartItem.volume)
-      : product.volume != null
-        ? Number(product.volume)
+      : sku.volume != null
+        ? Number(sku.volume)
         : null;
   const effectiveVolume =
     baseVolume != null && Number.isFinite(baseVolume)
@@ -106,16 +114,19 @@ function mapOrderItemSnapshot(cartItem) {
 
   return {
     productId: product.id,
+    skuId: sku.id,
     name: product.name,
     slug: product.slug,
+    skuLabel: sku.label || null,
     unitPrice: unitPrice.toFixed(2),
     quantity,
     volume:
       cartItem.volume != null
         ? serializeDecimal(cartItem.volume)
-        : serializeDecimal(product.volume),
+        : serializeDecimal(sku.volume),
     effectiveVolume,
-    measurementUnit: cartItem.measurementUnit || product.measurementUnit,
+    measurementUnit:
+      cartItem.measurementUnit || sku.measurementUnit || product.measurementUnit,
     lineTotal
   };
 }
@@ -274,16 +285,7 @@ function requireNonEmptyString(value, fieldName) {
 }
 
 function normalizeCheckoutPhone(phone) {
-  const normalized = normalizePhone(phone);
-
-  if (!normalized || !isValidEthiopianPhone(normalized)) {
-    throw createServiceError(
-      "phone must be a valid Ethiopian number (+2519XXXXXXXX or +2517XXXXXXXX).",
-      400
-    );
-  }
-
-  return normalized;
+  return assertDeliveryPhone(phone, createServiceError);
 }
 
 function parsePositiveInteger(value, fieldName) {
@@ -335,21 +337,30 @@ async function getPurchasableProductForOrder(productId) {
     throw createServiceError("Product is unavailable.", 400);
   }
 
-  if (product.price == null) {
-    throw createServiceError(
-      `Price not set - contact for price (${product.name || "product"}).`,
-      400
-    );
-  }
-
-  if (product.volume == null || Number(product.volume) <= 0) {
-    throw createServiceError(
-      "Product pack volume is not set. Admin must define volume with price (e.g. 1 g).",
-      400
-    );
-  }
-
   return product;
+}
+
+async function getPurchasableSkuForOrder(productId, skuId) {
+  assertUuid(skuId, "skuId");
+
+  const sku = await prisma.productSku.findUnique({
+    where: { id: skuId }
+  });
+
+  if (
+    !sku ||
+    sku.productId !== productId ||
+    sku.isVisible !== true ||
+    sku.price == null ||
+    Number(sku.volume) <= 0
+  ) {
+    throw createServiceError(
+      "Selected pack is unavailable. Choose another size.",
+      400
+    );
+  }
+
+  return sku;
 }
 
 async function resolveGuestCheckoutUser(phone) {
@@ -425,24 +436,16 @@ async function buildGuestItemSnapshots(items) {
     }
 
     const product = await getPurchasableProductForOrder(item.productId);
+    const sku = await getPurchasableSkuForOrder(item.productId, item.skuId);
     const quantity = parsePositiveInteger(item.quantity, "quantity");
-    const measurementUnit =
-      typeof item.measurementUnit === "string" && item.measurementUnit.trim()
-        ? item.measurementUnit.trim()
-        : product.measurementUnit;
-    const volume =
-      item.volume !== undefined
-        ? parseOptionalVolume(item.volume)
-        : product.volume != null
-          ? Number(product.volume).toFixed(2)
-          : null;
 
     snapshots.push(
       mapOrderItemSnapshot({
         product,
+        sku,
         quantity,
-        volume,
-        measurementUnit
+        volume: Number(sku.volume).toFixed(2),
+        measurementUnit: sku.measurementUnit
       })
     );
   }

@@ -41,13 +41,13 @@ export function HeroBrandDescription({ className }: HeroBrandDescriptionProps) {
   }, [reduceMotion]);
 
   return (
-    <h1
+    <p
       className={cn(
         "max-w-2xl text-pretty text-lg font-medium leading-snug tracking-tight text-foreground/90 sm:text-xl md:text-2xl",
         className,
       )}
     >
-      Premium cannabis delivered in {" "}
+      Premium cannabis delivered in{" "}
       <span className="hero-region-rotator" aria-live="polite">
         <span
           key={index}
@@ -59,6 +59,6 @@ export function HeroBrandDescription({ className }: HeroBrandDescriptionProps) {
           {REGIONS[index]}
         </span>
       </span>
-    </h1>
+    </p>
   );
 }
