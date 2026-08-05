@@ -66,8 +66,8 @@ async function seedAdminSettings() {
         })(),
         senderId: process.env.TWILIO_FROM_NUMBER || ""
       },
-      defaultMeasurementUnit: "pcs",
-      defaultCurrency: "ETB"
+      defaultMeasurementUnit: "oz",
+      defaultCurrency: "USD"
     }
   });
 }

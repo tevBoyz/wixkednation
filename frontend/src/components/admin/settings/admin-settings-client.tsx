@@ -23,6 +23,7 @@ import {
   ALLOWED_CURRENCIES,
   CURRENCY_LABELS,
   DEFAULT_CURRENCY,
+  DEFAULT_MEASUREMENT_UNIT,
 } from "@/lib/catalog/currency";
 import { isValidUsPhone, normalizePhone } from "@/lib/phone";
 import { Button } from "@/components/ui/button";
@@ -32,11 +33,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 const MEASUREMENT_UNITS = [
-  "kg",
+  "oz",
   "g",
+  "kg",
   "L",
   "ml",
-  "oz",
   "pcs",
   "pack",
   "bottle",
@@ -91,7 +92,7 @@ export function AdminSettingsClient() {
   const generalForm = useForm<z.infer<typeof generalSchema>>({
     resolver: zodResolver(generalSchema),
     defaultValues: {
-      defaultMeasurementUnit: "pcs",
+      defaultMeasurementUnit: DEFAULT_MEASUREMENT_UNIT,
       defaultCurrency: DEFAULT_CURRENCY,
     },
   });
@@ -113,7 +114,7 @@ export function AdminSettingsClient() {
 
     generalForm.reset({
       defaultMeasurementUnit:
-        settingsQuery.data.defaultMeasurementUnit || "pcs",
+        settingsQuery.data.defaultMeasurementUnit || DEFAULT_MEASUREMENT_UNIT,
       defaultCurrency: settingsQuery.data.defaultCurrency || DEFAULT_CURRENCY,
     });
 
@@ -131,7 +132,8 @@ export function AdminSettingsClient() {
       await queryClient.invalidateQueries({ queryKey: adminSettingsQueryKey });
       await queryClient.invalidateQueries({ queryKey: storeConfigQueryKey });
       generalForm.reset({
-        defaultMeasurementUnit: settings.defaultMeasurementUnit || "pcs",
+        defaultMeasurementUnit:
+          settings.defaultMeasurementUnit || DEFAULT_MEASUREMENT_UNIT,
         defaultCurrency: settings.defaultCurrency || DEFAULT_CURRENCY,
       });
       toast.success("General settings saved");

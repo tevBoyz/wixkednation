@@ -2,7 +2,11 @@ export const ALLOWED_CURRENCIES = ["ETB", "USD", "EUR", "GBP"] as const;
 
 export type StoreCurrency = (typeof ALLOWED_CURRENCIES)[number];
 
-export const DEFAULT_CURRENCY: StoreCurrency = "ETB";
+/** Storefront default when AdminSettings / env has no currency. */
+export const DEFAULT_CURRENCY: StoreCurrency = "USD";
+
+/** Default pack unit for new products / settings fallbacks. */
+export const DEFAULT_MEASUREMENT_UNIT = "oz";
 
 export const CURRENCY_LABELS: Record<StoreCurrency, string> = {
   ETB: "Ethiopian Birr (ETB)",

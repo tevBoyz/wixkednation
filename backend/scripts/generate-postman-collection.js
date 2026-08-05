@@ -502,8 +502,8 @@ const collection = {
         req("Patch settings", "PATCH", "/api/admin/settings", {
           auth: "admin",
           body: {
-            defaultMeasurementUnit: "pcs",
-            defaultCurrency: "ETB"
+            defaultMeasurementUnit: "oz",
+            defaultCurrency: "USD"
           },
           description:
             "Status: implemented\nAuth: admin Bearer JWT\nBody: { defaultMeasurementUnit?, defaultCurrency? }.\ndefaultCurrency: 3-letter ISO code; allowed v1: ETB, USD, EUR, GBP."

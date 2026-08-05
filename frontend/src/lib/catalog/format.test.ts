@@ -18,10 +18,10 @@ import {
 } from "@/lib/catalog/format";
 
 describe("normalizeStoreCurrency", () => {
-  it("defaults to ETB and uppercases known codes", () => {
+  it("defaults to USD and uppercases known codes", () => {
     expect(normalizeStoreCurrency(undefined)).toBe(DEFAULT_CURRENCY);
     expect(normalizeStoreCurrency("usd")).toBe("USD");
-    expect(normalizeStoreCurrency("XYZ")).toBe("ETB");
+    expect(normalizeStoreCurrency("XYZ")).toBe("USD");
   });
 });
 

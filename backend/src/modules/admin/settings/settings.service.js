@@ -177,8 +177,8 @@ async function ensureAdminSettings() {
     data: {
       adminPhoneNumbers: [],
       smsProviderConfig: defaultSmsProviderConfig(),
-      defaultMeasurementUnit: "pcs",
-      defaultCurrency: "ETB"
+      defaultMeasurementUnit: "oz",
+      defaultCurrency: "USD"
     }
   });
 
@@ -204,8 +204,8 @@ function formatSettings(settings) {
           ? { senderId: defaults.senderId }
           : {})
     },
-    defaultMeasurementUnit: settings.defaultMeasurementUnit,
-    defaultCurrency: settings.defaultCurrency || "ETB",
+    defaultMeasurementUnit: settings.defaultMeasurementUnit || "oz",
+    defaultCurrency: settings.defaultCurrency || "USD",
     createdAt: settings.createdAt,
     updatedAt: settings.updatedAt
   };
@@ -436,7 +436,7 @@ async function getStoreConfig() {
     }));
 
   return {
-    defaultCurrency: settings.defaultCurrency || "ETB",
+    defaultCurrency: settings.defaultCurrency || "USD",
     orderContactPhones
   };
 }

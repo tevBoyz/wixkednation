@@ -341,8 +341,8 @@ model AdminSettings {
 
   adminPhoneNumbers      Json   @default("[]")
   smsProviderConfig      Json   @default("{}")
-  defaultMeasurementUnit String @default("pcs")
-  defaultCurrency        String @default("ETB")
+  defaultMeasurementUnit String @default("oz")
+  defaultCurrency        String @default("USD")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

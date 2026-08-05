@@ -22,7 +22,8 @@ async function seedTestData() {
           provider: "mock",
           senderId: "MYSHOP"
         },
-        defaultMeasurementUnit: "pcs"
+        defaultMeasurementUnit: "oz",
+        defaultCurrency: "USD"
       }
     });
 

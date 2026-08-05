@@ -22,8 +22,8 @@ import { flattenCategoryTree } from "@/lib/catalog/category-tree";
 import { cn } from "@/lib/utils";
 
 const MEASUREMENT_UNITS = [
-  "g",
   "oz",
+  "g",
   "kg",
   "pcs",
   "pack",
@@ -163,7 +163,7 @@ function defaultSkuRow(
     id: undefined,
     label: "",
     volume: "1",
-    measurementUnit: "g",
+    measurementUnit: "oz",
     price: "",
     isVisible: true,
     ...overrides,
@@ -201,7 +201,7 @@ function skusFromProduct(product: Product): ProductFormValues["skus"] {
       id: sku.id,
       label: sku.label?.trim() || "",
       volume: String(sku.volume),
-      measurementUnit: sku.measurementUnit || "g",
+      measurementUnit: sku.measurementUnit || "oz",
       price: String(sku.price),
       isVisible: sku.isVisible !== false,
     }));
@@ -217,7 +217,7 @@ function skusFromProduct(product: Product): ProductFormValues["skus"] {
     return [
       defaultSkuRow({
         volume: String(product.volume),
-        measurementUnit: product.measurementUnit ?? "g",
+        measurementUnit: product.measurementUnit ?? "oz",
         price: String(product.price),
         isVisible: true,
       }),
@@ -232,7 +232,7 @@ function toBody(values: ProductFormValues): AdminProductBody {
   const primaryUnit =
     values.skus[0]?.measurementUnit.trim() ||
     values.skus.find((s) => s.isVisible)?.measurementUnit.trim() ||
-    "g";
+    "oz";
 
   if (contact) {
     return {
