@@ -51,10 +51,14 @@ function formatDateTime(value?: string) {
 }
 
 function formatAddressLines(address: OrderAddressSnapshot) {
+  const cityLine = [address.city, address.state, address.postalCode]
+    .filter(Boolean)
+    .join(", ");
+
   return [
     address.addressLine1,
     address.addressLine2,
-    [address.city, address.state].filter(Boolean).join(", "),
+    cityLine,
     address.country,
   ].filter(Boolean);
 }

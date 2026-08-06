@@ -3,21 +3,8 @@
  *
  * Default customer/admin format: US E.164 (+1XXXXXXXXXX).
  * Ethiopian (+251…) remains valid for login/PIN access so existing test
- * accounts keep working. Delivery is restricted by US area code.
+ * accounts keep working. Delivery eligibility is checked by ZIP code.
  */
-
-/** NANP area codes we deliver to: NoVA, DC, South / suburban Maryland. */
-const DELIVERY_AREA_CODES = new Set([
-  "703", // Northern Virginia
-  "571", // Northern Virginia overlay
-  "202", // Washington, DC
-  "771", // Washington, DC overlay
-  "301", // Maryland (incl. South / suburban MD)
-  "240" // Maryland overlay
-]);
-
-const DELIVERY_AREA_MESSAGE =
-  "This area is not available for delivery. We currently deliver in Northern Virginia, Washington DC, and South Maryland.";
 
 function normalizePhone(phone) {
   if (!phone || typeof phone !== "string") {
@@ -99,25 +86,11 @@ function isValidCustomerPhone(phone) {
   return isValidUsPhone(phone);
 }
 
-function getUsAreaCode(phone) {
-  const normalized = normalizePhone(phone);
-  if (!normalized || !/^\+1\d{10}$/.test(normalized)) {
-    return null;
-  }
-
-  return normalized.slice(2, 5);
-}
-
-function isInDeliveryArea(phone) {
-  const areaCode = getUsAreaCode(phone);
-  return Boolean(areaCode && DELIVERY_AREA_CODES.has(areaCode));
-}
-
 /**
- * Requires a US number in a served area code.
+ * Requires a valid US phone number (any area code).
  * @returns {string} normalized E.164 phone
  */
-function assertDeliveryPhone(phone, createError) {
+function assertUsPhone(phone, createError) {
   const throwError =
     typeof createError === "function"
       ? createError
@@ -136,19 +109,17 @@ function assertDeliveryPhone(phone, createError) {
     );
   }
 
-  if (!isInDeliveryArea(normalized)) {
-    throw throwError(DELIVERY_AREA_MESSAGE, 400);
-  }
-
   return normalized;
 }
 
+/** @deprecated Use assertUsPhone — kept for internal migration compatibility. */
+function assertDeliveryPhone(phone, createError) {
+  return assertUsPhone(phone, createError);
+}
+
 module.exports = {
-  DELIVERY_AREA_CODES,
-  DELIVERY_AREA_MESSAGE,
   assertDeliveryPhone,
-  getUsAreaCode,
-  isInDeliveryArea,
+  assertUsPhone,
   isValidAccessPhone,
   isValidCustomerPhone,
   isValidEthiopianPhone,

@@ -167,7 +167,19 @@ export function getOrderSubmitErrorMessage(
   error: unknown,
   fallback = "Could not place order",
 ): string {
-  return getOrderPhoneBlockedMessage(error) ?? getErrorMessage(error, fallback);
+  const blocked = getOrderPhoneBlockedMessage(error);
+  if (blocked) {
+    return blocked;
+  }
+
+  if (error instanceof ApiError) {
+    const bodyMessage = error.body?.message?.trim();
+    if (bodyMessage && error.status >= 400 && error.status < 500) {
+      return sanitizeUserFacingMessage(bodyMessage, fallback, error.status);
+    }
+  }
+
+  return getErrorMessage(error, fallback);
 }
 
 export async function normalizeApiError(

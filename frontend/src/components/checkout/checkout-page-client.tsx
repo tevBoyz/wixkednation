@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -17,38 +17,28 @@ import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  UsPhoneInput,
+  optionalUsPhoneLocalSchema,
+  usPhoneLocalSchema,
+} from "@/components/ui/us-phone-input";
 import { createGuestOrder, createOrder } from "@/lib/api/orders.api";
-import {
-  getOrderPhoneBlockedMessage,
-  getOrderSubmitErrorMessage,
-} from "@/lib/api/errors";
+import { getOrderSubmitErrorMessage } from "@/lib/api/errors";
 import { saveGuestOrderSnapshot } from "@/lib/orders/guest-order-snapshot";
-import {
-  DELIVERY_AREA_MESSAGE,
-  isInDeliveryArea,
-  isValidDeliveryPhone,
-  isValidUsPhone,
-  normalizePhone,
-} from "@/lib/phone";
+import { zipCodeSchema } from "@/lib/delivery/zip-codes";
+import { normalizePhone, toUsE164 } from "@/lib/phone";
 import { useGuestCartStore } from "@/stores/guest-cart-store";
 
 const guestCheckoutSchema = z.object({
-  phone: z
-    .string()
-    .min(1, "Phone number is required")
-    .refine((value) => isValidUsPhone(value), {
-      message: "Enter a valid US mobile (e.g. +17035551234 or 7035551234)",
-    })
-    .refine((value) => isInDeliveryArea(value), {
-      message: DELIVERY_AREA_MESSAGE,
-    }),
+  phone: usPhoneLocalSchema(),
   name: z.string().max(120),
   fullName: z.string().trim().min(1, "Full name is required").max(120),
-  addressPhone: z.string(),
+  addressPhone: optionalUsPhoneLocalSchema(),
   addressLine1: z.string().trim().min(1, "Address is required").max(200),
   addressLine2: z.string().max(200),
   city: z.string().trim().min(1, "City is required").max(120),
   state: z.string().max(120),
+  postalCode: zipCodeSchema(),
 });
 
 type GuestCheckoutValues = z.infer<typeof guestCheckoutSchema>;
@@ -64,13 +54,14 @@ export function CheckoutPageClient() {
     null,
   );
   const [submitting, setSubmitting] = useState(false);
-  const [phoneBlockMessage, setPhoneBlockMessage] = useState<string | null>(
+  const [submitErrorMessage, setSubmitErrorMessage] = useState<string | null>(
     null,
   );
   const submitLockRef = useRef(false);
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<GuestCheckoutValues>({
@@ -84,6 +75,7 @@ export function CheckoutPageClient() {
       addressLine2: "",
       city: "",
       state: "",
+      postalCode: "",
     },
   });
 
@@ -105,7 +97,7 @@ export function CheckoutPageClient() {
 
     submitLockRef.current = true;
     setSubmitting(true);
-    setPhoneBlockMessage(null);
+    setSubmitErrorMessage(null);
 
     try {
       const order = await createOrder({
@@ -117,9 +109,8 @@ export function CheckoutPageClient() {
       router.replace(`/order-success/${order.id}`);
       router.refresh();
     } catch (error) {
-      const blocked = getOrderPhoneBlockedMessage(error);
-      const message = blocked ?? getOrderSubmitErrorMessage(error);
-      setPhoneBlockMessage(blocked);
+      const message = getOrderSubmitErrorMessage(error);
+      setSubmitErrorMessage(message);
       toast.error(message);
       submitLockRef.current = false;
       setSubmitting(false);
@@ -138,26 +129,13 @@ export function CheckoutPageClient() {
 
     submitLockRef.current = true;
     setSubmitting(true);
-    setPhoneBlockMessage(null);
+    setSubmitErrorMessage(null);
 
-    const phone = normalizePhone(values.phone);
+    const phone = normalizePhone(toUsE164(values.phone));
     const addressPhoneRaw = values.addressPhone.trim();
     const addressPhone = addressPhoneRaw
-      ? normalizePhone(addressPhoneRaw)
+      ? normalizePhone(toUsE164(addressPhoneRaw))
       : phone;
-
-    if (addressPhoneRaw && !isValidUsPhone(addressPhoneRaw)) {
-      toast.error("Enter a valid US delivery phone (e.g. +17035551234).");
-      submitLockRef.current = false;
-      setSubmitting(false);
-      return;
-    }
-    if (addressPhoneRaw && !isValidDeliveryPhone(addressPhoneRaw)) {
-      toast.error(DELIVERY_AREA_MESSAGE);
-      submitLockRef.current = false;
-      setSubmitting(false);
-      return;
-    }
 
     try {
       const result = await createGuestOrder({
@@ -176,7 +154,8 @@ export function CheckoutPageClient() {
           addressLine2: values.addressLine2.trim() || null,
           city: values.city.trim(),
           state: values.state.trim() || null,
-          country: "Ethiopia",
+          postalCode: values.postalCode.trim(),
+          country: "United States",
         },
       });
 
@@ -185,9 +164,8 @@ export function CheckoutPageClient() {
       router.replace(`/order-success/${result.order.id}`);
       router.refresh();
     } catch (error) {
-      const blocked = getOrderPhoneBlockedMessage(error);
-      const message = blocked ?? getOrderSubmitErrorMessage(error);
-      setPhoneBlockMessage(blocked);
+      const message = getOrderSubmitErrorMessage(error);
+      setSubmitErrorMessage(message);
       toast.error(message);
       submitLockRef.current = false;
       setSubmitting(false);
@@ -225,12 +203,12 @@ export function CheckoutPageClient() {
     );
   }
 
-  const phoneBlockBanner = phoneBlockMessage ? (
+  const submitErrorBanner = submitErrorMessage ? (
     <div
       role="alert"
       className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive"
     >
-      {phoneBlockMessage}
+      {submitErrorMessage}
     </div>
   ) : null;
 
@@ -244,7 +222,7 @@ export function CheckoutPageClient() {
           </p>
         </header>
 
-        {phoneBlockBanner ? <div className="mt-6">{phoneBlockBanner}</div> : null}
+        {submitErrorBanner ? <div className="mt-6">{submitErrorBanner}</div> : null}
 
         <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_18rem]">
           <div className="min-w-0 space-y-8">
@@ -294,7 +272,7 @@ export function CheckoutPageClient() {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 lg:sticky lg:top-20">
             <CheckoutOrderSummary />
             <Button
               type="button"
@@ -320,7 +298,7 @@ export function CheckoutPageClient() {
         </p>
       </header>
 
-      {phoneBlockBanner ? <div className="mt-6">{phoneBlockBanner}</div> : null}
+      {submitErrorBanner ? <div className="mt-6">{submitErrorBanner}</div> : null}
 
       <form
         className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_18rem]"
@@ -343,21 +321,25 @@ export function CheckoutPageClient() {
 
             <div className="space-y-2">
               <Label htmlFor="guest-phone">Phone number</Label>
-              <Input
-                id="guest-phone"
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                placeholder="+17035551234"
-                aria-invalid={Boolean(errors.phone)}
-                disabled={submitting}
-                {...register("phone")}
+              <Controller
+                control={control}
+                name="phone"
+                render={({ field }) => (
+                  <UsPhoneInput
+                    id="guest-phone"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    aria-invalid={Boolean(errors.phone)}
+                    disabled={submitting}
+                  />
+                )}
               />
               {errors.phone ? (
                 <p className="text-sm text-destructive">{errors.phone.message}</p>
               ) : (
                 <p className="text-xs text-muted-foreground">
-                  Delivery phones must use a served area code (703, 571, 202, 301, 240, 771).
+                  Enter your 10-digit US mobile number.
                 </p>
               )}
             </div>
@@ -408,15 +390,26 @@ export function CheckoutPageClient() {
               <Label htmlFor="guest-address-phone">
                 Delivery phone (optional)
               </Label>
-              <Input
-                id="guest-address-phone"
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                placeholder="Same as contact if left blank"
-                disabled={submitting}
-                {...register("addressPhone")}
+              <Controller
+                control={control}
+                name="addressPhone"
+                render={({ field }) => (
+                  <UsPhoneInput
+                    id="guest-address-phone"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    aria-invalid={Boolean(errors.addressPhone)}
+                    disabled={submitting}
+                    placeholder="Same as contact if blank"
+                  />
+                )}
               />
+              {errors.addressPhone ? (
+                <p className="text-sm text-destructive">
+                  {errors.addressPhone.message}
+                </p>
+              ) : null}
             </div>
 
             <div className="space-y-2">
@@ -464,7 +457,7 @@ export function CheckoutPageClient() {
                 ) : null}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="guest-state">State / region (optional)</Label>
+                <Label htmlFor="guest-state">State (optional)</Label>
                 <Input
                   id="guest-state"
                   type="text"
@@ -473,6 +466,29 @@ export function CheckoutPageClient() {
                   {...register("state")}
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="guest-postalCode">ZIP code</Label>
+              <Input
+                id="guest-postalCode"
+                inputMode="numeric"
+                autoComplete="postal-code"
+                placeholder="22201"
+                maxLength={10}
+                aria-invalid={Boolean(errors.postalCode)}
+                disabled={submitting}
+                {...register("postalCode")}
+              />
+              {errors.postalCode ? (
+                <p className="text-sm text-destructive">
+                  {errors.postalCode.message}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  We deliver in Northern Virginia, Washington DC, and South Maryland.
+                </p>
+              )}
             </div>
           </section>
 
@@ -499,7 +515,7 @@ export function CheckoutPageClient() {
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 lg:sticky lg:top-20">
           <CheckoutOrderSummary />
           <Button
             type="submit"

@@ -12,7 +12,8 @@ function isPublicPath(pathname: string): boolean {
   }
 
   if (
-    pathname.startsWith("/_next") ||
+    pathname.startsWith("/_next/static") ||
+    pathname.startsWith("/_next/image") ||
     pathname.startsWith("/favicon") ||
     pathname.includes(".")
   ) {
@@ -22,7 +23,7 @@ function isPublicPath(pathname: string): boolean {
   return false;
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/dev")) {
@@ -73,3 +74,4 @@ export const config = {
     "/((?!_next/static|_next/image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };
+

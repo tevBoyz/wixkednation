@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -18,20 +18,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  UsPhoneInput,
+  usPhoneLocalSchema,
+} from "@/components/ui/us-phone-input";
 import { getGoogleStartUrl, sendOtp } from "@/lib/api/auth.api";
 import { getErrorMessage } from "@/lib/api/errors";
 import { clearAuthRedirect } from "@/lib/auth/redirect";
-import { isValidAccessPhone, normalizePhone } from "@/lib/phone";
+import {
+  isValidUsPhone,
+  normalizePhone,
+  toUsE164,
+  usLocalFromE164,
+} from "@/lib/phone";
 
 const forgotSchema = z.object({
-  phone: z
-    .string()
-    .min(1, "Phone number is required")
-    .refine((value) => isValidAccessPhone(value), {
-      message: "Enter a valid US mobile (+1…) or test Ethiopian (+2519… / +2517…)",
-    }),
+  phone: usPhoneLocalSchema(),
 });
 
 type ForgotFormValues = z.infer<typeof forgotSchema>;
@@ -42,7 +45,7 @@ function ForgotPinForm() {
   const [submitting, setSubmitting] = useState(false);
 
   const {
-    register,
+    control,
     handleSubmit,
     setValue,
     formState: { errors },
@@ -54,8 +57,8 @@ function ForgotPinForm() {
   useEffect(() => {
     const raw = searchParams.get("phone") || "";
     const phone = normalizePhone(raw);
-    if (phone && isValidAccessPhone(phone)) {
-      setValue("phone", phone, { shouldValidate: true });
+    if (phone && isValidUsPhone(phone)) {
+      setValue("phone", usLocalFromE164(phone), { shouldValidate: true });
     }
   }, [searchParams, setValue]);
 
@@ -66,7 +69,7 @@ function ForgotPinForm() {
   }
 
   async function onSubmit(values: ForgotFormValues) {
-    const phone = normalizePhone(values.phone);
+    const phone = normalizePhone(toUsE164(values.phone));
     setSubmitting(true);
 
     try {
@@ -98,15 +101,19 @@ function ForgotPinForm() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="phone">Phone number</Label>
-            <Input
-              id="phone"
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              placeholder="+17035551234"
-              aria-invalid={Boolean(errors.phone)}
-              disabled={submitting}
-              {...register("phone")}
+            <Controller
+              control={control}
+              name="phone"
+              render={({ field }) => (
+                <UsPhoneInput
+                  id="phone"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  aria-invalid={Boolean(errors.phone)}
+                  disabled={submitting}
+                />
+              )}
             />
             {errors.phone ? (
               <p className="text-sm text-destructive">{errors.phone.message}</p>

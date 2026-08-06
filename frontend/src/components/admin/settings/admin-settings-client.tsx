@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -25,10 +25,14 @@ import {
   DEFAULT_CURRENCY,
   DEFAULT_MEASUREMENT_UNIT,
 } from "@/lib/catalog/currency";
-import { isValidUsPhone, normalizePhone } from "@/lib/phone";
+import { normalizePhone, toUsE164 } from "@/lib/phone";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  UsPhoneInput,
+  usPhoneLocalSchema,
+} from "@/components/ui/us-phone-input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -58,13 +62,7 @@ const smsSchema = z.object({
 });
 
 const phoneSchema = z.object({
-  phone: z
-    .string()
-    .trim()
-    .min(1, "Phone is required")
-    .refine((value) => isValidUsPhone(value), {
-      message: "Enter a valid US mobile (e.g. +17035551234)",
-    }),
+  phone: usPhoneLocalSchema(),
   showOnBanner: z.boolean(),
 });
 
@@ -395,7 +393,7 @@ export function AdminSettingsClient() {
           className="flex flex-col gap-3"
           onSubmit={phoneForm.handleSubmit((values) => {
             addPhoneMutation.mutate({
-              phone: normalizePhone(values.phone),
+              phone: normalizePhone(toUsE164(values.phone)),
               showOnBanner: values.showOnBanner,
             });
           })}
@@ -403,17 +401,23 @@ export function AdminSettingsClient() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div className="min-w-0 flex-1 space-y-2">
               <Label htmlFor="admin-alert-phone">Add phone</Label>
-              <Input
-                id="admin-alert-phone"
-                type="tel"
-                placeholder="+14696571013"
-                disabled={addPhoneMutation.isPending}
-                aria-invalid={Boolean(phoneForm.formState.errors.phone)}
-                className={cn(
-                  phoneForm.formState.errors.phone &&
-                    "border-destructive ring-destructive/20",
+              <Controller
+                control={phoneForm.control}
+                name="phone"
+                render={({ field }) => (
+                  <UsPhoneInput
+                    id="admin-alert-phone"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    disabled={addPhoneMutation.isPending}
+                    aria-invalid={Boolean(phoneForm.formState.errors.phone)}
+                    className={cn(
+                      phoneForm.formState.errors.phone &&
+                        "[&_input]:border-destructive [&_input]:ring-destructive/20",
+                    )}
+                  />
                 )}
-                {...phoneForm.register("phone")}
               />
               {phoneForm.formState.errors.phone ? (
                 <p className="text-sm text-destructive">

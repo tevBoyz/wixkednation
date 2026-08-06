@@ -6,7 +6,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -17,11 +17,15 @@ import {
   formatSmsLogMessage,
   getSmsLogPurpose,
 } from "@/lib/admin/sms-log";
-import { isValidUsPhone, normalizePhone } from "@/lib/phone";
+import { normalizePhone, toUsE164 } from "@/lib/phone";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  UsPhoneInput,
+  usPhoneLocalSchema,
+} from "@/components/ui/us-phone-input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -39,13 +43,7 @@ const selectClassName =
   "h-9 rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50";
 
 const testSmsSchema = z.object({
-  phone: z
-    .string()
-    .trim()
-    .min(1, "Phone is required")
-    .refine((value) => isValidUsPhone(value), {
-      message: "Enter a valid US mobile (e.g. +17035551234)",
-    }),
+  phone: usPhoneLocalSchema(),
   message: z.string().max(500, "Message is too long").optional(),
 });
 
@@ -165,19 +163,28 @@ function AdminSmsContent() {
         <form
           className="space-y-4"
           onSubmit={testForm.handleSubmit((values) => {
-            testMutation.mutate(values);
+            testMutation.mutate({
+              ...values,
+              phone: normalizePhone(toUsE164(values.phone)),
+            });
           })}
         >
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="test-sms-phone">Phone</Label>
-              <Input
-                id="test-sms-phone"
-                type="tel"
-                placeholder="+17035551234"
-                disabled={testMutation.isPending}
-                aria-invalid={Boolean(testForm.formState.errors.phone)}
-                {...testForm.register("phone")}
+              <Controller
+                control={testForm.control}
+                name="phone"
+                render={({ field }) => (
+                  <UsPhoneInput
+                    id="test-sms-phone"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    disabled={testMutation.isPending}
+                    aria-invalid={Boolean(testForm.formState.errors.phone)}
+                  />
+                )}
               />
               {testForm.formState.errors.phone ? (
                 <p className="text-sm text-destructive">

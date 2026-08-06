@@ -367,9 +367,11 @@ const collection = {
             label: "Home",
             fullName: "Test Customer",
             phone: "{{customerPhone}}",
-            addressLine1: "Bole Road",
-            city: "Addis Ababa",
-            country: "ET",
+            addressLine1: "1200 Wilson Blvd",
+            city: "Arlington",
+            state: "VA",
+            postalCode: "22201",
+            country: "United States",
             isDefault: true
           }
         }),
@@ -399,11 +401,12 @@ const collection = {
               addressLine1: "1200 Wilson Blvd",
               city: "Arlington",
               state: "VA",
-              country: "US"
+              postalCode: "22201",
+              country: "United States"
             }
           },
           description:
-            "Status: implemented\nAuth: none (public)\nNo OTP/PIN at checkout.\nBody: { phone, name?, paymentMethod?: \"COD\", items[{ productId, skuId, quantity }], address{ fullName, phone?, addressLine1, city, ... } }.\nFinds/creates User by phone (guest registry). Response: order (placedAsGuest, matchedExistingAccount, risk), smsAlert, customer { hasPin, postOrderCta: register|login }.\nRate limit: >10 orders/hour → 429 code ORDER_PHONE_BLOCKED + blockedUntil + try-again message.\nDoes not clear authenticated server cart / does not break POST /api/cart/merge."
+            "Status: implemented\nAuth: none (public)\nNo OTP/PIN at checkout.\nBody: { phone, name?, paymentMethod?: \"COD\", items[{ productId, skuId, quantity }], address{ fullName, phone?, addressLine1, city, postalCode, ... } }.\nDelivery ZIP must be in the allowed NoVA/DC/South MD list. Finds/creates User by phone (guest registry). Response: order (placedAsGuest, matchedExistingAccount, risk), smsAlert, customer { hasPin, postOrderCta: register|login }.\nRate limit: >10 orders/hour → 429 code ORDER_PHONE_BLOCKED + blockedUntil + try-again message.\nDoes not clear authenticated server cart / does not break POST /api/cart/merge."
         }),
         req("Create order", "POST", "/api/orders", {
           auth: "customer",

@@ -2,7 +2,8 @@ const crypto = require("crypto");
 
 const prisma = require("../../config/prisma");
 const { sendSms } = require("../../services/sms/sms.service");
-const { assertDeliveryPhone } = require("../../utils/phone");
+const { assertDeliveryZip } = require("../../utils/delivery-area");
+const { assertUsPhone } = require("../../utils/phone");
 const {
   getOrCreateCart,
   removeInvalidCartItems
@@ -74,6 +75,7 @@ function mapAddressSnapshot(address) {
     addressLine2: address.addressLine2,
     city: address.city,
     state: address.state,
+    postalCode: address.postalCode ?? null,
     country: address.country,
     latitude: address.latitude,
     longitude: address.longitude
@@ -285,7 +287,22 @@ function requireNonEmptyString(value, fieldName) {
 }
 
 function normalizeCheckoutPhone(phone) {
-  return assertDeliveryPhone(phone, createServiceError);
+  return assertUsPhone(phone, createServiceError);
+}
+
+function normalizeCheckoutPostalCode(postalCode) {
+  return assertDeliveryZip(postalCode, createServiceError);
+}
+
+function assertAddressReadyForDelivery(address) {
+  if (!address.postalCode || !String(address.postalCode).trim()) {
+    throw createServiceError(
+      "Update your delivery address with a ZIP code before checkout.",
+      400
+    );
+  }
+
+  normalizeCheckoutPostalCode(address.postalCode);
 }
 
 function parsePositiveInteger(value, fieldName) {
@@ -611,6 +628,8 @@ async function createOrderFromCart(userId, payload = {}) {
     throw createServiceError("Delivery address not found.", 404);
   }
 
+  assertAddressReadyForDelivery(address);
+
   let cart = await getOrCreateCart(userId);
   cart = await removeInvalidCartItems(cart);
 
@@ -733,6 +752,7 @@ async function createGuestOrder(payload = {}) {
     "addressLine1"
   );
   const city = requireNonEmptyString(addressPayload.city, "city");
+  const postalCode = normalizeCheckoutPostalCode(addressPayload.postalCode);
   const addressPhone = addressPayload.phone
     ? normalizeCheckoutPhone(addressPayload.phone)
     : phone;
@@ -752,7 +772,7 @@ async function createGuestOrder(payload = {}) {
   const country =
     typeof addressPayload.country === "string" && addressPayload.country.trim()
       ? addressPayload.country.trim()
-      : "Ethiopia";
+      : "United States";
   const latitude =
     addressPayload.latitude === undefined ||
     addressPayload.latitude === null ||
@@ -817,6 +837,7 @@ async function createGuestOrder(payload = {}) {
             addressLine2,
             city,
             state,
+            postalCode,
             country,
             latitude,
             longitude,

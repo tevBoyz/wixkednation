@@ -11,7 +11,7 @@ export function CheckoutOrderSummary() {
   const { items, subtotal } = useCart();
 
   return (
-    <aside className="h-fit rounded-lg border border-border p-4 lg:sticky lg:top-20">
+    <aside className="h-fit rounded-lg border border-border p-4">
       <h2 className="text-sm font-medium text-muted-foreground">
         Order summary
       </h2>

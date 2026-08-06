@@ -16,10 +16,18 @@ import { getErrorMessage } from "@/lib/api/errors";
 import type { Address } from "@/lib/api/types";
 
 function formatAddressLines(address: Address) {
+  const cityLine = [
+    address.city,
+    address.state,
+    address.postalCode,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
   return [
     address.addressLine1,
     address.addressLine2,
-    [address.city, address.state].filter(Boolean).join(", "),
+    cityLine,
     address.country,
   ].filter(Boolean);
 }
@@ -138,6 +146,9 @@ export function CheckoutAddressPicker({
                       {address.label?.trim() || address.fullName}
                     </p>
                     {address.isDefault ? <Badge>Default</Badge> : null}
+                    {!address.postalCode ? (
+                      <Badge variant="outline">ZIP required</Badge>
+                    ) : null}
                   </div>
                   {address.label?.trim() ? (
                     <p className="text-sm text-muted-foreground">

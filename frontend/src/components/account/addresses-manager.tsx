@@ -28,10 +28,14 @@ import type { Address } from "@/lib/api/types";
 export const addressesQueryKey = ["addresses", "me"] as const;
 
 function formatAddressLines(address: Address) {
+  const cityLine = [address.city, address.state, address.postalCode]
+    .filter(Boolean)
+    .join(", ");
+
   return [
     address.addressLine1,
     address.addressLine2,
-    [address.city, address.state].filter(Boolean).join(", "),
+    cityLine,
     address.country,
   ].filter(Boolean);
 }

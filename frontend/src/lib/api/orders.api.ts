@@ -34,6 +34,7 @@ export type GuestOrderAddressBody = {
   addressLine2?: string | null;
   city: string;
   state?: string | null;
+  postalCode: string;
   country?: string;
   label?: string | null;
 };

@@ -1,18 +1,5 @@
 /** Match backend `src/utils/phone.js` rules. */
 
-/** NANP area codes we deliver to: NoVA, DC, South / suburban Maryland. */
-export const DELIVERY_AREA_CODES = new Set([
-  "703",
-  "571",
-  "202",
-  "771",
-  "301",
-  "240",
-]);
-
-export const DELIVERY_AREA_MESSAGE =
-  "This area is not available for delivery. We currently deliver in Northern Virginia, Washington DC, and South Maryland.";
-
 export function normalizePhone(phone: string): string {
   if (!phone || typeof phone !== "string") {
     return "";
@@ -78,22 +65,39 @@ export function isValidAccessPhone(phone: string): boolean {
   return isValidUsPhone(phone) || isValidEthiopianPhone(phone);
 }
 
-export function getUsAreaCode(phone: string): string | null {
-  const normalized = normalizePhone(phone);
-  if (!normalized || !/^\+1\d{10}$/.test(normalized)) {
-    return null;
+/** Strip input to at most 10 US local digits. */
+export function stripToUsLocalDigits(input: string): string {
+  if (!input || typeof input !== "string") {
+    return "";
   }
-  return normalized.slice(2, 5);
+
+  let digits = input.replace(/\D/g, "");
+
+  if (digits.startsWith("1") && digits.length === 11) {
+    digits = digits.slice(1);
+  }
+
+  return digits.slice(0, 10);
 }
 
-export function isInDeliveryArea(phone: string): boolean {
-  const areaCode = getUsAreaCode(phone);
-  return Boolean(areaCode && DELIVERY_AREA_CODES.has(areaCode));
+/** Display/edit helper: +1XXXXXXXXXX → 10 local digits. */
+export function usLocalFromE164(phone: string): string {
+  const normalized = normalizePhone(phone);
+  if (/^\+1\d{10}$/.test(normalized)) {
+    return normalized.slice(2);
+  }
+
+  return stripToUsLocalDigits(phone);
 }
 
-/** Address / checkout phones: valid US number in a served area. */
-export function isValidDeliveryPhone(phone: string): boolean {
-  return isValidUsPhone(phone) && isInDeliveryArea(phone);
+/** Form submit helper: 10 local digits → +1XXXXXXXXXX. */
+export function toUsE164(localDigits: string): string {
+  const digits = stripToUsLocalDigits(localDigits);
+  if (digits.length !== 10) {
+    return "";
+  }
+
+  return `+1${digits}`;
 }
 
 /** `tel:` href for a normalized or raw phone. */

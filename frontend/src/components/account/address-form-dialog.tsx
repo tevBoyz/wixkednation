@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -16,31 +16,24 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  UsPhoneInput,
+  usPhoneLocalSchema,
+} from "@/components/ui/us-phone-input";
 import type { Address } from "@/lib/api/types";
 import type { AddressBody } from "@/lib/api/addresses.api";
-import {
-  DELIVERY_AREA_MESSAGE,
-  isInDeliveryArea,
-  isValidUsPhone,
-  normalizePhone,
-} from "@/lib/phone";
+import { zipCodeSchema } from "@/lib/delivery/zip-codes";
+import { normalizePhone, toUsE164, usLocalFromE164 } from "@/lib/phone";
 
 const addressSchema = z.object({
   label: z.string().max(80, "Label is too long"),
   fullName: z.string().trim().min(1, "Full name is required").max(120),
-  phone: z
-    .string()
-    .min(1, "Phone is required")
-    .refine((value) => isValidUsPhone(value), {
-      message: "Enter a valid US mobile (e.g. +17035551234 or 7035551234)",
-    })
-    .refine((value) => isInDeliveryArea(value), {
-      message: DELIVERY_AREA_MESSAGE,
-    }),
+  phone: usPhoneLocalSchema(),
   addressLine1: z.string().trim().min(1, "Address is required").max(200),
   addressLine2: z.string().max(200),
   city: z.string().trim().min(1, "City is required").max(120),
   state: z.string().max(120),
+  postalCode: zipCodeSchema(),
   country: z.string().trim().min(1, "Country is required").max(120),
   isDefault: z.boolean(),
 });
@@ -63,7 +56,8 @@ const emptyValues: AddressFormValues = {
   addressLine2: "",
   city: "",
   state: "",
-  country: "Ethiopia",
+  postalCode: "",
+  country: "United States",
   isDefault: false,
 };
 
@@ -78,6 +72,7 @@ export function AddressFormDialog({
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -95,12 +90,13 @@ export function AddressFormDialog({
       reset({
         label: address.label ?? "",
         fullName: address.fullName,
-        phone: address.phone,
+        phone: usLocalFromE164(address.phone),
         addressLine1: address.addressLine1,
         addressLine2: address.addressLine2 ?? "",
         city: address.city,
         state: address.state ?? "",
-        country: address.country || "Ethiopia",
+        postalCode: address.postalCode ?? "",
+        country: address.country || "United States",
         isDefault: Boolean(address.isDefault),
       });
       return;
@@ -113,12 +109,13 @@ export function AddressFormDialog({
     const body: AddressBody = {
       label: values.label.trim() || null,
       fullName: values.fullName.trim(),
-      phone: normalizePhone(values.phone),
+      phone: normalizePhone(toUsE164(values.phone)),
       addressLine1: values.addressLine1.trim(),
       addressLine2: values.addressLine2.trim() || null,
       city: values.city.trim(),
       state: values.state.trim() || null,
-      country: values.country.trim() || "Ethiopia",
+      postalCode: values.postalCode.trim(),
+      country: values.country.trim() || "United States",
       isDefault: values.isDefault,
     };
     await onSubmit(body);
@@ -171,26 +168,34 @@ export function AddressFormDialog({
 
           <div className="space-y-2">
             <Label htmlFor="address-phone">Phone</Label>
-            <Input
-              id="address-phone"
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              placeholder="+17035551234"
-              aria-invalid={Boolean(errors.phone)}
-              disabled={submitting}
-              {...register("phone")}
+            <Controller
+              control={control}
+              name="phone"
+              render={({ field }) => (
+                <UsPhoneInput
+                  id="address-phone"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  aria-invalid={Boolean(errors.phone)}
+                  disabled={submitting}
+                />
+              )}
             />
             {errors.phone ? (
               <p className="text-sm text-destructive">{errors.phone.message}</p>
-            ) : null}
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Enter your 10-digit US mobile number.
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="address-line1">Address line 1</Label>
             <Input
               id="address-line1"
-              autoComplete="address-line1"
+              autoComplete="street-address"
               aria-invalid={Boolean(errors.addressLine1)}
               disabled={submitting}
               {...register("addressLine1")}
@@ -227,7 +232,7 @@ export function AddressFormDialog({
               ) : null}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="address-state">State / region (optional)</Label>
+              <Label htmlFor="address-state">State (optional)</Label>
               <Input
                 id="address-state"
                 autoComplete="address-level1"
@@ -238,20 +243,29 @@ export function AddressFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="address-country">Country</Label>
+            <Label htmlFor="address-postalCode">ZIP code</Label>
             <Input
-              id="address-country"
-              autoComplete="country-name"
-              aria-invalid={Boolean(errors.country)}
+              id="address-postalCode"
+              inputMode="numeric"
+              autoComplete="postal-code"
+              placeholder="22201"
+              maxLength={10}
+              aria-invalid={Boolean(errors.postalCode)}
               disabled={submitting}
-              {...register("country")}
+              {...register("postalCode")}
             />
-            {errors.country ? (
+            {errors.postalCode ? (
               <p className="text-sm text-destructive">
-                {errors.country.message}
+                {errors.postalCode.message}
               </p>
-            ) : null}
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                We deliver in Northern Virginia, Washington DC, and South Maryland.
+              </p>
+            )}
           </div>
+
+          <input type="hidden" {...register("country")} />
 
           <label className="flex items-center gap-2 text-sm">
             <input

@@ -153,7 +153,8 @@ model Address {
   addressLine2 String?
   city         String
   state        String?
-  country      String  @default("Ethiopia")
+  postalCode   String?
+  country      String  @default("United States")
   latitude     Float?
   longitude    Float?
   isDefault    Boolean @default(false)

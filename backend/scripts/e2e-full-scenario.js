@@ -1174,7 +1174,8 @@ async function runScenario() {
         addressLine1: "1200 Wilson Blvd",
         city: "Arlington",
         state: "VA",
-        country: "US",
+        postalCode: "22201",
+        country: "United States",
         isDefault: true
       }
     },
@@ -1416,7 +1417,8 @@ async function runScenario() {
           addressLine1: "1200 Wilson Blvd",
           city: "Arlington",
           state: "VA",
-          country: "US"
+          postalCode: "22201",
+          country: "United States"
         }
       }
     },
@@ -1483,7 +1485,8 @@ async function runScenario() {
           addressLine1: "1200 Wilson Blvd",
           city: "Arlington",
           state: "VA",
-          country: "US"
+          postalCode: "22201",
+          country: "United States"
         }
       }
     }

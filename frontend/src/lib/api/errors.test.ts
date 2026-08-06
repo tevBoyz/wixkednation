@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   ApiError,
   getErrorMessage,
+  getOrderSubmitErrorMessage,
   isTechnicalErrorMessage,
   sanitizeUserFacingMessage,
 } from "@/lib/api/errors";
@@ -46,6 +47,31 @@ describe("sanitizeUserFacingMessage", () => {
     expect(
       sanitizeUserFacingMessage("Phone is required", "Request failed", 400),
     ).toBe("Phone is required");
+  });
+});
+
+describe("getOrderSubmitErrorMessage", () => {
+  it("returns delivery-area message from 400 ApiError body", () => {
+    const deliveryMessage =
+      "This ZIP code is outside our delivery area. We currently deliver in Northern Virginia, Washington DC, and South Maryland.";
+    const error = new ApiError("Request failed", {
+      status: 400,
+      body: { success: false, message: deliveryMessage },
+    });
+
+    expect(getOrderSubmitErrorMessage(error)).toBe(deliveryMessage);
+  });
+
+  it("falls back when 400 body message is technical", () => {
+    const error = new ApiError("Request failed", {
+      status: 400,
+      body: {
+        success: false,
+        message: "Invalid `prisma.order.create()` invocation",
+      },
+    });
+
+    expect(getOrderSubmitErrorMessage(error)).toBe("Could not place order");
   });
 });
 

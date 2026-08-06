@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  isInDeliveryArea,
   isValidAccessPhone,
-  isValidDeliveryPhone,
   isValidEthiopianPhone,
   isValidUsPhone,
   normalizePhone,
+  stripToUsLocalDigits,
+  toUsE164,
+  usLocalFromE164,
 } from "@/lib/phone";
 
 describe("normalizePhone", () => {
@@ -28,10 +29,23 @@ describe("normalizePhone", () => {
   });
 });
 
-describe("isValidUsPhone / access / delivery", () => {
-  it("accepts valid US numbers", () => {
+describe("US local digit helpers", () => {
+  it("strips formatting to 10 digits", () => {
+    expect(stripToUsLocalDigits("(703) 555-1234")).toBe("7035551234");
+    expect(stripToUsLocalDigits("+17035551234")).toBe("7035551234");
+  });
+
+  it("converts between local digits and E.164", () => {
+    expect(toUsE164("7035551234")).toBe("+17035551234");
+    expect(usLocalFromE164("+17035551234")).toBe("7035551234");
+  });
+});
+
+describe("isValidUsPhone / access", () => {
+  it("accepts valid US numbers from any area code", () => {
     expect(isValidUsPhone("+17035551234")).toBe(true);
     expect(isValidUsPhone("7035551234")).toBe(true);
+    expect(isValidUsPhone("+14696571013")).toBe(true);
     expect(isValidAccessPhone("+14696571013")).toBe(true);
   });
 
@@ -39,16 +53,5 @@ describe("isValidUsPhone / access / delivery", () => {
     expect(isValidEthiopianPhone("+251911676343")).toBe(true);
     expect(isValidAccessPhone("0911676343")).toBe(true);
     expect(isValidUsPhone("+251911676343")).toBe(false);
-    expect(isValidDeliveryPhone("+251911676343")).toBe(false);
-  });
-
-  it("enforces delivery area codes (NoVA, DC, South MD)", () => {
-    expect(isInDeliveryArea("+17035551234")).toBe(true);
-    expect(isInDeliveryArea("+15715551234")).toBe(true);
-    expect(isInDeliveryArea("+12025551234")).toBe(true);
-    expect(isInDeliveryArea("+13015551234")).toBe(true);
-    expect(isValidDeliveryPhone("+17035551234")).toBe(true);
-    expect(isInDeliveryArea("+14696571013")).toBe(false);
-    expect(isValidDeliveryPhone("+14696571013")).toBe(false);
   });
 });

@@ -133,6 +133,7 @@ export type Address = {
   addressLine2?: string | null;
   city: string;
   state?: string | null;
+  postalCode?: string | null;
   country: string;
   isDefault?: boolean;
 };
@@ -169,6 +170,7 @@ export type OrderAddressSnapshot = {
   addressLine2?: string | null;
   city: string;
   state?: string | null;
+  postalCode?: string | null;
   country: string;
 };
 

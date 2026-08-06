@@ -9,6 +9,7 @@ export type AddressBody = {
   addressLine2?: string | null;
   city: string;
   state?: string | null;
+  postalCode: string;
   country?: string;
   isDefault?: boolean;
 };

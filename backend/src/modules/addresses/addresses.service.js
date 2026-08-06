@@ -1,5 +1,6 @@
 const prisma = require("../../config/prisma");
-const { assertDeliveryPhone } = require("../../utils/phone");
+const { assertDeliveryZip } = require("../../utils/delivery-area");
+const { assertUsPhone } = require("../../utils/phone");
 
 function createServiceError(message, statusCode) {
   const error = new Error(message);
@@ -29,6 +30,7 @@ function mapAddress(address) {
     addressLine2: address.addressLine2,
     city: address.city,
     state: address.state,
+    postalCode: address.postalCode,
     country: address.country,
     latitude: address.latitude,
     longitude: address.longitude,
@@ -94,7 +96,11 @@ function parseOptionalCoordinate(value, fieldName) {
 }
 
 function normalizeAddressPhone(phone) {
-  return assertDeliveryPhone(phone, createServiceError);
+  return assertUsPhone(phone, createServiceError);
+}
+
+function normalizeAddressPostalCode(postalCode) {
+  return assertDeliveryZip(postalCode, createServiceError);
 }
 
 async function clearDefaultAddresses(userId, excludeId = null) {
@@ -163,6 +169,7 @@ async function createAddress(userId, payload = {}) {
   const phone = normalizeAddressPhone(payload.phone);
   const addressLine1 = requireNonEmptyString(payload.addressLine1, "addressLine1");
   const city = requireNonEmptyString(payload.city, "city");
+  const postalCode = normalizeAddressPostalCode(payload.postalCode);
 
   const label = parseOptionalString(payload.label);
   const addressLine2 = parseOptionalString(payload.addressLine2);
@@ -170,7 +177,7 @@ async function createAddress(userId, payload = {}) {
   const country =
     typeof payload.country === "string" && payload.country.trim()
       ? payload.country.trim()
-      : "Ethiopia";
+      : "United States";
   const latitude = parseOptionalCoordinate(payload.latitude, "latitude");
   const longitude = parseOptionalCoordinate(payload.longitude, "longitude");
   const isDefault = parseOptionalBoolean(payload.isDefault, "isDefault") ?? false;
@@ -189,6 +196,7 @@ async function createAddress(userId, payload = {}) {
       addressLine2: addressLine2 === undefined ? null : addressLine2,
       city,
       state: state === undefined ? null : state,
+      postalCode,
       country,
       latitude: latitude === undefined ? null : latitude,
       longitude: longitude === undefined ? null : longitude,
@@ -225,6 +233,10 @@ async function updateAddress(userId, addressId, payload = {}) {
 
   if (payload.city !== undefined) {
     data.city = requireNonEmptyString(payload.city, "city");
+  }
+
+  if (payload.postalCode !== undefined) {
+    data.postalCode = normalizeAddressPostalCode(payload.postalCode);
   }
 
   if (payload.state !== undefined) {
