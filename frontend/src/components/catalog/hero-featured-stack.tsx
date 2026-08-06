@@ -223,6 +223,7 @@ export function HeroFeaturedStack({ items, className }: HeroFeaturedStackProps) 
                 src={item.imageUrl}
                 alt={item.name}
                 className="size-full"
+                priority={stackIndex === 0 && index === 0}
               />
               <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/55 to-transparent px-3.5 pb-3.5 pt-14 sm:px-4 sm:pb-4 sm:pt-16">
                 <p
