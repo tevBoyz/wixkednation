@@ -8,7 +8,7 @@ import { phoneTelHref } from "@/lib/phone";
 /** Enough copies so the strip always fills wide viewports with no gap. */
 const MARQUEE_COPIES = 6;
 
-const OPEN_HOURS_LABEL = "Open from 10 AM to 10 PM";
+const OPEN_HOURS_LABEL = "Open from 10:00 AM to 10:00 PM";
 
 function BannerMessage({ phones }: { phones: { id: string; phone: string }[] }) {
   return (
