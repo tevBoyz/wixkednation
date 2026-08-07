@@ -2,7 +2,7 @@
 
 Source of truth for manual testing alongside `backend-postman-collection.json` (`npm run postman:generate`) and `npm run test:e2e`.
 
-**Total mounted routes: 78** (including `GET /`).
+**Total mounted routes: 82** (including `GET /`).
 
 Auth header where noted: `Authorization: Bearer <accessToken>`.
 
@@ -27,7 +27,7 @@ Auth header where noted: `Authorization: Bearer <accessToken>`.
 | POST | `/api/auth/otp/send` | none | `{ phone, purpose?: "register"\|"forgot_pin" }`. Register blocked (409) if PIN already set |
 | POST | `/api/auth/otp/verify` | none | `{ phone, otp, purpose? }` → `requiresPinSetup` + `setupToken` OR full tokens |
 | POST | `/api/auth/pin/set` | setup Bearer | `{ pin, confirmPin }` (4–6 digits) → full JWT |
-| POST | `/api/auth/pin/login` | none | `{ pin, phone? }` **or** `{ pin, email? }` → JWT. Default admin: `admin@gasnation.com` / `072326` |
+| POST | `/api/auth/pin/login` | none | `{ pin, phone? }` **or** `{ pin, email? }` → JWT. Ops admin: `admin@gasnation.com` / `072326`. Superadmin: `superadmin1@gasnationweed.com` / `199183` |
 | POST | `/api/auth/pin/change` | Bearer | `{ currentPin, newPin, confirmPin }` |
 | POST | `/api/auth/refresh` | none | Body `{ refreshToken }` |
 | POST | `/api/auth/logout` | none | Body `{ refreshToken }` |
@@ -35,9 +35,15 @@ Auth header where noted: `Authorization: Bearer <accessToken>`.
 | GET | `/api/auth/google/callback` | none | Redirects to frontend with handoff `code` |
 | POST | `/api/auth/exchange-code` | none | `{ code }` → setup token or full JWT depending on PIN |
 | GET | `/api/auth/me` | Bearer | Legacy shape: `{ success, message, user }` |
-| GET | `/api/auth/admin-check` | admin | |
+| GET | `/api/auth/admin-check` | staff | `admin` or `superadmin` |
 
 **Daily login:** phone or email + PIN (no OTP). OTP/Google only for new users and forgot-PIN.
+
+**Seeded staff:**
+- Ops admin: `admin@gasnation.com` / PIN `072326` (`SEED_ADMIN_*`) — role `admin`
+- Superadmins: `superadmin1@gasnationweed.com` + `superadmin2@gasnationweed.com` / PIN `199183` (`SEED_SUPERADMIN_*`)
+
+**Roles:** `customer` | `admin` | `superadmin`. Existing `/api/admin/*` accept **staff** (`admin` or `superadmin`). Team user management is **superadmin only**.
 
 ---
 
@@ -270,12 +276,23 @@ No Supabase Realtime. See `notification-polling.md`.
 
 ---
 
-## Admin dashboard (2) — admin JWT
+## Admin dashboard (2) — staff JWT
 
 | Method | Path | Notes |
 |--------|------|-------|
 | GET | `/api/admin/dashboard/stats` | Order/product/customer counts |
 | GET | `/api/admin/dashboard/recent-orders` | Query: `limit` (default 10, max 50) |
+
+---
+
+## Admin team (4) — superadmin JWT only
+
+| Method | Path | Notes |
+|--------|------|-------|
+| GET | `/api/admin/team` | List `admin` + `superadmin` (includes soft-disabled; `isDisabled`) |
+| POST | `/api/admin/team` | `{ email, pin, name? }` → creates `role: admin`; response `{ user, credentials: { email, pin } }` (PIN once) |
+| PATCH | `/api/admin/team/:userId` | `{ role?: "admin"\|"customer", restore?: true }` — demote or restore; no self; no promote to superadmin |
+| DELETE | `/api/admin/team/:userId` | Soft-disable (`deletedAt`); blocks login; cannot disable self or last active superadmin |
 
 ---
 

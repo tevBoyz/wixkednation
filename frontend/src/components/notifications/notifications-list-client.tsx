@@ -14,6 +14,7 @@ import {
   useNotificationMutations,
   useNotificationsInbox,
 } from "@/hooks/use-notifications";
+import { useAuthConfig } from "@/hooks/use-auth-config";
 import { getErrorMessage } from "@/lib/api/errors";
 import type { Notification } from "@/lib/api/types";
 
@@ -28,13 +29,26 @@ function formatNotificationDate(value?: string) {
   return format(date, "MMM d, yyyy · h:mm a");
 }
 
+function isDeliveredOrderNotification(notification: Notification): boolean {
+  if (notification.type && notification.type !== "order_status") {
+    return false;
+  }
+  const message = (notification.message || "").toLowerCase();
+  return message.includes("is now delivered");
+}
+
 function NotificationRow({
   notification,
   onOpen,
+  googleReviewUrl,
 }: {
   notification: Notification;
   onOpen: (id: string) => void;
+  googleReviewUrl?: string | null;
 }) {
+  const showReview =
+    Boolean(googleReviewUrl) && isDeliveredOrderNotification(notification);
+
   const body = (
     <>
       <div className="flex flex-wrap items-center gap-2">
@@ -85,6 +99,29 @@ function NotificationRow({
           </button>
         )}
       </div>
+      {showReview && googleReviewUrl ? (
+        <div className="flex flex-wrap gap-2">
+          <Button
+            render={
+              <a
+                href={googleReviewUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              />
+            }
+            nativeButton={false}
+            size="sm"
+            className="w-fit"
+            onClick={() => {
+              if (!notification.isRead) {
+                onOpen(notification.id);
+              }
+            }}
+          >
+            Leave a Google review
+          </Button>
+        </div>
+      ) : null}
     </li>
   );
 }
@@ -94,6 +131,7 @@ export function NotificationsListClient() {
   const queryClient = useQueryClient();
   const page = Math.max(1, Number.parseInt(searchParams.get("page") || "1", 10) || 1);
   const autoMarkedIds = useRef(new Set<string>());
+  const { data: authConfig } = useAuthConfig();
 
   const { data, isLoading, isError, error, refetch } = useNotificationsInbox(page);
   const { markRead, markAllRead } = useNotificationMutations();
@@ -175,6 +213,7 @@ export function NotificationsListClient() {
               key={notification.id}
               notification={notification}
               onOpen={handleOpenNotification}
+              googleReviewUrl={authConfig?.googleReviewUrl}
             />
           ))}
         </ul>

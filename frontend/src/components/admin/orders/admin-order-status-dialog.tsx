@@ -112,7 +112,8 @@ export function AdminOrderStatusDialog({
           <DialogDescription>
             {order.orderNumber || order.id.slice(0, 8)} is currently{" "}
             {formatOrderStatus(order.status).toLowerCase()}. Customers are
-            notified in-app only - no SMS is sent for status changes.
+            notified in-app and by email when an email is on file - SMS is not
+            sent for status changes.
           </DialogDescription>
         </DialogHeader>
 

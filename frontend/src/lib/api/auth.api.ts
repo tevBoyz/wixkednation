@@ -15,6 +15,16 @@ export type PinSetupPayload = {
 
 export type OtpPurpose = "register" | "forgot_pin";
 
+export type OtpChannel = "email" | "sms";
+
+export type AuthConfig = {
+  googleEnabled: boolean;
+  emailOtpEnabled: boolean;
+  smsOtpEnabled: boolean;
+  /** Public Google review URL when configured; null/omitted when unset. */
+  googleReviewUrl?: string | null;
+};
+
 export type AuthSessionOrPinSetup = AuthTokensPayload | PinSetupPayload;
 
 export function isPinSetupPayload(
@@ -75,24 +85,63 @@ export async function changePin(body: {
   });
 }
 
-export async function sendOtp(phone: string, purpose: OtpPurpose = "register") {
+export async function getAuthConfig() {
+  return apiData<AuthConfig>("/api/auth/config", {
+    method: "GET",
+    auth: false,
+  });
+}
+
+export async function sendOtp(
+  body:
+    | { email: string; purpose?: OtpPurpose; phone?: never }
+    | { phone: string; purpose?: OtpPurpose; email?: string }
+    | { email: string; phone: string; purpose?: OtpPurpose },
+) {
+  const purpose = body.purpose ?? "register";
   return apiRequest<ApiEnvelope<unknown>>("/api/auth/otp/send", {
     method: "POST",
     auth: false,
-    body: { phone, purpose },
+    body: {
+      purpose,
+      ...("email" in body && body.email ? { email: body.email } : {}),
+      ...("phone" in body && body.phone ? { phone: body.phone } : {}),
+    },
   });
 }
 
 export async function verifyOtp(
-  phone: string,
-  otp: string,
-  purpose: OtpPurpose = "register",
+  body: {
+    otp: string;
+    purpose?: OtpPurpose;
+    email?: string;
+    phone?: string;
+  },
 ) {
   return apiData<AuthSessionOrPinSetup>("/api/auth/otp/verify", {
     method: "POST",
     auth: false,
-    body: { phone, otp, purpose },
+    body: {
+      otp: body.otp,
+      purpose: body.purpose ?? "register",
+      ...(body.email ? { email: body.email } : {}),
+      ...(body.phone ? { phone: body.phone } : {}),
+    },
   });
+}
+
+/** @deprecated Use sendOtp({ phone, purpose }) */
+export async function sendOtpPhone(phone: string, purpose: OtpPurpose = "register") {
+  return sendOtp({ phone, purpose });
+}
+
+/** @deprecated Use verifyOtp({ phone, otp, purpose }) */
+export async function verifyOtpPhone(
+  phone: string,
+  otp: string,
+  purpose: OtpPurpose = "register",
+) {
+  return verifyOtp({ phone, otp, purpose });
 }
 
 export async function refreshTokens(refreshToken: string) {

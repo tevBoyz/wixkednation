@@ -27,6 +27,7 @@ import { pinLogin } from "@/lib/api/auth.api";
 import { ApiError, getErrorMessage } from "@/lib/api/errors";
 import { pinSchema } from "@/lib/auth/pin";
 import { clearAuthRedirect, POST_AUTH_HOME } from "@/lib/auth/redirect";
+import { useAuthConfig } from "@/hooks/use-auth-config";
 import { isValidUsPhone, normalizePhone, toUsE164, usLocalFromE164 } from "@/lib/phone";
 import { cn } from "@/lib/utils";
 
@@ -77,8 +78,10 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { setSession } = useAuth();
+  const { data: authConfig } = useAuthConfig();
+  const smsEnabled = Boolean(authConfig?.smsOtpEnabled);
   const [submitting, setSubmitting] = useState(false);
-  const [mode, setMode] = useState<"phone" | "email">("phone");
+  const [mode, setMode] = useState<"phone" | "email">("email");
 
   const {
     register,
@@ -89,7 +92,7 @@ function LoginForm() {
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      mode: "phone",
+      mode: "email",
       phone: "",
       email: "",
       pin: "",
@@ -97,16 +100,26 @@ function LoginForm() {
   });
 
   useEffect(() => {
+    if (!smsEnabled && mode === "phone") {
+      setMode("email");
+      setValue("mode", "email");
+    }
+  }, [smsEnabled, mode, setValue]);
+
+  useEffect(() => {
     const raw = searchParams.get("phone") || "";
     const phone = normalizePhone(raw);
-    if (phone && isValidUsPhone(phone)) {
+    if (phone && isValidUsPhone(phone) && smsEnabled) {
       setMode("phone");
       setValue("mode", "phone");
       setValue("phone", usLocalFromE164(phone), { shouldValidate: true });
     }
-  }, [searchParams, setValue]);
+  }, [searchParams, setValue, smsEnabled]);
 
   function selectMode(next: "phone" | "email") {
+    if (next === "phone" && !smsEnabled) {
+      return;
+    }
     setMode(next);
     setValue("mode", next, { shouldValidate: true });
   }
@@ -155,34 +168,37 @@ function LoginForm() {
       <CardHeader>
         <CardTitle>Sign in</CardTitle>
         <CardDescription>
-          Log in with your phone or email and PIN. New accounts use a one-time
-          code or Google first.
+          Log in with your email and PIN
+          {smsEnabled ? " (phone login available when SMS is enabled)" : ""}.
+          New accounts use email verification or Google first.
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
         <CardContent className="space-y-4">
-          <div className="flex gap-2" role="group" aria-label="Sign in with">
-            <Button
-              type="button"
-              variant={mode === "phone" ? "default" : "outline"}
-              className="flex-1"
-              disabled={submitting}
-              onClick={() => selectMode("phone")}
-            >
-              Phone
-            </Button>
-            <Button
-              type="button"
-              variant={mode === "email" ? "default" : "outline"}
-              className="flex-1"
-              disabled={submitting}
-              onClick={() => selectMode("email")}
-            >
-              Email
-            </Button>
-          </div>
+          {smsEnabled ? (
+            <div className="flex gap-2" role="group" aria-label="Sign in with">
+              <Button
+                type="button"
+                variant={mode === "email" ? "default" : "outline"}
+                className="flex-1"
+                disabled={submitting}
+                onClick={() => selectMode("email")}
+              >
+                Email
+              </Button>
+              <Button
+                type="button"
+                variant={mode === "phone" ? "default" : "outline"}
+                className="flex-1"
+                disabled={submitting}
+                onClick={() => selectMode("phone")}
+              >
+                Phone
+              </Button>
+            </div>
+          ) : null}
 
-          {mode === "phone" ? (
+          {mode === "phone" && smsEnabled ? (
             <div className="space-y-2">
               <Label htmlFor="login-phone">Phone number</Label>
               <Controller

@@ -12,7 +12,7 @@ export type PaginatedMeta = {
   totalPages?: number;
 };
 
-export type UserRole = "customer" | "admin" | string;
+export type UserRole = "customer" | "admin" | "superadmin" | string;
 
 export type AuthUser = {
   id: string;
@@ -342,6 +342,7 @@ export type Notification = {
   id: string;
   title?: string;
   message?: string;
+  type?: string | null;
   isRead: boolean;
   createdAt?: string;
   orderId?: string | null;

@@ -8,6 +8,7 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { GasNationLoader } from "@/components/brand/gasnation-loader";
 import { CheckoutAddressPicker } from "@/components/checkout/checkout-address-picker";
 import { CheckoutOrderSummary } from "@/components/checkout/checkout-order-summary";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -105,8 +106,8 @@ export function CheckoutPageClient() {
         paymentMethod: "COD",
       });
 
-      await refresh();
       router.replace(`/order-success/${order.id}`);
+      void refresh();
       router.refresh();
     } catch (error) {
       const message = getOrderSubmitErrorMessage(error);
@@ -159,9 +160,9 @@ export function CheckoutPageClient() {
         },
       });
 
-      guestClear();
       saveGuestOrderSnapshot(result);
       router.replace(`/order-success/${result.order.id}`);
+      guestClear();
       router.refresh();
     } catch (error) {
       const message = getOrderSubmitErrorMessage(error);
@@ -180,7 +181,7 @@ export function CheckoutPageClient() {
     );
   }
 
-  if (itemCount === 0) {
+  if (itemCount === 0 && !submitting) {
     return (
       <Container as="main" className="py-10">
         <h1>Checkout</h1>
@@ -203,6 +204,14 @@ export function CheckoutPageClient() {
     );
   }
 
+  const placingOrderOverlay = submitting ? (
+    <GasNationLoader
+      variant="fullscreen"
+      message="Placing your order…"
+      className="gn-loader-backdrop bg-background/95"
+    />
+  ) : null;
+
   const submitErrorBanner = submitErrorMessage ? (
     <div
       role="alert"
@@ -214,7 +223,9 @@ export function CheckoutPageClient() {
 
   if (isAuthenticated) {
     return (
-      <Container as="main" className="min-w-0 py-10">
+      <>
+        {placingOrderOverlay}
+        <Container as="main" className="min-w-0 py-10">
         <header className="max-w-2xl min-w-0">
           <h1>Checkout</h1>
           <p className="mt-2 text-muted-foreground">
@@ -285,11 +296,14 @@ export function CheckoutPageClient() {
           </div>
         </div>
       </Container>
+      </>
     );
   }
 
   return (
-    <Container as="main" className="min-w-0 py-10">
+    <>
+      {placingOrderOverlay}
+      <Container as="main" className="min-w-0 py-10">
       <header className="max-w-2xl min-w-0">
         <h1>Checkout</h1>
         <p className="mt-2 text-muted-foreground">
@@ -527,5 +541,6 @@ export function CheckoutPageClient() {
         </div>
       </form>
     </Container>
+    </>
   );
 }

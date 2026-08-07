@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { Container } from "@/components/layout/container";
 import { JsonLd } from "@/components/seo/json-ld";
+import { Button } from "@/components/ui/button";
 import { buildBreadcrumbJsonLd } from "@/lib/seo/json-ld";
 import { buildPageMetadata } from "@/lib/seo/site-metadata";
 
@@ -57,6 +59,24 @@ export default function AboutPage() {
                   not find mushrooms or psychedelic products in our menu.
                 </p>
               </div>
+            </div>
+
+            <div className="rounded-2xl border border-primary/20 bg-gradient-to-br from-[color-mix(in_srgb,#148547_10%,transparent)] to-background p-6 shadow-sm sm:p-7">
+              <h2 className="text-lg font-semibold tracking-tight text-foreground">
+                Where we deliver
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                Same-day delivery across Northern Virginia, Washington DC, and
+                South Maryland. Check the full list of cities and ZIP codes we
+                serve.
+              </p>
+              <Button
+                className="mt-4"
+                render={<Link href="/delivery" />}
+                nativeButton={false}
+              >
+                View delivery areas
+              </Button>
             </div>
 
             <div className="rounded-2xl border border-border/70 bg-background/80 p-5 shadow-sm backdrop-blur-sm sm:p-6">

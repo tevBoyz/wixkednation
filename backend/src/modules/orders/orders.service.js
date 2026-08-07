@@ -2,6 +2,10 @@ const crypto = require("crypto");
 
 const prisma = require("../../config/prisma");
 const { sendSms } = require("../../services/sms/sms.service");
+const {
+  sendAdminOrderEmail,
+  sendOrderStatusEmail
+} = require("../../services/email/email.service");
 const { assertDeliveryZip } = require("../../utils/delivery-area");
 const { assertUsPhone } = require("../../utils/phone");
 const {
@@ -499,6 +503,20 @@ async function getAdminPhoneNumbers() {
 }
 
 async function sendNewOrderAdminAlerts(order, risk = null) {
+  const riskPrefix = riskSmsPrefix(risk);
+  let smsAlert = {
+    attempted: 0,
+    sent: 0,
+    failed: 0,
+    results: []
+  };
+  let emailAlert = {
+    attempted: 0,
+    sent: 0,
+    failed: 0,
+    results: []
+  };
+
   try {
     const phones = await getAdminPhoneNumbers();
 
@@ -506,84 +524,146 @@ async function sendNewOrderAdminAlerts(order, risk = null) {
       console.warn(
         `[orders] No admin phone numbers configured for order ${order.orderNumber}.`
       );
-      return {
-        attempted: 0,
-        sent: 0,
-        failed: 0,
-        results: []
-      };
-    }
+    } else {
+      const message = `${riskPrefix}New COD order ${order.orderNumber}. Total: ${serializeDecimal(order.totalAmount)}. Status: Pending.`;
+      const results = [];
+      let sent = 0;
+      let failed = 0;
 
-    const message = `${riskSmsPrefix(risk)}New COD order ${order.orderNumber}. Total: ${serializeDecimal(order.totalAmount)} ETB. Status: Pending.`;
-    const results = [];
-    let sent = 0;
-    let failed = 0;
+      for (const phone of phones) {
+        try {
+          const result = await sendSms({
+            phone,
+            message,
+            purpose: "admin_new_order",
+            metadata: {
+              orderId: order.id,
+              orderNumber: order.orderNumber
+            }
+          });
 
-    for (const phone of phones) {
-      try {
-        const result = await sendSms({
-          phone,
-          message,
-          purpose: "admin_new_order",
-          metadata: {
-            orderId: order.id,
-            orderNumber: order.orderNumber
+          if (result.success) {
+            sent += 1;
+          } else {
+            failed += 1;
+            console.error(
+              `[orders] Admin SMS failed for ${phone} on order ${order.orderNumber}:`,
+              result.error || "unknown error"
+            );
           }
-        });
 
-        if (result.success) {
-          sent += 1;
-        } else {
+          results.push({
+            phone,
+            success: Boolean(result.success),
+            provider: result.provider || null,
+            smsLogId: result.smsLogId || null,
+            error: result.error || null
+          });
+        } catch (error) {
           failed += 1;
           console.error(
-            `[orders] Admin SMS failed for ${phone} on order ${order.orderNumber}:`,
-            result.error || "unknown error"
+            `[orders] Admin SMS exception for ${phone} on order ${order.orderNumber}:`,
+            error.message
           );
+
+          results.push({
+            phone,
+            success: false,
+            provider: null,
+            smsLogId: null,
+            error: error.message
+          });
         }
-
-        results.push({
-          phone,
-          success: Boolean(result.success),
-          provider: result.provider || null,
-          smsLogId: result.smsLogId || null,
-          error: result.error || null
-        });
-      } catch (error) {
-        failed += 1;
-        console.error(
-          `[orders] Admin SMS exception for ${phone} on order ${order.orderNumber}:`,
-          error.message
-        );
-
-        results.push({
-          phone,
-          success: false,
-          provider: null,
-          smsLogId: null,
-          error: error.message
-        });
       }
-    }
 
-    return {
-      attempted: phones.length,
-      sent,
-      failed,
-      results
-    };
+      smsAlert = {
+        attempted: phones.length,
+        sent,
+        failed,
+        results
+      };
+    }
   } catch (error) {
     console.error(
       `[orders] Admin SMS alert flow failed for order ${order.orderNumber}:`,
       error.message
     );
-
-    return {
+    smsAlert = {
       attempted: 0,
       sent: 0,
       failed: 0,
       results: [],
       error: error.message
     };
+  }
+
+  try {
+    emailAlert = await sendAdminOrderEmail({
+      order,
+      riskPrefix
+    });
+  } catch (error) {
+    console.error(
+      `[orders] Admin email alert flow failed for order ${order.orderNumber}:`,
+      error.message
+    );
+    emailAlert = {
+      attempted: 0,
+      sent: 0,
+      failed: 0,
+      results: [],
+      error: error.message
+    };
+  }
+
+  return { smsAlert, emailAlert };
+}
+
+async function notifyCustomerOrderStatusByEmail({
+  userId,
+  orderId,
+  orderNumber,
+  status,
+  title,
+  message
+}) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, deletedAt: true }
+    });
+
+    if (!user || user.deletedAt || !user.email) {
+      return { skipped: true, reason: "no_email" };
+    }
+
+    const result = await sendOrderStatusEmail({
+      to: user.email,
+      title,
+      message,
+      orderNumber,
+      status,
+      orderId
+    });
+
+    if (!result.success) {
+      console.error(
+        `[orders] Customer status email failed for order ${orderNumber}:`,
+        result.error || "unknown error"
+      );
+    }
+
+    return {
+      skipped: false,
+      success: Boolean(result.success),
+      error: result.error || null
+    };
+  } catch (error) {
+    console.error(
+      `[orders] Customer status email exception for order ${orderNumber}:`,
+      error.message
+    );
+    return { skipped: false, success: false, error: error.message };
   }
 }
 
@@ -700,17 +780,27 @@ async function createOrderFromCart(userId, payload = {}) {
     throw createServiceError("Failed to create order. Please try again.", 500);
   }
 
-  // SMS failure must not fail order creation.
+  // Alert failure must not fail order creation.
   let smsAlert;
+  let emailAlert;
 
   try {
-    smsAlert = await sendNewOrderAdminAlerts(order, risk);
+    const alerts = await sendNewOrderAdminAlerts(order, risk);
+    smsAlert = alerts.smsAlert;
+    emailAlert = alerts.emailAlert;
   } catch (error) {
     console.error(
-      `[orders] Unexpected admin SMS failure after creating ${order.orderNumber}:`,
+      `[orders] Unexpected admin alert failure after creating ${order.orderNumber}:`,
       error.message
     );
     smsAlert = {
+      attempted: 0,
+      sent: 0,
+      failed: 0,
+      results: [],
+      error: error.message
+    };
+    emailAlert = {
       attempted: 0,
       sent: 0,
       failed: 0,
@@ -724,7 +814,8 @@ async function createOrderFromCart(userId, payload = {}) {
       ...mapOrder(order),
       risk
     },
-    smsAlert
+    smsAlert,
+    emailAlert
   };
 }
 
@@ -889,15 +980,25 @@ async function createGuestOrder(payload = {}) {
   }
 
   let smsAlert;
+  let emailAlert;
 
   try {
-    smsAlert = await sendNewOrderAdminAlerts(order, risk);
+    const alerts = await sendNewOrderAdminAlerts(order, risk);
+    smsAlert = alerts.smsAlert;
+    emailAlert = alerts.emailAlert;
   } catch (error) {
     console.error(
-      `[orders] Unexpected admin SMS failure after guest order ${order.orderNumber}:`,
+      `[orders] Unexpected admin alert failure after guest order ${order.orderNumber}:`,
       error.message
     );
     smsAlert = {
+      attempted: 0,
+      sent: 0,
+      failed: 0,
+      results: [],
+      error: error.message
+    };
+    emailAlert = {
       attempted: 0,
       sent: 0,
       failed: 0,
@@ -912,6 +1013,7 @@ async function createGuestOrder(payload = {}) {
       risk
     },
     smsAlert,
+    emailAlert,
     customer: {
       id: user.id,
       phone: user.phone || phone,
@@ -1346,6 +1448,15 @@ async function cancelCustomerOrder(userId, orderId, payload = {}) {
     };
   });
 
+  await notifyCustomerOrderStatusByEmail({
+    userId,
+    orderId,
+    orderNumber: existing.orderNumber,
+    status: "Cancelled",
+    title: notificationCopy.title,
+    message: notificationCopy.message
+  });
+
   return {
     cancelledFromStatus,
     order: {
@@ -1478,6 +1589,15 @@ async function updateAdminOrderStatus(orderId, adminUserId, payload = {}) {
       history,
       notification
     };
+  });
+
+  await notifyCustomerOrderStatusByEmail({
+    userId: existing.userId,
+    orderId,
+    orderNumber: existing.orderNumber,
+    status: nextStatus,
+    title: notificationCopy.title,
+    message: notificationCopy.message
   });
 
   return {

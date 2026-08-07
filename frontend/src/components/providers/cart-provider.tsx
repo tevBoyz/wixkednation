@@ -33,7 +33,7 @@ import {
   toCartAmount,
 } from "@/lib/cart/totals";
 import { ensureGuestCartMerged } from "@/lib/cart/merge-guest-cart";
-import { isAdminRole } from "@/lib/auth/redirect";
+import { isStaffRole } from "@/lib/auth/redirect";
 import { useGuestCartStore } from "@/stores/guest-cart-store";
 
 function isCustomerCartForbidden(error: unknown): boolean {
@@ -175,7 +175,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [serverLoading, setServerLoading] = useState(false);
 
   /** Server cart is customer-only; admins keep using the local guest cart. */
-  const isServerCart = isAuthenticated && !isAdminRole(user?.role);
+  const isServerCart = isAuthenticated && !isStaffRole(user?.role);
 
   const refresh = useCallback(async () => {
     if (!isServerCart) {

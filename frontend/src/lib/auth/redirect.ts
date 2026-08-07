@@ -25,8 +25,17 @@ export function buildLoginHref(_returnPath?: string): string {
   return "/login";
 }
 
+export function isStaffRole(role: string | null | undefined): boolean {
+  return role === "admin" || role === "superadmin";
+}
+
+export function isSuperAdminRole(role: string | null | undefined): boolean {
+  return role === "superadmin";
+}
+
+/** @deprecated Prefer isStaffRole — includes admin and superadmin. */
 export function isAdminRole(role: string | null | undefined): boolean {
-  return role === "admin";
+  return isStaffRole(role);
 }
 
 const AUTH_REDIRECT_KEY = "gasnation_auth_redirect";

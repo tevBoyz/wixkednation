@@ -5,7 +5,8 @@ const adminMiddleware = require("../../middleware/admin.middleware");
 const pinSetupMiddleware = require("../../middleware/pinSetup.middleware");
 
 const {
-  sendPhoneOtp,
+  getConfig,
+  sendOtp,
   verifyOtp,
   setPin,
   pinLogin,
@@ -22,7 +23,9 @@ const {
 
 const router = express.Router();
 
-router.post("/otp/send", sendPhoneOtp);
+router.get("/config", getConfig);
+
+router.post("/otp/send", sendOtp);
 
 router.post("/otp/verify", verifyOtp);
 

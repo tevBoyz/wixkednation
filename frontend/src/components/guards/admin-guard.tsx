@@ -7,7 +7,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { adminCheck } from "@/lib/api/auth.api";
 import {
   buildLoginHref,
-  isAdminRole,
+  isStaffRole,
 } from "@/lib/auth/redirect";
 
 type AdminGuardProps = {
@@ -15,9 +15,8 @@ type AdminGuardProps = {
 };
 
 /**
- * Requires an authenticated admin. Guests → login; customers → /forbidden.
- * Optionally verifies with GET /api/auth/admin-check.
- * After login, users land on the storefront (not back at /admin).
+ * Requires authenticated staff (admin or superadmin). Guests → login; others → /forbidden.
+ * Verifies with GET /api/auth/admin-check.
  */
 export function AdminGuard({ children }: AdminGuardProps) {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -35,7 +34,7 @@ export function AdminGuard({ children }: AdminGuardProps) {
       return;
     }
 
-    if (!isAdminRole(user?.role)) {
+    if (!isStaffRole(user?.role)) {
       router.replace("/forbidden");
       return;
     }
@@ -62,7 +61,7 @@ export function AdminGuard({ children }: AdminGuardProps) {
     };
   }, [isAuthenticated, isLoading, pathname, router, user?.role]);
 
-  if (isLoading || (isAuthenticated && isAdminRole(user?.role) && !verified)) {
+  if (isLoading || (isAuthenticated && isStaffRole(user?.role) && !verified)) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center px-4">
         <p className="text-sm text-muted-foreground">Checking admin access…</p>
@@ -70,7 +69,7 @@ export function AdminGuard({ children }: AdminGuardProps) {
     );
   }
 
-  if (!isAuthenticated || !isAdminRole(user?.role) || !verified) {
+  if (!isAuthenticated || !isStaffRole(user?.role) || !verified) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center px-4">
         <p className="text-sm text-muted-foreground">Redirecting…</p>

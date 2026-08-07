@@ -15,7 +15,7 @@ import { GasNationLogo } from "@/components/brand/gasnation-logo";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useCart } from "@/components/providers/cart-provider";
 import { Button } from "@/components/ui/button";
-import { isAdminRole } from "@/lib/auth/redirect";
+import { isStaffRole } from "@/lib/auth/redirect";
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -95,7 +95,7 @@ export function SiteHeader() {
                 >
                   Account
                 </DropdownMenuItem>
-                {isAdminRole(user?.role) ? (
+                {isStaffRole(user?.role) ? (
                   <DropdownMenuItem
                     render={<Link href="/admin" className="cursor-pointer" />}
                   >

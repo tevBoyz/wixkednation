@@ -104,9 +104,13 @@ Auth header: `Authorization: Bearer <accessToken>` where noted.
 - `GET /api/auth/google/callback` — redirects to frontend with one-time `code` (not tokens)
 - `POST /api/auth/exchange-code` — `{ code }` → setup token or full JWT depending on PIN
 - `GET /api/auth/me` — Bearer; legacy `{ user }` shape
-- `GET /api/auth/admin-check` — admin Bearer
+- `GET /api/auth/admin-check` — staff Bearer (`admin` or `superadmin`)
 
-**Default admin (seed):** `admin@gasnation.com` / PIN `072326` (override via `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PIN`). Email+PIN only — no OTP/Google for admin daily login.
+**Roles:** `customer` | `admin` | `superadmin`. Existing `/api/admin/*` = staff (`admin` \| `superadmin`). `/api/admin/team` = superadmin only.
+
+**Seeded staff:**
+- Ops admin: `admin@gasnation.com` / PIN `072326` (`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PIN`) — role `admin`
+- Superadmins: `superadmin1@gasnationweed.com`, `superadmin2@gasnationweed.com` / PIN `199183` (`SEED_SUPERADMIN1_*` / `SEED_SUPERADMIN2_*` / `SEED_SUPERADMIN_PIN`)
 
 ### Store config (1)
 
@@ -205,12 +209,19 @@ Admin create/update: optional strain fields; `price` optional/null. Cart/order r
 
 - `GET /api/admin/media` — query: `page`, `limit`, `search`, `includeArchived`; flatten `Product.images`
 
-### Admin dashboard (2) — admin JWT
+### Admin dashboard (2) — staff JWT
 
 - `GET /api/admin/dashboard/stats`
 - `GET /api/admin/dashboard/recent-orders` — query: `limit` (default 10, max 50)
 
-### Admin customers (3) — admin JWT
+### Admin team (4) — superadmin JWT only
+
+- `GET /api/admin/team` — list admin + superadmin (includes soft-disabled)
+- `POST /api/admin/team` — `{ email, pin, name? }` → `role: admin` + one-time `credentials`
+- `PATCH /api/admin/team/:userId` — `{ role?: "admin"|"customer", restore?: true }`
+- `DELETE /api/admin/team/:userId` — soft-disable; cannot disable self or last active superadmin
+
+### Admin customers (3) — staff JWT
 
 - `GET /api/admin/customers` — paginated; search, reputation, orderCount
 - `GET /api/admin/customers/:id` — profile + reputation + 10 recent orders

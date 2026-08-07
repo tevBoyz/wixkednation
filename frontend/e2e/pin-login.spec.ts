@@ -22,9 +22,16 @@ test.describe("PIN login (optional)", () => {
     await page.goto("/login");
 
     if (email) {
-      await page.getByRole("button", { name: /^email$/i }).click();
+      const emailTab = page.getByRole("button", { name: /^email$/i });
+      if (await emailTab.isVisible().catch(() => false)) {
+        await emailTab.click();
+      }
       await page.getByLabel(/^email$/i).fill(email);
     } else {
+      const phoneTab = page.getByRole("button", { name: /^phone$/i });
+      if (await phoneTab.isVisible().catch(() => false)) {
+        await phoneTab.click();
+      }
       await page.getByLabel(/phone/i).fill(phone);
     }
 
@@ -40,21 +47,25 @@ test.describe("PIN login (optional)", () => {
 
 /**
  * Optional register OTP → setup PIN flow.
- * Requires SMS_PROVIDER=mock and E2E_OTP from backend console after send.
+ * Requires EMAIL_PROVIDER=mock (or smtp) and E2E_OTP from backend console after send.
+ * Prefer E2E_EMAIL; falls back to a generated test address.
  */
 const otp = process.env.E2E_OTP;
+const registerEmail =
+  process.env.E2E_REGISTER_EMAIL ||
+  `e2e-${Date.now()}@example.com`;
 
 test.describe("Register OTP (optional)", () => {
   test.skip(
     !otp,
-    "Set E2E_OTP (and optionally E2E_PHONE) to run register OTP E2E",
+    "Set E2E_OTP (and optionally E2E_REGISTER_EMAIL) to run register OTP E2E",
   );
 
-  test("starts register with phone OTP", async ({ page }) => {
+  test("starts register with email OTP", async ({ page }) => {
     await passAgeGate(page);
     await page.goto("/register");
-    await page.getByLabel(/phone/i).fill(phone);
-    await page.getByRole("button", { name: /send code/i }).click();
+    await page.getByLabel(/^email$/i).fill(registerEmail);
+    await page.getByRole("button", { name: /send email code|send code/i }).click();
 
     await page.waitForURL(/verify-otp/i, { timeout: 20_000 });
     await page.getByLabel(/code|otp/i).fill(otp!);

@@ -73,10 +73,10 @@ function GuestPostOrderCta({ snapshot }: { snapshot: GuestOrderSnapshot }) {
     return (
       <div className="mt-8 flex items-center justify-between gap-4 rounded-lg border border-border bg-muted/20 p-5 text-left">
         <p className="min-w-0 font-medium">
-          Create an account to track order, and more
+          Create an account with email or Google to track orders and more
         </p>
         <Button
-          render={<Link href={phoneQueryHref("/register", phone)} />}
+          render={<Link href="/register" />}
           nativeButton={false}
           className="shrink-0"
         >

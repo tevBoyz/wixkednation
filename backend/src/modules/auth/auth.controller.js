@@ -1,8 +1,13 @@
 const { normalizePhone, isValidAccessPhone } = require("../../utils/phone");
 const {
+  createAndSendEmailOtp,
   createAndSendPhoneOtp,
+  isValidEmail,
+  normalizeEmail,
+  verifyEmailOtp,
   verifyPhoneOtp
 } = require("../../services/auth/otp.service");
+const { getAuthConfig } = require("../../services/auth/auth-config.service");
 const {
   changePin,
   loginWithPin,
@@ -20,35 +25,116 @@ const {
   handleGoogleCallback
 } = require("../../services/auth/google.service");
 
-async function sendPhoneOtp(req, res, next) {
-  try {
-    const phone = normalizePhone(req.body.phone);
-    const purpose = req.body.purpose;
-
-    if (!phone) {
-      return res.status(400).json({
-        success: false,
-        message: "Phone number is required."
-      });
+function sendOtpSuccess(res, result) {
+  return res.status(200).json({
+    success: true,
+    message: "OTP sent successfully.",
+    data: {
+      expiresAt: result.expiresAt,
+      resendCooldownEnds: result.resendCooldownEnds,
+      channel: result.channel || null
     }
+  });
+}
 
-    if (!isValidAccessPhone(phone)) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Invalid phone number. Use a US number (e.g. +17035551234) or a test Ethiopian number (+2519… / +2517…)."
-      });
-    }
-
-    const result = await createAndSendPhoneOtp(phone, { purpose });
-
+function verifyOtpSuccess(res, result) {
+  if (result.requiresPinSetup) {
     return res.status(200).json({
       success: true,
-      message: "OTP sent successfully.",
+      message: "OTP verified. PIN setup required.",
       data: {
-        expiresAt: result.expiresAt,
-        resendCooldownEnds: result.resendCooldownEnds
+        requiresPinSetup: true,
+        setupToken: result.setupToken,
+        user: result.user
       }
+    });
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: "OTP verified successfully.",
+    data: {
+      requiresPinSetup: false,
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+      user: result.user
+    }
+  });
+}
+
+async function getConfig(req, res, next) {
+  try {
+    const data = await getAuthConfig();
+    return res.status(200).json({
+      success: true,
+      message: "Auth config fetched.",
+      data
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function sendOtp(req, res, next) {
+  try {
+    const purpose = req.body.purpose;
+    const email = normalizeEmail(req.body.email);
+    const phoneRaw = req.body.phone;
+    const phone = phoneRaw ? normalizePhone(phoneRaw) : null;
+
+    if (email && phone) {
+      // Register via SMS requires both; send goes to phone.
+      if (!isValidEmail(email)) {
+        return res.status(400).json({
+          success: false,
+          message: "A valid email address is required."
+        });
+      }
+
+      if (!isValidAccessPhone(phone)) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Invalid phone number. Use a US number (e.g. +17035551234) or a test Ethiopian number (+2519… / +2517…)."
+        });
+      }
+
+      const result = await createAndSendPhoneOtp(phone, { purpose, email });
+      return sendOtpSuccess(res, result);
+    }
+
+    if (email && !phone) {
+      if (!isValidEmail(email)) {
+        return res.status(400).json({
+          success: false,
+          message: "A valid email address is required."
+        });
+      }
+
+      const result = await createAndSendEmailOtp(email, { purpose });
+      return sendOtpSuccess(res, result);
+    }
+
+    if (phone && !email) {
+      if (!isValidAccessPhone(phone)) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Invalid phone number. Use a US number (e.g. +17035551234) or a test Ethiopian number (+2519… / +2517…)."
+        });
+      }
+
+      // Forgot-PIN via phone may omit email; register via phone requires email (enforced in service).
+      const result = await createAndSendPhoneOtp(phone, {
+        purpose,
+        email: null
+      });
+      return sendOtpSuccess(res, result);
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: "Provide email and/or phone to send an OTP."
     });
   } catch (error) {
     if (error.statusCode) {
@@ -62,54 +148,50 @@ async function sendPhoneOtp(req, res, next) {
   }
 }
 
+/** @deprecated Prefer sendOtp — kept as alias for older callers. */
+const sendPhoneOtp = sendOtp;
+
 async function verifyOtp(req, res, next) {
   try {
-    const phone = normalizePhone(req.body.phone);
-    const otp = req.body.otp;
     const purpose = req.body.purpose;
+    const otp = req.body.otp;
+    const email = normalizeEmail(req.body.email);
+    const phoneRaw = req.body.phone;
+    const phone = phoneRaw ? normalizePhone(phoneRaw) : null;
 
-    if (!phone) {
-      return res.status(400).json({
-        success: false,
-        message: "Phone number is required."
-      });
-    }
-
-    if (!isValidAccessPhone(phone)) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Invalid phone number. Use a US number (e.g. +17035551234) or a test Ethiopian number (+2519… / +2517…)."
-      });
-    }
-
-    const result = await verifyPhoneOtp({
-      phone,
-      otp,
-      purpose
-    });
-
-    if (result.requiresPinSetup) {
-      return res.status(200).json({
-        success: true,
-        message: "OTP verified. PIN setup required.",
-        data: {
-          requiresPinSetup: true,
-          setupToken: result.setupToken,
-          user: result.user
-        }
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "OTP verified successfully.",
-      data: {
-        requiresPinSetup: false,
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
-        user: result.user
+    if (email && !phone) {
+      if (!isValidEmail(email)) {
+        return res.status(400).json({
+          success: false,
+          message: "A valid email address is required."
+        });
       }
+
+      const result = await verifyEmailOtp({ email, otp, purpose });
+      return verifyOtpSuccess(res, result);
+    }
+
+    if (phone) {
+      if (!isValidAccessPhone(phone)) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Invalid phone number. Use a US number (e.g. +17035551234) or a test Ethiopian number (+2519… / +2517…)."
+        });
+      }
+
+      const result = await verifyPhoneOtp({
+        phone,
+        otp,
+        purpose,
+        email
+      });
+      return verifyOtpSuccess(res, result);
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: "Provide email or phone to verify an OTP."
     });
   } catch (error) {
     if (error.statusCode) {
@@ -403,6 +485,8 @@ async function adminCheck(req, res) {
 }
 
 module.exports = {
+  getConfig,
+  sendOtp,
   sendPhoneOtp,
   verifyOtp,
   setPin,

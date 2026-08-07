@@ -5,6 +5,7 @@ import {
   PackageIcon,
   SettingsIcon,
   ShoppingBagIcon,
+  UserCogIcon,
   UsersIcon,
   type LucideIcon,
 } from "lucide-react";
@@ -15,6 +16,8 @@ export type AdminNavItem = {
   icon: LucideIcon;
   /** Exact match only (e.g. dashboard root). */
   exact?: boolean;
+  /** Only show for superadmin. */
+  superadminOnly?: boolean;
 };
 
 export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
@@ -48,6 +51,12 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/customers",
     label: "Customers",
     icon: UsersIcon,
+  },
+  {
+    href: "/admin/team",
+    label: "Team",
+    icon: UserCogIcon,
+    superadminOnly: true,
   },
   {
     href: "/admin/settings",

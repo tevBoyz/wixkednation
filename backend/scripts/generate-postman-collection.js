@@ -100,7 +100,10 @@ const collection = {
     { key: "ageGateToken", value: "" },
     { key: "setupToken", value: "" },
     { key: "adminEmail", value: "admin@gasnation.com" },
-    { key: "adminPin", value: "072326" }
+    { key: "adminPin", value: "072326" },
+    { key: "superadminEmail", value: "superadmin1@gasnationweed.com" },
+    { key: "superadminPin", value: "199183" },
+    { key: "teamUserId", value: "" }
   ],
   item: [
     {
@@ -135,15 +138,23 @@ const collection = {
     {
       name: "Auth",
       item: [
-        req("Send OTP", "POST", "/api/auth/otp/send", {
-          body: { phone: "{{customerPhone}}", purpose: "register" },
+        req("Auth config", "GET", "/api/auth/config", {
           description:
-            "Status: implemented\nAuth: none\nBody: { phone, purpose?: \"register\"|\"forgot_pin\" }.\npurpose register (default): 409 if account already has a PIN.\npurpose forgot_pin: allowed when PIN exists.\nMock OTP: [otp-dev] phone=+251... otp=123456"
+            "Status: implemented\nAuth: none\nReturns data: { googleEnabled, emailOtpEnabled, smsOtpEnabled }."
+        }),
+        req("Send OTP", "POST", "/api/auth/otp/send", {
+          body: { email: "customer@example.com", purpose: "register" },
+          description:
+            "Status: implemented\nAuth: none\nBody: { email, purpose? } for email OTP; { phone, email, purpose? } for SMS register (Twilio); { phone, purpose: forgot_pin } when SMS enabled.\nPhone OTP rejected when SMS provider is mock.\nMock: [otp-dev] email=... otp=..."
         }),
         req("Verify OTP", "POST", "/api/auth/otp/verify", {
-          body: { phone: "{{customerPhone}}", otp: "{{otpCode}}", purpose: "register" },
+          body: {
+            email: "customer@example.com",
+            otp: "{{otpCode}}",
+            purpose: "register"
+          },
           description:
-            "Status: implemented\nAuth: none\nBody field is `otp` (not `code`).\nIf PIN missing or purpose=forgot_pin → data.requiresPinSetup + setupToken (no full session yet).\nOtherwise returns accessToken + refreshToken."
+            "Status: implemented\nAuth: none\nBody: { email|phone, otp, purpose? }. Phone register may include email.\nIf PIN missing or purpose=forgot_pin → setupToken; else access+refresh tokens."
         }),
         req("Set PIN", "POST", "/api/auth/pin/set", {
           auth: "bearer",
@@ -154,7 +165,12 @@ const collection = {
         req("PIN login", "POST", "/api/auth/pin/login", {
           body: { email: "{{adminEmail}}", pin: "{{adminPin}}" },
           description:
-            "Status: implemented\nAuth: none\nBody: { pin, phone? } OR { pin, email? } (exactly one identifier).\nDefault admin: admin@gasnation.com / 072326.\nNo OTP required."
+            "Status: implemented\nAuth: none\nBody: { pin, phone? } OR { pin, email? } (exactly one identifier).\nOps admin seed: admin@gasnation.com / 072326.\nSuperadmin seed: superadmin1@gasnationweed.com / 199183.\nNo OTP required."
+        }),
+        req("PIN login (superadmin)", "POST", "/api/auth/pin/login", {
+          body: { email: "{{superadminEmail}}", pin: "{{superadminPin}}" },
+          description:
+            "Status: implemented\nAuth: none\nLogin as seeded superadmin for /api/admin/team."
         }),
         req("Change PIN", "POST", "/api/auth/pin/change", {
           auth: "bearer",
@@ -194,7 +210,39 @@ const collection = {
         }),
         req("Admin check", "GET", "/api/auth/admin-check", {
           auth: "admin",
-          description: "Status: implemented\nAuth: admin Bearer JWT"
+          description:
+            "Status: implemented\nAuth: staff Bearer JWT (role admin or superadmin)"
+        })
+      ]
+    },
+    {
+      name: "Admin Team",
+      item: [
+        req("List team", "GET", "/api/admin/team", {
+          auth: "admin",
+          description:
+            "Status: implemented\nAuth: superadmin Bearer JWT only.\nLists admin + superadmin users (includes soft-disabled with isDisabled)."
+        }),
+        req("Create admin", "POST", "/api/admin/team", {
+          auth: "admin",
+          body: {
+            email: "newadmin@example.com",
+            pin: "654321",
+            name: "Ops Admin"
+          },
+          description:
+            "Status: implemented\nAuth: superadmin Bearer JWT only.\nBody: { email, pin, name? }. Creates role=admin.\nResponse data: { user, credentials: { email, pin } } — PIN returned once."
+        }),
+        req("Patch team member", "PATCH", "/api/admin/team/{{teamUserId}}", {
+          auth: "admin",
+          body: { restore: true },
+          description:
+            "Status: implemented\nAuth: superadmin Bearer JWT only.\nBody: { role?: \"admin\"|\"customer\", restore?: true }.\nCannot act on self; cannot promote to superadmin."
+        }),
+        req("Disable team member", "DELETE", "/api/admin/team/{{teamUserId}}", {
+          auth: "admin",
+          description:
+            "Status: implemented\nAuth: superadmin Bearer JWT only.\nSoft-deletes (deletedAt). Blocks login. Cannot disable last active superadmin or self."
         })
       ]
     },

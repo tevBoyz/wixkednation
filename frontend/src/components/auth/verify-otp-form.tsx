@@ -33,6 +33,7 @@ import { setSetupToken } from "@/lib/auth/setup-token-storage";
 import { isValidAccessPhone, normalizePhone } from "@/lib/phone";
 
 const RESEND_COOLDOWN_SECONDS = 60;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const otpSchema = z.object({
   otp: z
@@ -54,7 +55,22 @@ function VerifyOtpForm() {
 
   const rawPhone = searchParams.get("phone") || "";
   const phone = normalizePhone(rawPhone);
+  const email = (searchParams.get("email") || "").trim().toLowerCase();
+  const channelParam = searchParams.get("channel");
   const purpose = parsePurpose(searchParams.get("purpose"));
+  const channel =
+    channelParam === "sms" || (phone && isValidAccessPhone(phone) && !email)
+      ? "sms"
+      : channelParam === "email" || EMAIL_REGEX.test(email)
+        ? "email"
+        : phone && isValidAccessPhone(phone)
+          ? "sms"
+          : "email";
+
+  const hasEmail = EMAIL_REGEX.test(email);
+  const hasPhone = Boolean(phone && isValidAccessPhone(phone));
+  const isValidTarget =
+    channel === "email" ? hasEmail : hasPhone;
 
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
@@ -81,11 +97,11 @@ function VerifyOtpForm() {
     return () => window.clearInterval(id);
   }, [cooldown]);
 
-  if (!phone || !isValidAccessPhone(phone)) {
+  if (!isValidTarget) {
     return (
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Missing phone number</CardTitle>
+          <CardTitle>Missing contact details</CardTitle>
           <CardDescription>
             Start again so we know where to send the code.
           </CardDescription>
@@ -106,10 +122,20 @@ function VerifyOtpForm() {
     );
   }
 
+  const destinationLabel = channel === "email" ? email : phone;
+
   async function onSubmit(values: OtpFormValues) {
     setSubmitting(true);
     try {
-      const result = await verifyOtp(phone, values.otp, purpose);
+      const result =
+        channel === "email"
+          ? await verifyOtp({ email, otp: values.otp, purpose })
+          : await verifyOtp({
+              phone,
+              email: hasEmail ? email : undefined,
+              otp: values.otp,
+              purpose,
+            });
 
       if (isPinSetupPayload(result)) {
         setSetupToken(result.setupToken);
@@ -147,9 +173,17 @@ function VerifyOtpForm() {
 
     setResending(true);
     try {
-      await sendOtp(phone, purpose);
+      if (channel === "email") {
+        await sendOtp({ email, purpose });
+      } else {
+        await sendOtp({
+          phone,
+          ...(hasEmail ? { email } : {}),
+          purpose,
+        });
+      }
       setCooldown(RESEND_COOLDOWN_SECONDS);
-      toast.success("A new code was sent if the number is valid.");
+      toast.success("A new code was sent if the details are valid.");
     } catch (error) {
       toast.error(getErrorMessage(error, "Could not resend code"));
     } finally {
@@ -165,7 +199,7 @@ function VerifyOtpForm() {
         <CardTitle>Enter verification code</CardTitle>
         <CardDescription>
           We sent a 6-digit code to{" "}
-          <span className="font-medium text-foreground">{phone}</span>
+          <span className="font-medium text-foreground">{destinationLabel}</span>
           {purpose === "forgot_pin" ? " to reset your PIN." : "."}
         </CardDescription>
       </CardHeader>
@@ -187,7 +221,7 @@ function VerifyOtpForm() {
               <p className="text-sm text-destructive">{errors.otp.message}</p>
             ) : (
               <p className="text-xs text-muted-foreground">
-                With mock SMS, read the code from the backend console{" "}
+                In development, read the code from the backend console{" "}
                 <code className="rounded bg-muted px-1">[otp-dev]</code>.
               </p>
             )}
@@ -214,7 +248,7 @@ function VerifyOtpForm() {
             nativeButton={false}
             variant="ghost"
           >
-            Change number
+            {channel === "email" ? "Change email" : "Change number"}
           </Button>
         </CardFooter>
       </form>

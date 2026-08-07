@@ -97,6 +97,18 @@
     {
       "key": "adminPin",
       "value": "072326"
+    },
+    {
+      "key": "superadminEmail",
+      "value": "superadmin1@gasnationweed.com"
+    },
+    {
+      "key": "superadminPin",
+      "value": "199183"
+    },
+    {
+      "key": "teamUserId",
+      "value": ""
     }
   ],
   "item": [
@@ -265,6 +277,25 @@
       "name": "Auth",
       "item": [
         {
+          "name": "Auth config",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Status: implemented\nAuth: none\nReturns data: { googleEnabled, emailOtpEnabled, smsOtpEnabled }.",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/config",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "config"
+              ]
+            }
+          }
+        },
+        {
           "name": "Send OTP",
           "request": {
             "method": "POST",
@@ -274,7 +305,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Status: implemented\nAuth: none\nBody: { phone, purpose?: \"register\"|\"forgot_pin\" }.\npurpose register (default): 409 if account already has a PIN.\npurpose forgot_pin: allowed when PIN exists.\nMock OTP: [otp-dev] phone=+251... otp=123456",
+            "description": "Status: implemented\nAuth: none\nBody: { email, purpose? } for email OTP; { phone, email, purpose? } for SMS register (Twilio); { phone, purpose: forgot_pin } when SMS enabled.\nPhone OTP rejected when SMS provider is mock.\nMock: [otp-dev] email=... otp=...",
             "url": {
               "raw": "{{baseUrl}}/api/auth/otp/send",
               "host": [
@@ -289,7 +320,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone\": \"{{customerPhone}}\",\n  \"purpose\": \"register\"\n}",
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"purpose\": \"register\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -308,7 +339,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Status: implemented\nAuth: none\nBody field is `otp` (not `code`).\nIf PIN missing or purpose=forgot_pin → data.requiresPinSetup + setupToken (no full session yet).\nOtherwise returns accessToken + refreshToken.",
+            "description": "Status: implemented\nAuth: none\nBody: { email|phone, otp, purpose? }. Phone register may include email.\nIf PIN missing or purpose=forgot_pin → setupToken; else access+refresh tokens.",
             "url": {
               "raw": "{{baseUrl}}/api/auth/otp/verify",
               "host": [
@@ -323,7 +354,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone\": \"{{customerPhone}}\",\n  \"otp\": \"{{otpCode}}\",\n  \"purpose\": \"register\"\n}",
+              "raw": "{\n  \"email\": \"customer@example.com\",\n  \"otp\": \"{{otpCode}}\",\n  \"purpose\": \"register\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -380,7 +411,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Status: implemented\nAuth: none\nBody: { pin, phone? } OR { pin, email? } (exactly one identifier).\nDefault admin: admin@gasnation.com / 072326.\nNo OTP required.",
+            "description": "Status: implemented\nAuth: none\nBody: { pin, phone? } OR { pin, email? } (exactly one identifier).\nOps admin seed: admin@gasnation.com / 072326.\nSuperadmin seed: superadmin1@gasnationweed.com / 199183.\nNo OTP required.",
             "url": {
               "raw": "{{baseUrl}}/api/auth/pin/login",
               "host": [
@@ -396,6 +427,40 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"pin\": \"{{adminPin}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PIN login (superadmin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Status: implemented\nAuth: none\nLogin as seeded superadmin for /api/admin/team.",
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/pin/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "pin",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{superadminEmail}}\",\n  \"pin\": \"{{superadminPin}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -615,7 +680,7 @@
                 "value": "Bearer {{accessToken}}"
               }
             ],
-            "description": "Status: implemented\nAuth: admin Bearer JWT",
+            "description": "Status: implemented\nAuth: staff Bearer JWT (role admin or superadmin)",
             "url": {
               "raw": "{{baseUrl}}/api/auth/admin-check",
               "host": [
@@ -625,6 +690,135 @@
                 "api",
                 "auth",
                 "admin-check"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Team",
+      "item": [
+        {
+          "name": "List team",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Status: implemented\nAuth: superadmin Bearer JWT only.\nLists admin + superadmin users (includes soft-disabled with isDisabled).",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/team",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "team"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Status: implemented\nAuth: superadmin Bearer JWT only.\nBody: { email, pin, name? }. Creates role=admin.\nResponse data: { user, credentials: { email, pin } } — PIN returned once.",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/team",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "team"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newadmin@example.com\",\n  \"pin\": \"654321\",\n  \"name\": \"Ops Admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Patch team member",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Status: implemented\nAuth: superadmin Bearer JWT only.\nBody: { role?: \"admin\"|\"customer\", restore?: true }.\nCannot act on self; cannot promote to superadmin.",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/team/{{teamUserId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "team",
+                "{{teamUserId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restore\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Disable team member",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Status: implemented\nAuth: superadmin Bearer JWT only.\nSoft-deletes (deletedAt). Blocks login. Cannot disable last active superadmin or self.",
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/team/{{teamUserId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "team",
+                "{{teamUserId}}"
               ]
             }
           }
@@ -1575,7 +1769,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"label\": \"Home\",\n  \"fullName\": \"Test Customer\",\n  \"phone\": \"{{customerPhone}}\",\n  \"addressLine1\": \"Bole Road\",\n  \"city\": \"Addis Ababa\",\n  \"country\": \"ET\",\n  \"isDefault\": true\n}",
+              "raw": "{\n  \"label\": \"Home\",\n  \"fullName\": \"Test Customer\",\n  \"phone\": \"{{customerPhone}}\",\n  \"addressLine1\": \"1200 Wilson Blvd\",\n  \"city\": \"Arlington\",\n  \"state\": \"VA\",\n  \"postalCode\": \"22201\",\n  \"country\": \"United States\",\n  \"isDefault\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1664,7 +1858,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Status: implemented\nAuth: none (public)\nNo OTP/PIN at checkout.\nBody: { phone, name?, paymentMethod?: \"COD\", items[{ productId, skuId, quantity }], address{ fullName, phone?, addressLine1, city, ... } }.\nFinds/creates User by phone (guest registry). Response: order (placedAsGuest, matchedExistingAccount, risk), smsAlert, customer { hasPin, postOrderCta: register|login }.\nRate limit: >10 orders/hour → 429 code ORDER_PHONE_BLOCKED + blockedUntil + try-again message.\nDoes not clear authenticated server cart / does not break POST /api/cart/merge.",
+            "description": "Status: implemented\nAuth: none (public)\nNo OTP/PIN at checkout.\nBody: { phone, name?, paymentMethod?: \"COD\", items[{ productId, skuId, quantity }], address{ fullName, phone?, addressLine1, city, postalCode, ... } }.\nDelivery ZIP must be in the allowed NoVA/DC/South MD list. Finds/creates User by phone (guest registry). Response: order (placedAsGuest, matchedExistingAccount, risk), smsAlert, customer { hasPin, postOrderCta: register|login }.\nRate limit: >10 orders/hour → 429 code ORDER_PHONE_BLOCKED + blockedUntil + try-again message.\nDoes not clear authenticated server cart / does not break POST /api/cart/merge.",
             "url": {
               "raw": "{{baseUrl}}/api/orders/guest",
               "host": [
@@ -1678,7 +1872,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone\": \"{{guestPhone}}\",\n  \"name\": \"Guest Customer\",\n  \"paymentMethod\": \"COD\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"skuId\": \"{{skuId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"address\": {\n    \"fullName\": \"Guest Customer\",\n    \"phone\": \"{{guestPhone}}\",\n    \"addressLine1\": \"1200 Wilson Blvd\",\n    \"city\": \"Arlington\",\n    \"state\": \"VA\",\n    \"country\": \"US\"\n  }\n}",
+              "raw": "{\n  \"phone\": \"{{guestPhone}}\",\n  \"name\": \"Guest Customer\",\n  \"paymentMethod\": \"COD\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"skuId\": \"{{skuId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"address\": {\n    \"fullName\": \"Guest Customer\",\n    \"phone\": \"{{guestPhone}}\",\n    \"addressLine1\": \"1200 Wilson Blvd\",\n    \"city\": \"Arlington\",\n    \"state\": \"VA\",\n    \"postalCode\": \"22201\",\n    \"country\": \"United States\"\n  }\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2186,7 +2380,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"defaultMeasurementUnit\": \"pcs\",\n  \"defaultCurrency\": \"ETB\"\n}",
+              "raw": "{\n  \"defaultMeasurementUnit\": \"oz\",\n  \"defaultCurrency\": \"USD\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

@@ -19,6 +19,18 @@ async function main() {
       allowCustomerCancellation: adminSettings.allowCustomerCancellation,
       defaultMeasurementUnit: adminSettings.defaultMeasurementUnit
     },
+    superadmins: [
+      {
+        id: users.superadmin1.id,
+        email: users.superadmin1.email,
+        role: users.superadmin1.role
+      },
+      {
+        id: users.superadmin2.id,
+        email: users.superadmin2.email,
+        role: users.superadmin2.role
+      }
+    ],
     admin: {
       id: users.adminUser.id,
       supabaseUserId: users.adminUser.supabaseUserId,

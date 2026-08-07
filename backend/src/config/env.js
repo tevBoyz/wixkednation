@@ -95,6 +95,39 @@ const env = {
     callbackUrl: process.env.GOOGLE_CALLBACK_URL
   },
 
+  email: {
+    provider: (process.env.EMAIL_PROVIDER || "mock").toLowerCase().trim(),
+    smtpHost: process.env.SMTP_HOST || "smtp.gmail.com",
+    smtpPort: Number(process.env.SMTP_PORT || 465),
+    smtpSecure:
+      process.env.SMTP_SECURE === undefined
+        ? true
+        : String(process.env.SMTP_SECURE).toLowerCase() !== "false",
+    smtpUser: process.env.SMTP_USER || "",
+    // Google Workspace App Password for noreply@ (spaces optional).
+    smtpPass: (process.env.SMTP_PASS || "").replace(/\s+/g, ""),
+    from:
+      process.env.EMAIL_FROM ||
+      "GasNation <noreply@gasnationweed.com>",
+    logoUrl: process.env.EMAIL_LOGO_URL || "",
+    // Optional override for links in emails (defaults to FRONTEND_URL, never localhost)
+    appUrl: process.env.EMAIL_APP_URL || "",
+    adminOrderNotificationEmails: (
+      process.env.ADMIN_ORDER_NOTIFICATION_EMAILS ||
+      "orders@gasnationweed.com"
+    )
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean),
+    systemAlertEmails: (
+      process.env.SYSTEM_ALERT_EMAILS || "info@gasnationweed.com"
+    )
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean),
+    googleReviewUrl: (process.env.GOOGLE_REVIEW_URL || "").trim()
+  },
+
   otp: {
     expiresMinutes: Number(process.env.OTP_EXPIRES_MINUTES || 5),
     length: Number(process.env.OTP_LENGTH || 6),

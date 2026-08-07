@@ -75,12 +75,32 @@ function onServerChunk(chunk) {
   state.logBuffer += text;
   process.stdout.write(text.replace(/^/gm, "    [server] "));
 
-  const otpRe = /\[otp-dev\] phone=(\+?\d+) otp=(\d{4,8})/g;
+  const otpPhoneRe = /\[otp-dev\] phone=(\+?\d+) otp=(\d{4,8})/g;
   let match;
-  while ((match = otpRe.exec(text)) !== null) {
+  while ((match = otpPhoneRe.exec(text)) !== null) {
     state.otpEvents.push({
       phone: match[1],
+      email: null,
       otp: match[2],
+      at: Date.now()
+    });
+  }
+
+  const otpEmailRe = /\[otp-dev\] email=([^\s]+) otp=(\d{4,8})/g;
+  while ((match = otpEmailRe.exec(text)) !== null) {
+    state.otpEvents.push({
+      phone: null,
+      email: match[1].toLowerCase(),
+      otp: match[2],
+      at: Date.now()
+    });
+  }
+
+  const emailDevRe = /\[email-dev\] to=([^\s]+) subject=/g;
+  while ((match = emailDevRe.exec(text)) !== null) {
+    state.mockEmailEvents = state.mockEmailEvents || [];
+    state.mockEmailEvents.push({
+      to: match[1].toLowerCase(),
       at: Date.now()
     });
   }
@@ -99,18 +119,30 @@ async function sleep(ms) {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function waitForOtp(phone, sinceMs, timeoutMs = 15000) {
+async function waitForOtp({ phone, email } = {}, sinceMs, timeoutMs = 15000) {
   const started = Date.now();
+  const normalizedEmail = email ? String(email).trim().toLowerCase() : null;
   while (Date.now() - started < timeoutMs) {
-    const found = [...state.otpEvents]
-      .reverse()
-      .find((event) => event.phone === phone && event.at >= sinceMs);
+    const found = [...state.otpEvents].reverse().find((event) => {
+      if (event.at < sinceMs) {
+        return false;
+      }
+      if (normalizedEmail) {
+        return event.email === normalizedEmail;
+      }
+      if (phone) {
+        return event.phone === phone;
+      }
+      return false;
+    });
     if (found) {
       return found.otp;
     }
     await sleep(100);
   }
-  throw new Error(`Timed out waiting for [otp-dev] OTP for ${phone}`);
+  throw new Error(
+    `Timed out waiting for [otp-dev] OTP for ${normalizedEmail || phone}`
+  );
 }
 
 async function waitForMockSms({ phone, includes, sinceMs, timeoutMs = 15000 }) {
@@ -208,41 +240,77 @@ async function expectStatus(label, method, urlPath, expectedStatus, options = {}
   return result;
 }
 
-async function loginWithOtp(phone, { pin = "123456", purpose } = {}) {
+async function loginWithOtp(identifier, { pin = "123456", purpose, email, phone } = {}) {
   const since = Date.now();
-  const sendBody = { phone };
+  const targetEmail =
+    email ||
+    (typeof identifier === "string" && identifier.includes("@")
+      ? identifier.trim().toLowerCase()
+      : null);
+  const targetPhone =
+    phone ||
+    (typeof identifier === "string" && !identifier.includes("@")
+      ? identifier
+      : null);
+
+  const sendBody = {};
   if (purpose) {
     sendBody.purpose = purpose;
+  }
+  if (targetEmail && targetPhone && purpose !== "forgot_pin") {
+    sendBody.email = targetEmail;
+    sendBody.phone = targetPhone;
+  } else if (targetEmail) {
+    sendBody.email = targetEmail;
+  } else if (targetPhone) {
+    sendBody.phone = targetPhone;
   }
 
   const send = await request("POST", "/api/auth/otp/send", {
     body: sendBody
   });
   assert(
-    `OTP send ${phone}`,
+    `OTP send ${targetEmail || targetPhone}`,
     send.status === 200 && send.data?.success === true,
     JSON.stringify(send.data)?.slice(0, 200)
   );
 
-  const otp = await waitForOtp(phone, since);
-  note(`OTP captured from console for ${phone}`, true, otp);
+  const otp = await waitForOtp(
+    { email: targetEmail, phone: targetPhone },
+    since
+  );
+  note(
+    `OTP captured from console for ${targetEmail || targetPhone}`,
+    true,
+    otp
+  );
 
-  await waitForMockSms({
-    phone,
-    includes: "verification code",
-    sinceMs: since
-  }).catch(() => null);
+  if (targetPhone && !targetEmail) {
+    await waitForMockSms({
+      phone: targetPhone,
+      includes: "verification code",
+      sinceMs: since
+    }).catch(() => null);
+  }
 
-  const verifyBody = { phone, otp };
+  const verifyBody = { otp };
   if (purpose) {
     verifyBody.purpose = purpose;
+  }
+  if (targetEmail && targetPhone && purpose !== "forgot_pin") {
+    verifyBody.email = targetEmail;
+    verifyBody.phone = targetPhone;
+  } else if (targetEmail) {
+    verifyBody.email = targetEmail;
+  } else if (targetPhone) {
+    verifyBody.phone = targetPhone;
   }
 
   const verify = await request("POST", "/api/auth/otp/verify", {
     body: verifyBody
   });
   assert(
-    `OTP verify ${phone}`,
+    `OTP verify ${targetEmail || targetPhone}`,
     verify.status === 200 &&
       (Boolean(verify.data?.data?.setupToken) ||
         Boolean(verify.data?.data?.accessToken)),
@@ -255,7 +323,7 @@ async function loginWithOtp(phone, { pin = "123456", purpose } = {}) {
       body: { pin, confirmPin: pin }
     });
     assert(
-      `PIN set ${phone}`,
+      `PIN set ${targetEmail || targetPhone}`,
       setup.status === 200 && Boolean(setup.data?.data?.accessToken),
       JSON.stringify(setup.data)?.slice(0, 220)
     );
@@ -353,6 +421,7 @@ function startServer() {
         PORT,
         NODE_ENV: "development",
         SMS_PROVIDER: "mock",
+        EMAIL_PROVIDER: "mock",
         E2E_MODE: "1"
       },
       stdio: ["ignore", "pipe", "pipe"]
@@ -612,24 +681,38 @@ async function runScenario() {
     Boolean(res.data?.data?.connected)
   );
 
-  console.log("\n2) Auth (admin PIN + customer OTP → PIN setup)");
+  console.log("\n2) Auth (admin PIN + customer email OTP → PIN setup)");
   const adminEmail = process.env.SEED_ADMIN_EMAIL || "admin@gasnation.com";
   const adminPin = process.env.SEED_ADMIN_PIN || "072326";
   const admin = await loginWithPin({ email: adminEmail, pin: adminPin });
 
+  const customerEmail =
+    process.env.SEED_CUSTOMER_EMAIL || "customer@example.com";
   let customer;
   const existingPinLogin = await request("POST", "/api/auth/pin/login", {
-    body: { phone: customerPhone, pin: "123456" }
+    body: { email: customerEmail, pin: "123456" }
   });
   if (existingPinLogin.status === 200 && existingPinLogin.data?.data?.accessToken) {
-    note("Customer PIN login (existing)", true, customerPhone);
+    note("Customer PIN login (existing)", true, customerEmail);
     customer = {
       accessToken: existingPinLogin.data.data.accessToken,
       refreshToken: existingPinLogin.data.data.refreshToken,
       user: existingPinLogin.data.data.user
     };
   } else {
-    customer = await loginWithOtp(customerPhone, { pin: "123456" });
+    const phoneLogin = await request("POST", "/api/auth/pin/login", {
+      body: { phone: customerPhone, pin: "123456" }
+    });
+    if (phoneLogin.status === 200 && phoneLogin.data?.data?.accessToken) {
+      note("Customer PIN login (existing phone)", true, customerPhone);
+      customer = {
+        accessToken: phoneLogin.data.data.accessToken,
+        refreshToken: phoneLogin.data.data.refreshToken,
+        user: phoneLogin.data.data.user
+      };
+    } else {
+      customer = await loginWithOtp(customerEmail, { pin: "123456" });
+    }
   }
 
   await expectStatus(
@@ -637,7 +720,7 @@ async function runScenario() {
     "POST",
     "/api/auth/otp/send",
     409,
-    { body: { phone: customerPhone } }
+    { body: { email: customer.user?.email || customerEmail } }
   );
 
   await expectOk("GET /api/auth/me (admin)", "GET", "/api/auth/me", {
@@ -668,6 +751,135 @@ async function runScenario() {
     "/api/auth/admin-check",
     403,
     { token: customer.accessToken }
+  );
+
+  console.log("\n2b) Superadmin team management");
+  const superadminEmail =
+    process.env.SEED_SUPERADMIN1_EMAIL || "superadmin1@gasnationweed.com";
+  const superadminPin =
+    process.env.SEED_SUPERADMIN1_PIN ||
+    process.env.SEED_SUPERADMIN_PIN ||
+    "199183";
+  const superadmin = await loginWithPin({
+    email: superadminEmail,
+    pin: superadminPin
+  });
+  assert(
+    "Seeded superadmin role",
+    superadmin.user?.role === "superadmin",
+    JSON.stringify(superadmin.user)
+  );
+
+  await expectOk("GET /api/auth/admin-check (superadmin)", "GET", "/api/auth/admin-check", {
+    token: superadmin.accessToken
+  });
+
+  await expectStatus(
+    "Ops admin blocked from team list",
+    "GET",
+    "/api/admin/team",
+    403,
+    { token: admin.accessToken }
+  );
+
+  const teamList = await expectOk(
+    "GET /api/admin/team",
+    "GET",
+    "/api/admin/team",
+    { token: superadmin.accessToken },
+    (res) => Array.isArray(res.data?.data?.items)
+  );
+  assert(
+    "Team list includes superadmin",
+    teamList.data.data.items.some((u) => u.email === superadminEmail),
+    JSON.stringify(teamList.data.data.items?.map((u) => u.email))
+  );
+
+  const createdAdminEmail = `e2e-admin-${Date.now()}@example.com`;
+  const createdAdminPin = "654321";
+  const created = await expectOk(
+    "POST /api/admin/team create admin",
+    "POST",
+    "/api/admin/team",
+    {
+      token: superadmin.accessToken,
+      body: {
+        email: createdAdminEmail,
+        pin: createdAdminPin,
+        name: "E2E Created Admin"
+      }
+    },
+    (res) =>
+      res.data?.data?.user?.role === "admin" &&
+      res.data?.data?.credentials?.pin === createdAdminPin
+  );
+  const createdAdminId = created.data.data.user.id;
+
+  const createdAdmin = await loginWithPin({
+    email: createdAdminEmail,
+    pin: createdAdminPin
+  });
+  await expectOk(
+    "GET /api/auth/admin-check (created admin)",
+    "GET",
+    "/api/auth/admin-check",
+    { token: createdAdmin.accessToken }
+  );
+  await expectStatus(
+    "Created admin blocked from team",
+    "GET",
+    "/api/admin/team",
+    403,
+    { token: createdAdmin.accessToken }
+  );
+
+  await expectOk(
+    "DELETE /api/admin/team soft-disable",
+    "DELETE",
+    `/api/admin/team/${createdAdminId}`,
+    { token: superadmin.accessToken },
+    (res) => Boolean(res.data?.data?.deletedAt || res.data?.data?.isDisabled)
+  );
+
+  const disabledLogin = await request("POST", "/api/auth/pin/login", {
+    body: { email: createdAdminEmail, pin: createdAdminPin }
+  });
+  assert(
+    "Disabled admin cannot PIN login",
+    disabledLogin.status === 401 || disabledLogin.status === 403,
+    `status=${disabledLogin.status}`
+  );
+
+  await expectOk(
+    "PATCH /api/admin/team restore",
+    "PATCH",
+    `/api/admin/team/${createdAdminId}`,
+    {
+      token: superadmin.accessToken,
+      body: { restore: true }
+    },
+    (res) => res.data?.data?.isDisabled === false
+  );
+
+  const restoredLogin = await loginWithPin({
+    email: createdAdminEmail,
+    pin: createdAdminPin
+  });
+  assert(
+    "Restored admin can login",
+    restoredLogin.user?.role === "admin",
+    JSON.stringify(restoredLogin.user)
+  );
+
+  await expectOk(
+    "PATCH /api/admin/team demote to customer",
+    "PATCH",
+    `/api/admin/team/${createdAdminId}`,
+    {
+      token: superadmin.accessToken,
+      body: { role: "customer" }
+    },
+    (res) => res.data?.data?.role === "customer"
   );
 
   const refreshed = await expectOk("POST /api/auth/refresh", "POST", "/api/auth/refresh", {
