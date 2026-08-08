@@ -2,7 +2,7 @@
 
 Source of truth for manual testing alongside `backend-postman-collection.json` (`npm run postman:generate`) and `npm run test:e2e`.
 
-**Total mounted routes: 82** (including `GET /`).
+**Total mounted routes: 84+** (including `GET /`; see Postman for full list).
 
 Auth header where noted: `Authorization: Bearer <accessToken>`.
 
@@ -55,6 +55,15 @@ Auth header where noted: `Authorization: Bearer <accessToken>`.
 | POST | `/api/age-gate/block` | none | Body `{ accepted: false }` or `{ over21: false }` → `{ data: { blocked: true } }` |
 
 Backend does not enforce age gate on catalog routes yet (frontend UX owns gate for MVP).
+
+---
+
+## Analytics (1 public + 1 admin)
+
+| Method | Path | Auth | Notes |
+|--------|------|------|-------|
+| POST | `/api/analytics/collect` | none | Body `{ visitorId, sessionId, path, referrer?, landingPath?, utmSource?, utmMedium?, utmCampaign? }`. UUIDs required. Rejects `/admin/*`. IP hashed; geo via geoip-lite. Bots → 204. |
+| GET | `/api/admin/analytics` | staff | Query `from`, `to` (default last 7 days, max 90). Returns `totals`, `series`, `topPaths`, `topCountries`, `topSources`. |
 
 ---
 

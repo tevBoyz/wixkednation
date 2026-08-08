@@ -459,3 +459,44 @@ model OrderStatusHistory {
   @@index([changedBy])
   @@map("order_status_history")
 }
+
+model AnalyticsSession {
+  id            String   @id @db.Uuid
+  visitorId     String
+  landingPath   String
+  referrer      String?
+  utmSource     String?
+  utmMedium     String?
+  utmCampaign   String?
+  source        String
+  country       String?
+  region        String?
+  city          String?
+  ipHash        String?
+  userAgent     String?
+  startedAt     DateTime @default(now())
+  lastSeenAt    DateTime @default(now())
+  pageViewCount Int      @default(0)
+
+  pageViews AnalyticsPageView[]
+
+  @@index([visitorId])
+  @@index([startedAt])
+  @@index([source])
+  @@index([country])
+  @@map("analytics_sessions")
+}
+
+model AnalyticsPageView {
+  id        String   @id @default(uuid()) @db.Uuid
+  sessionId String   @db.Uuid
+  path      String
+  createdAt DateTime @default(now())
+
+  session AnalyticsSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([path])
+  @@index([createdAt])
+  @@map("analytics_page_views")
+}

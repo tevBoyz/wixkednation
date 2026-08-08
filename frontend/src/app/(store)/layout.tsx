@@ -3,6 +3,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { NavigationTrail } from "@/components/layout/navigation-trail";
 import { SkipLink } from "@/components/layout/skip-link";
+import { AnalyticsBeacon } from "@/components/analytics/analytics-beacon";
 
 export default function StoreLayout({
   children,
@@ -11,6 +12,7 @@ export default function StoreLayout({
 }) {
   return (
     <div className="flex min-h-dvh min-w-0 flex-col overflow-x-clip bg-transparent lg:overflow-x-visible">
+      <AnalyticsBeacon />
       <SkipLink />
       <NavigationTrail />
       <div className="sticky top-0 z-40">

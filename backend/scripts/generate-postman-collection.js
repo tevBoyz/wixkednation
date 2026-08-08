@@ -262,6 +262,29 @@ const collection = {
       ]
     },
     {
+      name: "Analytics",
+      item: [
+        req("Collect pageview", "POST", "/api/analytics/collect", {
+          body: {
+            visitorId: "11111111-1111-4111-8111-111111111111",
+            sessionId: "22222222-2222-4222-8222-222222222222",
+            path: "/",
+            referrer: "https://google.com/",
+            landingPath: "/",
+            utmSource: "google",
+            utmMedium: "organic"
+          },
+          description:
+            "Status: implemented\nAuth: none\nFirst-party pageview. Body: visitorId + sessionId (UUIDs), path required.\nRejects /admin paths. Hashes IP; geo via geoip-lite. Bots return 204."
+        }),
+        req("Admin analytics summary", "GET", "/api/admin/analytics", {
+          auth: "admin",
+          description:
+            "Status: implemented\nAuth: staff Bearer JWT\nQuery: from, to (ISO or YYYY-MM-DD; default last 7 days, max 90).\nReturns totals, daily series, topPaths, topCountries, topSources."
+        })
+      ]
+    },
+    {
       name: "Public Catalog",
       item: [
         req("List categories", "GET", "/api/categories", {

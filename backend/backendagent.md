@@ -121,6 +121,11 @@ Auth header: `Authorization: Bearer <accessToken>` where noted.
 - `POST /api/age-gate/verify` — body `{ accepted: true }` or `{ over21: true }` → `ageGateToken` in `data`
 - `POST /api/age-gate/block` — body `{ accepted: false }` or `{ over21: false }`
 
+### Analytics (1 public + 1 staff)
+
+- `POST /api/analytics/collect` — public; `{ visitorId, sessionId, path, referrer?, landingPath?, utm* }` — first-party pageviews (hashed IP + geoip-lite). Skips `/admin/*` and bots.
+- `GET /api/admin/analytics` — staff; query `from`/`to` → totals, daily series, top paths/countries/sources
+
 ### Users (2)
 
 - `GET /api/users/me` — Bearer; `{ data: { user } }`, no reputation
@@ -213,6 +218,10 @@ Admin create/update: optional strain fields; `price` optional/null. Cart/order r
 
 - `GET /api/admin/dashboard/stats`
 - `GET /api/admin/dashboard/recent-orders` — query: `limit` (default 10, max 50)
+
+### Admin analytics (1) — staff JWT
+
+- `GET /api/admin/analytics` — query `from`, `to` (default 7d)
 
 ### Admin team (4) — superadmin JWT only
 

@@ -25,10 +25,12 @@ const adminDashboardRoutes = require("./modules/admin/dashboard/dashboard.routes
 const adminMediaRoutes = require("./modules/admin/media/media.routes");
 const adminTeamRoutes = require("./modules/admin/team/team.routes");
 const adminBannersRoutes = require("./modules/admin/banners/banners.routes");
+const adminAnalyticsRoutes = require("./modules/admin/analytics/analytics.routes");
 const usersRoutes = require("./modules/users/users.routes");
 const notificationsRoutes = require("./modules/notifications/notifications.routes");
 const ageGateRoutes = require("./modules/age-gate/age-gate.routes");
 const storeRoutes = require("./modules/store/store.routes");
+const analyticsRoutes = require("./modules/analytics/analytics.routes");
 
 const notFoundHandler = require("./middleware/notFound.middleware");
 const errorHandler = require("./middleware/error.middleware");
@@ -76,9 +78,11 @@ app.use("/api/admin/dashboard", adminDashboardRoutes);
 app.use("/api/admin/media", adminMediaRoutes);
 app.use("/api/admin/team", adminTeamRoutes);
 app.use("/api/admin/banners", adminBannersRoutes);
+app.use("/api/admin/analytics", adminAnalyticsRoutes);
 app.use("/api/notifications", notificationsRoutes);
 app.use("/api/age-gate", ageGateRoutes);
 app.use("/api/store", storeRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 app.use("/api/assets", assetsRoutes);
 

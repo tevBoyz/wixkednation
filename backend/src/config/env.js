@@ -137,6 +137,13 @@ const env = {
 
   internalApiKey: process.env.INTERNAL_API_KEY,
 
+  analytics: {
+    ipSalt:
+      process.env.ANALYTICS_IP_SALT ||
+      getFirstDefinedEnvValue(["JWT_ACCESS_SECRET", "JWT_SECRET"]) ||
+      "dev-analytics-salt"
+  },
+
   // Legacy aliases kept temporarily to avoid breaking existing code during auth migration.
   jwtSecret: getFirstDefinedEnvValue(["JWT_ACCESS_SECRET", "JWT_SECRET"]),
   sessionSecret: getFirstDefinedEnvValue(["COOKIE_SECRET", "SESSION_SECRET"])

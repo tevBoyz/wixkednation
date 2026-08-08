@@ -19,3 +19,4 @@ export * from "@/lib/api/admin/dashboard.api";
 export * from "@/lib/api/admin/settings.api";
 export * from "@/lib/api/admin/sms.api";
 export * from "@/lib/api/admin/team.api";
+export * from "@/lib/api/admin/analytics.api";

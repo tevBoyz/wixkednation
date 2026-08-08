@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { toast } from "sonner";
 
 import { GasNationLogo } from "@/components/brand/gasnation-logo";
@@ -17,11 +17,16 @@ import {
 import { blockAgeGate, verifyAgeGate } from "@/lib/api/age-gate";
 import { getErrorMessage } from "@/lib/api/errors";
 import { persistAgeGateToken } from "@/lib/age-gate/storage";
+import { trackPageView } from "@/lib/analytics/track";
 
 function AgeGateForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [pending, setPending] = useState<"yes" | "no" | null>(null);
+
+  useEffect(() => {
+    void trackPageView({ path: "/age-gate" });
+  }, []);
 
   async function onYes() {
     setPending("yes");
