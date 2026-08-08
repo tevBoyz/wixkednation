@@ -232,6 +232,7 @@ model Product {
   category  Category     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   cartItems CartItem[]
   skus      ProductSku[]
+  promoBanners PromoBanner[]
 
   @@index([categoryId])
   @@index([isVisible])
@@ -254,10 +255,47 @@ model ProductSku {
 
   product   Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
   cartItems CartItem[]
+  promoBanners PromoBanner[]
 
   @@unique([productId, volume, measurementUnit])
   @@index([productId, sortOrder])
   @@map("product_skus")
+}
+
+model PromoBanner {
+  id       String @id @default(uuid()) @db.Uuid
+  title    String
+  subtitle String?
+
+  productId String @db.Uuid
+  skuId     String @db.Uuid
+
+  salePrice      Decimal @db.Decimal(10, 2)
+  compareAtPrice Decimal @db.Decimal(10, 2)
+
+  /// composed | uploaded
+  imageMode String  @default("composed")
+  imagePath String?
+
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+
+  startsAt DateTime?
+  endsAt   DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  product Product    @relation(fields: [productId], references: [id], onDelete: Restrict)
+  sku     ProductSku @relation(fields: [skuId], references: [id], onDelete: Restrict)
+
+  @@index([isActive])
+  @@index([deletedAt])
+  @@index([skuId])
+  @@index([sortOrder])
+  @@index([startsAt, endsAt])
+  @@map("promo_banners")
 }
 
 model Cart {

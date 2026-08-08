@@ -1,4 +1,5 @@
 const { getStoreConfig } = require("./store.service");
+const { listPublicActiveBanners } = require("../banners/banners.service");
 
 async function getConfig(req, res, next) {
   try {
@@ -21,6 +22,28 @@ async function getConfig(req, res, next) {
   }
 }
 
+async function listBanners(req, res, next) {
+  try {
+    const banners = await listPublicActiveBanners();
+
+    return res.status(200).json({
+      success: true,
+      message: "Store banners fetched successfully.",
+      data: { banners }
+    });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message
+      });
+    }
+
+    next(error);
+  }
+}
+
 module.exports = {
-  getConfig
+  getConfig,
+  listBanners
 };

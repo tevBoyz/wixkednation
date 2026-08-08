@@ -13,6 +13,10 @@ const {
   removeInvalidCartItems
 } = require("../cart/cart.service");
 const {
+  effectivePriceFromMap,
+  getActiveSalePricesBySkuIds
+} = require("../../services/promo/promo-pricing.service");
+const {
   applyCustomerCancelPenalty,
   applyDeliveryCredit,
   mapReputation
@@ -86,7 +90,7 @@ function mapAddressSnapshot(address) {
   };
 }
 
-function mapOrderItemSnapshot(cartItem) {
+function mapOrderItemSnapshot(cartItem, saleMap = new Map()) {
   const product = cartItem.product;
   const sku = cartItem.sku;
 
@@ -104,7 +108,17 @@ function mapOrderItemSnapshot(cartItem) {
     );
   }
 
-  const unitPrice = Number(sku.price);
+  const unitPrice = effectivePriceFromMap(
+    cartItem.skuId || sku.id,
+    sku.price,
+    saleMap
+  );
+  if (unitPrice == null) {
+    throw createServiceError(
+      `Selected pack is unavailable (${product?.name || "product"}).`,
+      400
+    );
+  }
   const quantity = cartItem.quantity;
   const lineTotal = (unitPrice * quantity).toFixed(2);
   const baseVolume =
@@ -460,18 +474,21 @@ async function buildGuestItemSnapshots(items) {
     const sku = await getPurchasableSkuForOrder(item.productId, item.skuId);
     const quantity = parsePositiveInteger(item.quantity, "quantity");
 
-    snapshots.push(
-      mapOrderItemSnapshot({
-        product,
-        sku,
-        quantity,
-        volume: Number(sku.volume).toFixed(2),
-        measurementUnit: sku.measurementUnit
-      })
-    );
+    snapshots.push({
+      product,
+      sku,
+      skuId: sku.id,
+      quantity,
+      volume: Number(sku.volume).toFixed(2),
+      measurementUnit: sku.measurementUnit
+    });
   }
 
-  return snapshots;
+  const saleMap = await getActiveSalePricesBySkuIds(
+    snapshots.map((row) => row.skuId)
+  );
+
+  return snapshots.map((row) => mapOrderItemSnapshot(row, saleMap));
 }
 
 async function getAdminPhoneNumbers() {
@@ -720,7 +737,12 @@ async function createOrderFromCart(userId, payload = {}) {
   const pendingOrderCount = await countPendingOrders(userId);
   const risk = buildRisk(user, pendingOrderCount);
 
-  const itemSnapshots = cart.items.map(mapOrderItemSnapshot);
+  const saleMap = await getActiveSalePricesBySkuIds(
+    cart.items.map((item) => item.skuId)
+  );
+  const itemSnapshots = cart.items.map((item) =>
+    mapOrderItemSnapshot(item, saleMap)
+  );
   const totalAmount = itemSnapshots
     .reduce((sum, item) => sum + Number(item.lineTotal), 0)
     .toFixed(2);

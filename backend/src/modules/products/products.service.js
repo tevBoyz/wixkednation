@@ -5,6 +5,10 @@ const {
   uploadProductImageBuffer
 } = require("../../services/storage/storage.service");
 const {
+  effectivePriceFromMap,
+  getActiveSalePricesBySkuIds
+} = require("../../services/promo/promo-pricing.service");
+const {
   resolveCategoryIdsIncludingDescendants
 } = require("../categories/categories.service");
 
@@ -117,6 +121,45 @@ function mapPublicProduct(product) {
     createdAt: product.createdAt,
     updatedAt: product.updatedAt
   };
+}
+
+async function applySalePricesToPublicProducts(mappedProducts) {
+  const skuIds = mappedProducts.flatMap((product) =>
+    (product.skus || []).map((sku) => sku.id)
+  );
+  const saleMap = await getActiveSalePricesBySkuIds(skuIds);
+
+  if (saleMap.size === 0) {
+    return mappedProducts;
+  }
+
+  return mappedProducts.map((product) => {
+    const skus = (product.skus || []).map((sku) => {
+      const sale = effectivePriceFromMap(sku.id, sku.price, saleMap);
+      if (sale == null || Number(sale) === Number(sku.price)) {
+        return sku;
+      }
+      return {
+        ...sku,
+        listPrice: sku.price,
+        price: Number(sale).toFixed(2)
+      };
+    });
+
+    let price = product.price;
+    if (skus.length > 0) {
+      const primary = skus[0];
+      if (primary?.price != null) {
+        price = primary.price;
+      }
+    }
+
+    return {
+      ...product,
+      skus,
+      price
+    };
+  });
 }
 
 const publicProductInclude = {
@@ -270,7 +313,9 @@ async function listPublicProducts(query = {}) {
   ]);
 
   return {
-    products: products.map(mapPublicProduct),
+    products: await applySalePricesToPublicProducts(
+      products.map(mapPublicProduct)
+    ),
     pagination: {
       page,
       limit,
@@ -304,7 +349,9 @@ async function listFeaturedPublicProducts(query = {}) {
   ]);
 
   return {
-    products: products.map(mapPublicProduct),
+    products: await applySalePricesToPublicProducts(
+      products.map(mapPublicProduct)
+    ),
     pagination: {
       page,
       limit,
@@ -327,7 +374,10 @@ async function getPublicProductBySlug(slug) {
     throw createServiceError("Product not found.", 404);
   }
 
-  return mapPublicProduct(product);
+  const [mapped] = await applySalePricesToPublicProducts([
+    mapPublicProduct(product)
+  ]);
+  return mapped;
 }
 
 function mapAdminProduct(product) {

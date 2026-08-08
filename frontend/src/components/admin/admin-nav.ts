@@ -2,6 +2,7 @@ import {
   FolderTreeIcon,
   LayoutDashboardIcon,
   ImageIcon,
+  MegaphoneIcon,
   PackageIcon,
   SettingsIcon,
   ShoppingBagIcon,
@@ -31,6 +32,11 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/products",
     label: "Products",
     icon: PackageIcon,
+  },
+  {
+    href: "/admin/banners",
+    label: "Banners",
+    icon: MegaphoneIcon,
   },
   {
     href: "/admin/media",

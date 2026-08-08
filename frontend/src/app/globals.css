@@ -724,6 +724,177 @@
   animation: gn-smoke-rise-b 13s ease-out infinite 3s;
 }
 
+/* Promo banner carousel */
+@keyframes promo-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(2.5%) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes promo-copy-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes promo-image-ken {
+  from {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.08) translate3d(-1.5%, 1%, 0);
+  }
+}
+
+@keyframes promo-gradient-drift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes promo-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes promo-price-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+@keyframes promo-float-tilt {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2.5deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(2deg);
+  }
+}
+
+@keyframes promo-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes promo-shimmer {
+  0% {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(220%) skewX(-18deg);
+  }
+}
+
+@keyframes promo-badge-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) rotate(-12deg);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.08) rotate(3deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(-6deg);
+  }
+}
+
+@keyframes promo-orb {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate3d(8%, -10%, 0) scale(1.15);
+    opacity: 0.85;
+  }
+}
+
+@keyframes promo-ring-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@utility animate-promo-slide-in {
+  animation: promo-slide-in 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility animate-promo-copy-in {
+  animation: promo-copy-in 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility animate-promo-image-ken {
+  animation: promo-image-ken 10s ease-in-out infinite alternate;
+}
+
+@utility animate-promo-gradient-drift {
+  animation: promo-gradient-drift 14s ease-in-out infinite;
+  background-size: 200% 200%;
+}
+
+@utility animate-promo-progress {
+  animation: promo-progress 10s linear both;
+  transform-origin: left center;
+}
+
+@utility animate-promo-price-pulse {
+  animation: promo-price-pulse 2.4s ease-in-out infinite;
+}
+
+@utility animate-promo-float-tilt {
+  animation: promo-float-tilt 5.5s ease-in-out infinite;
+}
+
+@utility animate-promo-marquee {
+  animation: promo-marquee 22s linear infinite;
+}
+
+@utility animate-promo-badge-pop {
+  animation: promo-badge-pop 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility animate-promo-orb {
+  animation: promo-orb 9s ease-in-out infinite;
+}
+
+@utility animate-promo-ring-spin {
+  animation: promo-ring-spin 28s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .gn-mark-core,
   .gn-mark-pulse,
@@ -758,7 +929,18 @@
   .gn-smoke-d,
   .gn-smoke-e,
   .gn-smoke-f,
-  .gn-smoke-g {
+  .gn-smoke-g,
+  .animate-promo-slide-in,
+  .animate-promo-copy-in,
+  .animate-promo-image-ken,
+  .animate-promo-gradient-drift,
+  .animate-promo-progress,
+  .animate-promo-price-pulse,
+  .animate-promo-float-tilt,
+  .animate-promo-marquee,
+  .animate-promo-badge-pop,
+  .animate-promo-orb,
+  .animate-promo-ring-spin {
     animation: none !important;
   }
 }

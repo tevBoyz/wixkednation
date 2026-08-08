@@ -24,6 +24,7 @@ const adminCustomersRoutes = require("./modules/admin/customers/customers.routes
 const adminDashboardRoutes = require("./modules/admin/dashboard/dashboard.routes");
 const adminMediaRoutes = require("./modules/admin/media/media.routes");
 const adminTeamRoutes = require("./modules/admin/team/team.routes");
+const adminBannersRoutes = require("./modules/admin/banners/banners.routes");
 const usersRoutes = require("./modules/users/users.routes");
 const notificationsRoutes = require("./modules/notifications/notifications.routes");
 const ageGateRoutes = require("./modules/age-gate/age-gate.routes");
@@ -74,6 +75,7 @@ app.use("/api/admin/customers", adminCustomersRoutes);
 app.use("/api/admin/dashboard", adminDashboardRoutes);
 app.use("/api/admin/media", adminMediaRoutes);
 app.use("/api/admin/team", adminTeamRoutes);
+app.use("/api/admin/banners", adminBannersRoutes);
 app.use("/api/notifications", notificationsRoutes);
 app.use("/api/age-gate", ageGateRoutes);
 app.use("/api/store", storeRoutes);

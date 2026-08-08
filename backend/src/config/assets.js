@@ -35,10 +35,23 @@ function getProductImagePublicUrl(productId, image) {
   return image.url || null;
 }
 
+/** Public URL for a stored promo banner image (proxied through this API). */
+function getBannerImagePublicUrl(bannerId, imagePath) {
+  const base = String(env.backendUrl || "").replace(/\/$/, "");
+
+  if (!bannerId || !imagePath) {
+    return null;
+  }
+
+  const filename = path.basename(imagePath);
+  return `${base}/api/assets/banner-images/${bannerId}/${filename}`;
+}
+
 module.exports = {
   assetsDir,
   DEFAULT_PRODUCT_IMAGE_FILENAME,
   getDefaultProductImagePath,
   getDefaultProductImageUrl,
-  getProductImagePublicUrl
+  getProductImagePublicUrl,
+  getBannerImagePublicUrl
 };

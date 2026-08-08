@@ -1,4 +1,8 @@
 const prisma = require("../../config/prisma");
+const {
+  effectivePriceFromMap,
+  getActiveSalePricesBySkuIds
+} = require("../../services/promo/promo-pricing.service");
 
 function createServiceError(message, statusCode) {
   const error = new Error(message);
@@ -58,19 +62,19 @@ function mapCartSku(sku) {
   };
 }
 
-function resolveLineUnitPrice(item) {
-  if (item.sku && item.sku.price != null) {
-    return Number(item.sku.price);
-  }
+function resolveLineUnitPrice(item, saleMap) {
+  const skuId = item.skuId || item.sku?.id;
+  const listPrice =
+    item.sku && item.sku.price != null
+      ? item.sku.price
+      : item.product && item.product.price != null
+        ? item.product.price
+        : null;
 
-  if (item.product && item.product.price != null) {
-    return Number(item.product.price);
-  }
-
-  return null;
+  return effectivePriceFromMap(skuId, listPrice, saleMap || new Map());
 }
 
-function mapCartItem(item) {
+function mapCartItem(item, saleMap) {
   const baseVolume =
     item.volume != null
       ? Number(item.volume)
@@ -83,7 +87,13 @@ function mapCartItem(item) {
     baseVolume != null && Number.isFinite(baseVolume)
       ? (baseVolume * item.quantity).toFixed(2)
       : null;
-  const unitPrice = resolveLineUnitPrice(item);
+  const unitPrice = resolveLineUnitPrice(item, saleMap);
+  const mappedSku = mapCartSku(item.sku);
+  if (mappedSku && unitPrice != null) {
+    mappedSku.price = unitPrice.toFixed(2);
+    mappedSku.listPrice =
+      item.sku?.price != null ? serializeDecimal(item.sku.price) : null;
+  }
 
   return {
     id: item.id,
@@ -93,7 +103,7 @@ function mapCartItem(item) {
     volume: serializeDecimal(item.volume ?? item.sku?.volume),
     effectiveVolume,
     measurementUnit: item.measurementUnit || item.sku?.measurementUnit || null,
-    sku: mapCartSku(item.sku),
+    sku: mappedSku,
     product: mapCartProduct(item.product),
     lineTotal:
       unitPrice != null ? (unitPrice * item.quantity).toFixed(2) : null,
@@ -102,8 +112,10 @@ function mapCartItem(item) {
   };
 }
 
-function mapCart(cart) {
-  const items = (cart.items || []).map(mapCartItem);
+async function mapCart(cart) {
+  const skuIds = (cart.items || []).map((item) => item.skuId);
+  const saleMap = await getActiveSalePricesBySkuIds(skuIds);
+  const items = (cart.items || []).map((item) => mapCartItem(item, saleMap));
   const totalAmount = items
     .reduce((sum, item) => sum + Number(item.lineTotal || 0), 0)
     .toFixed(2);

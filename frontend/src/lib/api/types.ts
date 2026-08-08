@@ -55,6 +55,8 @@ export type ProductSku = {
   volume: number | string;
   measurementUnit: string;
   price: number | string;
+  /** Catalog list price when a live promo overrides `price`. */
+  listPrice?: number | string | null;
   sortOrder: number;
   /** Present on admin responses; public list is already filtered to visible. */
   isVisible?: boolean;
@@ -95,6 +97,41 @@ export type ProductsListResult = {
     total: number;
     totalPages: number;
   };
+};
+
+export type PromoBannerImageMode = "composed" | "uploaded";
+
+export type PromoBanner = {
+  id: string;
+  title: string;
+  subtitle?: string | null;
+  productId: string;
+  skuId: string;
+  salePrice: number | string;
+  compareAtPrice: number | string;
+  imageMode: PromoBannerImageMode;
+  imagePath?: string | null;
+  imageUrl?: string | null;
+  sortOrder: number;
+  isActive: boolean;
+  startsAt?: string | null;
+  endsAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string | null;
+  product?: {
+    id: string;
+    name: string;
+    slug: string;
+    coverImageUrl?: string | null;
+  } | null;
+  sku?: {
+    id: string;
+    label?: string | null;
+    volume: number | string;
+    measurementUnit: string;
+    price: number | string;
+  } | null;
 };
 
 export type CartItem = {

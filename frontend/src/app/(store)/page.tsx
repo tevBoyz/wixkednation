@@ -7,10 +7,12 @@ import {
   HeroFeaturedStack,
   type HeroStackItem,
 } from "@/components/catalog/hero-featured-stack";
+import { PromoBannerCarousel } from "@/components/catalog/promo-banner-carousel";
 import { ProductCard } from "@/components/catalog/product-card";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { SITE_DEFAULT_TITLE, SITE_DESCRIPTION } from "@/config/brand";
+import { listActiveStoreBanners } from "@/lib/api/banners.api";
 import { listCategories } from "@/lib/api/categories.api";
 import { listFeaturedProducts } from "@/lib/api/products.api";
 import { getErrorMessage } from "@/lib/api/errors";
@@ -27,6 +29,7 @@ export const metadata: Metadata = buildPageMetadata({
 export default async function HomePage() {
   let featured: Awaited<ReturnType<typeof listFeaturedProducts>> = [];
   let categories: Awaited<ReturnType<typeof listCategories>> = [];
+  let banners: Awaited<ReturnType<typeof listActiveStoreBanners>> = [];
   let featuredError: string | null = null;
   let categoriesError: string | null = null;
 
@@ -42,6 +45,12 @@ export default async function HomePage() {
     categoriesError = getErrorMessage(err, "Could not load categories");
   }
 
+  try {
+    banners = await listActiveStoreBanners();
+  } catch {
+    banners = [];
+  }
+
   const heroItems: HeroStackItem[] = featured.map((product) => ({
     id: product.id,
     name: product.name,
@@ -49,47 +58,57 @@ export default async function HomePage() {
     imageUrl: getProductCoverUrl(product),
   }));
 
+  const showPromoCarousel = banners.length > 0;
+
   return (
     <main className="min-w-0 overflow-x-clip lg:overflow-x-visible">
-      <section className="relative overflow-x-clip border-b border-border bg-gradient-to-b from-[color-mix(in_srgb,#148547_12%,transparent)] via-transparent to-transparent lg:overflow-visible">
-        <Container className="grid min-h-[min(70vh,40rem)] min-w-0 items-center gap-8 py-12 sm:gap-10 sm:py-16 md:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,38rem)] lg:gap-10 xl:gap-14">
-          <div className="flex min-w-0 flex-col justify-center gap-6 sm:gap-7">
-            <div className="flex max-w-2xl flex-col gap-6 sm:gap-8">
-              <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl md:text-7xl lg:text-8xl">
-                <span className="text-primary">Gas</span>
-                <span className="text-foreground">Nation</span>
-              </h1>
-              <HeroBrandDescription />
-              <p className="max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-                Same-day cannabis delivery across Northern Virginia and
-                Washington, DC. Premium flower, edibles, vapes, and
-                concentrates. Flat $20 delivery. 21+ with valid ID.
+      {showPromoCarousel ? (
+        <section className="relative w-full min-w-0 overflow-x-clip border-b border-border">
+          <PromoBannerCarousel banners={banners} />
+        </section>
+      ) : (
+        <section className="relative overflow-x-clip border-b border-border bg-gradient-to-b from-[color-mix(in_srgb,#148547_12%,transparent)] via-transparent to-transparent lg:overflow-visible">
+          <Container className="grid min-h-[min(70vh,40rem)] min-w-0 items-center gap-8 py-12 sm:gap-10 sm:py-16 md:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,38rem)] lg:gap-10 xl:gap-14">
+            <div className="flex min-w-0 flex-col justify-center gap-6 sm:gap-7">
+              <div className="flex max-w-2xl flex-col gap-6 sm:gap-8">
+                <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl md:text-7xl lg:text-8xl">
+                  <span className="text-primary">Gas</span>
+                  <span className="text-foreground">Nation</span>
+                </h1>
+                <HeroBrandDescription />
+                <p className="max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                  Same-day cannabis delivery across Northern Virginia and
+                  Washington, DC. Premium flower, edibles, vapes, and
+                  concentrates. Flat $20 delivery. 21+ with valid ID.
+                </p>
+              </div>
+              <p className="max-w-xl text-pretty text-base text-muted-foreground sm:text-lg">
+                Browse our{" "}
+                <span className="text-primary">Fresh</span> catalog of Indica,
+                Sativa, and Hybrid strains.
               </p>
+              <div className="flex flex-wrap gap-3">
+                <Button render={<Link href="/products" />} nativeButton={false}>
+                  Shop products
+                </Button>
+                <Button
+                  render={<Link href="/categories" />}
+                  nativeButton={false}
+                  variant="outline"
+                >
+                  Browse categories
+                </Button>
+              </div>
             </div>
-            <p className="max-w-xl text-pretty text-base text-muted-foreground sm:text-lg">
-              Browse our <span className="text-primary">Fresh</span> catalog of Indica, Sativa, and Hybrid strains.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Button render={<Link href="/products" />} nativeButton={false}>
-                Shop products
-              </Button>
-              <Button
-                render={<Link href="/categories" />}
-                nativeButton={false}
-                variant="outline"
-              >
-                Browse categories
-              </Button>
-            </div>
-          </div>
 
-          {heroItems.length > 0 ? (
-            <div className="mx-auto flex w-full min-w-0 max-w-full justify-center overflow-x-clip py-4 sm:py-6 lg:justify-end lg:overflow-visible lg:py-8">
-              <HeroFeaturedStack items={heroItems} className="mb-2 lg:mb-0" />
-            </div>
-          ) : null}
-        </Container>
-      </section>
+            {heroItems.length > 0 ? (
+              <div className="mx-auto flex w-full min-w-0 max-w-full justify-center overflow-x-clip py-4 sm:py-6 lg:justify-end lg:overflow-visible lg:py-8">
+                <HeroFeaturedStack items={heroItems} className="mb-2 lg:mb-0" />
+              </div>
+            ) : null}
+          </Container>
+        </section>
+      )}
 
       <Container className="flex min-w-0 flex-col gap-14 py-12 sm:py-16">
         <section aria-labelledby="featured-heading" className="min-w-0">
