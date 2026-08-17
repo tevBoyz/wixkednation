@@ -4,6 +4,7 @@ const geoip = require("geoip-lite");
 
 const env = require("../../config/env");
 const prisma = require("../../config/prisma");
+const { isIgnoredAnalyticsCountry } = require("./analytics-filters");
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -176,6 +177,10 @@ async function collectPageView(body, req) {
   });
 
   if (existing) {
+    if (isIgnoredAnalyticsCountry(existing.country)) {
+      throw createAnalyticsError("Owner traffic ignored.", 204);
+    }
+
     await prisma.$transaction([
       prisma.analyticsSession.update({
         where: { id: sessionId },
@@ -196,6 +201,10 @@ async function collectPageView(body, req) {
   }
 
   const geo = lookupGeo(ip);
+  if (isIgnoredAnalyticsCountry(geo.country)) {
+    throw createAnalyticsError("Owner traffic ignored.", 204);
+  }
+
   const source = resolveSource({ utmSource, referrer });
 
   await prisma.$transaction([

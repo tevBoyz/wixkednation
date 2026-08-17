@@ -8,9 +8,9 @@ import { buildBreadcrumbJsonLd } from "@/lib/seo/json-ld";
 import { buildPageMetadata } from "@/lib/seo/site-metadata";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "About GasNation | Premium Cannabis Delivery",
+  title: "About GasNation | Weed Delivery Virginia & DC",
   description:
-    "Premium cannabis delivered across Northern Virginia and Washington, DC. Clear communication, discreet same-day delivery, and a curated online dispensary menu. 21+.",
+    "GasNation (gasnationweed.com) is a premium online dispensary with same-day cannabis delivery, weed delivery, and marijuana delivery across Virginia and Washington, DC. 21+, cash on delivery, $20 fee.",
   path: "/about",
 });
 
@@ -50,9 +50,15 @@ export default function AboutPage() {
                 <p>
                   Welcome to GasNation. We make it easy to get premium flower
                   and related cannabis products delivered with the same ease as
-                  ordering a pizza. From McLean, Reston, and Fairfax to
+                  ordering a pizza. From McLean, Reston, Vienna, and Fairfax to
                   Arlington, Alexandria, and DC, we bring quality product to
                   your door with clear communication and discreet delivery.
+                </p>
+                <p>
+                  Search for GasNation or gasnationweed — same shop. Same-day
+                  cannabis delivery, weed delivery, and marijuana delivery in
+                  Virginia and Washington, DC. 21+ with valid ID. No medical
+                  card required.
                 </p>
                 <p>
                   We are focused on cannabis only. That is our lane. You will
@@ -66,9 +72,9 @@ export default function AboutPage() {
                 Where we deliver
               </h2>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
-                Same-day delivery across Northern Virginia, Washington DC, and
-                South Maryland. Check the full list of cities and ZIP codes we
-                serve.
+                Same-day delivery across Virginia, Northern Virginia, Washington
+                DC, and South Maryland. Check the full list of cities and ZIP
+                codes we serve.
               </p>
               <Button
                 className="mt-4"

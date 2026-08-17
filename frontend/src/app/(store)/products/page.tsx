@@ -11,9 +11,9 @@ import { getErrorMessage } from "@/lib/api/errors";
 import { buildPageMetadata } from "@/lib/seo/site-metadata";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Cannabis Menu | Flower, Edibles, Vapes & Concentrates",
+  title: "Cannabis Menu | Flower, Edibles, Vapes & Concentrates Delivery",
   description:
-    "Browse GasNation’s online cannabis menu: premium flower, pre-rolls, edibles, vape cartridges, disposable vapes, concentrates, and accessories. Same-day delivery in Northern Virginia and DC.",
+    "Browse GasNation’s online cannabis menu: buy flower online, indica and sativa, edibles, THC gummies, vape cartridges, disposable vapes, live resin, and rosin. Same-day delivery in Northern Virginia and DC.",
   path: "/products",
 });
 

@@ -49,6 +49,30 @@ export function SiteFooter() {
             </li>
             <li>
               <Link
+                href="/delivery/virginia"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Virginia delivery
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/delivery/northern-virginia"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                NoVA delivery
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/delivery/washington-dc"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                DC weed delivery
+              </Link>
+            </li>
+            <li>
+              <Link
                 href="/categories"
                 className="text-muted-foreground hover:text-foreground"
               >

@@ -33,12 +33,37 @@ export async function generateMetadata({
 
   try {
     const category = await fetchCategoryBySlug(slug);
+    const seoBySlug: Record<string, { title: string; description: string }> = {
+      flower: {
+        title: "Buy Flower Online | Premium Flower Delivery NoVA & DC",
+        description:
+          "Buy flower online with same-day cannabis delivery in Northern Virginia and Washington, DC. Premium flower from GasNation. 21+.",
+      },
+      indica: {
+        title: "Indica Flower Delivery | Northern Virginia & DC",
+        description:
+          "Indica flower delivery from GasNation. Shop indica for evening and relaxation-oriented strains. Same-day weed delivery in NoVA and DC.",
+      },
+      sativa: {
+        title: "Sativa Flower Delivery | Northern Virginia & DC",
+        description:
+          "Sativa flower delivery from GasNation. Daytime sativa strains with same-day cannabis delivery across Northern Virginia and DC.",
+      },
+      hybrid: {
+        title: "Hybrid Flower Delivery | Northern Virginia & DC",
+        description:
+          "Hybrid flower delivery from GasNation. Shop hybrid strains with same-day weed delivery in Northern Virginia and Washington, DC.",
+      },
+    };
+
+    const extras = seoBySlug[slug];
     const description =
+      extras?.description ||
       category.description?.trim() ||
       `Shop ${category.name} cannabis products with same-day delivery from ${SITE_NAME} across Northern Virginia and Washington, DC.`;
 
     return buildPageMetadata({
-      title: `${category.name} | Cannabis Menu`,
+      title: extras?.title || `${category.name} | Cannabis Menu Delivery`,
       description,
       path: `/categories/${slug}`,
     });
@@ -126,13 +151,10 @@ export default async function CategoryDetailPage({
 
       <header className="mt-6 max-w-2xl min-w-0">
         <h1>{category.name}</h1>
-        {category.description ? (
-          <p className="mt-3 text-muted-foreground">{category.description}</p>
-        ) : (
           <p className="mt-3 text-muted-foreground">
-            Products in this category.
+            {category.description?.trim() ||
+              `Shop ${category.name} with same-day cannabis delivery from ${SITE_NAME} across Northern Virginia and Washington, DC.`}
           </p>
-        )}
       </header>
 
       {children.length > 0 ? (

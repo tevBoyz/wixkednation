@@ -52,10 +52,12 @@ function TopTable({
   title,
   rows,
   emptyLabel,
+  mono = true,
 }: {
   title: string;
   rows: AnalyticsTopItem[];
   emptyLabel: string;
+  mono?: boolean;
 }) {
   return (
     <div className="space-y-3">
@@ -73,7 +75,11 @@ function TopTable({
           <TableBody>
             {rows.map((row) => (
               <TableRow key={`${title}-${row.key}`}>
-                <TableCell className="max-w-[14rem] truncate font-mono text-xs sm:text-sm">
+                <TableCell
+                  className={`max-w-[16rem] text-xs sm:text-sm ${
+                    mono ? "truncate font-mono" : "whitespace-normal"
+                  }`}
+                >
                   {row.key}
                 </TableCell>
                 <TableCell className="text-right tabular-nums">
@@ -227,6 +233,7 @@ export function AdminAnalyticsClient() {
               title="Top countries"
               rows={data.topCountries}
               emptyLabel="No location data yet."
+              mono={false}
             />
             <TopTable
               title="Top sources"

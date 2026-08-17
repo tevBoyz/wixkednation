@@ -33,7 +33,7 @@ export function buildWebSiteJsonLd() {
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: `${absoluteUrl("/products")}?q={search_term_string}`,
+        urlTemplate: `${absoluteUrl("/products")}?search={search_term_string}`,
       },
       "query-input": "required name=search_term_string",
     },

@@ -8,11 +8,11 @@ export const SITE_TAGLINE =
   "Premium cannabis delivery across Northern Virginia and Washington, DC.";
 
 export const SITE_DESCRIPTION =
-  "Shop premium cannabis with same-day delivery in Northern Virginia and Washington, DC. Browse flower, edibles, vapes, concentrates, and more. 21+ with valid ID. Flat $20 delivery, 10 AM–10 PM daily.";
+  "Same-day cannabis delivery, weed delivery, and marijuana delivery in Virginia and Washington, DC. DC weed delivery from GasNation. Online dispensary for flower, edibles, vapes, and concentrates. Flat $20, 10 AM–10 PM, cash on delivery. 21+.";
 
 /** Default document title for SERPs (brand + primary intent + market). */
 export const SITE_DEFAULT_TITLE =
-  "Cannabis Delivery in Northern Virginia & DC | Fast Same-Day Delivery | GasNation";
+  "Weed Delivery in Virginia & DC | Same-Day Cannabis Delivery | GasNation";
 
 export const BRAND_PRIMARY = "#148547";
 

@@ -1,4 +1,7 @@
 const prisma = require("../../../config/prisma");
+const { formatAnalyticsCountry } = require("../../analytics/analytics-filters");
+
+const EXCLUDE_OWNER_COUNTRY = { NOT: { country: "ET" } };
 
 function createAnalyticsError(message, statusCode) {
   const error = new Error(message);
@@ -56,18 +59,21 @@ async function getAnalyticsSummary(query = {}) {
   ] = await Promise.all([
     prisma.analyticsPageView.count({
       where: {
-        createdAt: { gte: from, lte: to }
+        createdAt: { gte: from, lte: to },
+        session: EXCLUDE_OWNER_COUNTRY
       }
     }),
     prisma.analyticsSession.count({
       where: {
-        startedAt: { gte: from, lte: to }
+        startedAt: { gte: from, lte: to },
+        ...EXCLUDE_OWNER_COUNTRY
       }
     }),
     prisma.$queryRaw`
       SELECT COUNT(DISTINCT "visitorId")::int AS count
       FROM "analytics_sessions"
       WHERE "startedAt" >= ${from} AND "startedAt" <= ${to}
+        AND "country" IS DISTINCT FROM 'ET'
     `,
     prisma.$queryRaw`
       WITH days AS (
@@ -84,14 +90,17 @@ async function getAnalyticsSummary(query = {}) {
           COUNT(DISTINCT "visitorId")::int AS unique_visitors
         FROM "analytics_sessions"
         WHERE "startedAt" >= ${from} AND "startedAt" <= ${to}
+          AND "country" IS DISTINCT FROM 'ET'
         GROUP BY 1
       ),
       view_stats AS (
         SELECT
-          date_trunc('day', "createdAt")::date AS day,
+          date_trunc('day', v."createdAt")::date AS day,
           COUNT(*)::int AS page_views
-        FROM "analytics_page_views"
-        WHERE "createdAt" >= ${from} AND "createdAt" <= ${to}
+        FROM "analytics_page_views" v
+        INNER JOIN "analytics_sessions" s ON s.id = v."sessionId"
+        WHERE v."createdAt" >= ${from} AND v."createdAt" <= ${to}
+          AND s."country" IS DISTINCT FROM 'ET'
         GROUP BY 1
       )
       SELECT
@@ -105,10 +114,12 @@ async function getAnalyticsSummary(query = {}) {
       ORDER BY d.day ASC
     `,
     prisma.$queryRaw`
-      SELECT "path" AS key, COUNT(*)::int AS count
-      FROM "analytics_page_views"
-      WHERE "createdAt" >= ${from} AND "createdAt" <= ${to}
-      GROUP BY "path"
+      SELECT v."path" AS key, COUNT(*)::int AS count
+      FROM "analytics_page_views" v
+      INNER JOIN "analytics_sessions" s ON s.id = v."sessionId"
+      WHERE v."createdAt" >= ${from} AND v."createdAt" <= ${to}
+        AND s."country" IS DISTINCT FROM 'ET'
+      GROUP BY v."path"
       ORDER BY count DESC
       LIMIT 10
     `,
@@ -116,6 +127,7 @@ async function getAnalyticsSummary(query = {}) {
       SELECT COALESCE("country", 'unknown') AS key, COUNT(*)::int AS count
       FROM "analytics_sessions"
       WHERE "startedAt" >= ${from} AND "startedAt" <= ${to}
+        AND "country" IS DISTINCT FROM 'ET'
       GROUP BY 1
       ORDER BY count DESC
       LIMIT 10
@@ -124,6 +136,7 @@ async function getAnalyticsSummary(query = {}) {
       SELECT COALESCE("source", 'direct') AS key, COUNT(*)::int AS count
       FROM "analytics_sessions"
       WHERE "startedAt" >= ${from} AND "startedAt" <= ${to}
+        AND "country" IS DISTINCT FROM 'ET'
       GROUP BY 1
       ORDER BY count DESC
       LIMIT 10
@@ -149,7 +162,10 @@ async function getAnalyticsSummary(query = {}) {
       uniqueVisitors: Number(row.uniqueVisitors) || 0
     })),
     topPaths: mapTopRows(topPaths || [], "key"),
-    topCountries: mapTopRows(topCountries || [], "key"),
+    topCountries: mapTopRows(topCountries || [], "key").map((row) => ({
+      ...row,
+      key: formatAnalyticsCountry(row.key)
+    })),
     topSources: mapTopRows(topSources || [], "key")
   };
 }

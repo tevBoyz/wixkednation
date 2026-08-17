@@ -53,7 +53,7 @@ export async function generateMetadata({
       `Buy ${product.name} with cannabis delivery from ${SITE_NAME} in Northern Virginia and Washington, DC. ${formatPackPrice(product, storeConfig.defaultCurrency)}.`;
 
     return buildPageMetadata({
-      title: `${product.name} | Buy Online`,
+      title: `${product.name} | Cannabis Delivery NoVA & DC`,
       description,
       path: `/products/${slug}`,
     });

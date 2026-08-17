@@ -12,6 +12,7 @@ import { ProductCard } from "@/components/catalog/product-card";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { SITE_DEFAULT_TITLE, SITE_DESCRIPTION } from "@/config/brand";
+import { SEO_LOCATIONS } from "@/content/seo-locations";
 import { listActiveStoreBanners } from "@/lib/api/banners.api";
 import { listCategories } from "@/lib/api/categories.api";
 import { listFeaturedProducts } from "@/lib/api/products.api";
@@ -77,9 +78,11 @@ export default async function HomePage() {
                 </h1>
                 <HeroBrandDescription />
                 <p className="max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-                  Same-day cannabis delivery across Northern Virginia and
-                  Washington, DC. Premium flower, edibles, vapes, and
-                  concentrates. Flat $20 delivery. 21+ with valid ID.
+                  Same-day cannabis delivery, weed delivery, and marijuana
+                  delivery across Virginia and Washington, DC — including DC
+                  weed delivery. Online dispensary for premium flower, edibles,
+                  vapes, and concentrates. Flat $20 delivery, 10 AM–10 PM daily.
+                  21+ with valid ID.
                 </p>
               </div>
               <p className="max-w-xl text-pretty text-base text-muted-foreground sm:text-lg">
@@ -92,11 +95,11 @@ export default async function HomePage() {
                   Shop products
                 </Button>
                 <Button
-                  render={<Link href="/categories" />}
+                  render={<Link href="/delivery" />}
                   nativeButton={false}
                   variant="outline"
                 >
-                  Browse categories
+                  Delivery areas
                 </Button>
               </div>
             </div>
@@ -201,6 +204,43 @@ export default async function HomePage() {
               ))}
             </ul>
           ) : null}
+        </section>
+
+        <section aria-labelledby="delivery-heading" className="min-w-0">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="min-w-0">
+              <h2
+                id="delivery-heading"
+                className="text-xl font-semibold tracking-tight"
+              >
+                Cannabis delivery near you
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Same-day weed delivery near you across Virginia and Washington,
+                DC.
+              </p>
+            </div>
+            <Link
+              href="/delivery"
+              className="shrink-0 text-sm font-medium underline-offset-4 hover:underline"
+            >
+              All delivery areas
+            </Link>
+          </div>
+          <ul className="mt-6 flex flex-wrap gap-2">
+            {SEO_LOCATIONS.filter((item) => item.kind !== "neighborhood")
+              .slice(0, 16)
+              .map((location) => (
+                <li key={location.slug}>
+                  <Link
+                    href={`/delivery/${location.slug}`}
+                    className="inline-flex rounded-full border border-border bg-card/40 px-3 py-1 text-sm hover:border-primary/40 hover:text-primary"
+                  >
+                    {location.name}
+                  </Link>
+                </li>
+              ))}
+          </ul>
         </section>
       </Container>
     </main>

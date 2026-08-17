@@ -10,9 +10,9 @@ import { buildPageMetadata } from "@/lib/seo/site-metadata";
 import type { Category } from "@/lib/api/types";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Cannabis Categories | Flower, Edibles, Vapes & More",
+  title: "Cannabis Categories | Flower, Edibles, Vapes & Concentrates",
   description:
-    "Shop GasNation categories: indica, sativa, hybrid flower, edibles, carts, concentrates, and accessories. Online dispensary with delivery across Northern Virginia and DC.",
+    "Shop GasNation categories: indica flower delivery, sativa, hybrid, edibles delivery, vape cartridges, disposable vapes, live resin, and rosin. Online dispensary with cannabis delivery in Northern Virginia and DC.",
   path: "/categories",
 });
 
@@ -46,10 +46,11 @@ export default async function CategoriesIndexPage() {
   return (
     <Container as="main" className="min-w-0 py-10">
       <header className="max-w-2xl min-w-0">
-        <h1>Categories</h1>
+        <h1>Cannabis categories</h1>
         <p className="mt-3 text-muted-foreground">
-          Browse the shop by category. Parent categories include products from
-          their subcategories.
+          Shop flower, edibles, vapes, and concentrates. Parent categories
+          include products from their subcategories. Same-day cannabis delivery
+          across Northern Virginia and Washington, DC.
         </p>
       </header>
 
