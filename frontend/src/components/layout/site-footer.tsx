@@ -25,8 +25,8 @@ export function SiteFooter() {
         <div>
           <GasNationLogo asLink variant="mark" size="md" markClassName="size-12" />
           <p className="mt-2 text-sm text-muted-foreground">
-            Premium cannabis delivery across Northern Virginia and Washington,
-            DC. 21+ only.
+            Premium cannabis delivery across north Virginia, Northern Virginia,
+            and Washington, DC. 21+ only.
           </p>
         </div>
         <nav aria-label="Footer">
@@ -60,7 +60,7 @@ export function SiteFooter() {
                 href="/delivery/northern-virginia"
                 className="text-muted-foreground hover:text-foreground"
               >
-                NoVA delivery
+                North Virginia delivery
               </Link>
             </li>
             <li>

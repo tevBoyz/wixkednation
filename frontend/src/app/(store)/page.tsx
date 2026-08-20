@@ -78,11 +78,11 @@ export default async function HomePage() {
                 </h1>
                 <HeroBrandDescription />
                 <p className="max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-                  Same-day cannabis delivery, weed delivery, and marijuana
-                  delivery across Virginia and Washington, DC — including DC
-                  weed delivery. Online dispensary for premium flower, edibles,
-                  vapes, and concentrates. Flat $20 delivery, 10 AM–10 PM daily.
-                  21+ with valid ID.
+                  Same-day weed delivery in north Virginia and Washington, DC.
+                  Cannabis delivery and marijuana delivery across Northern
+                  Virginia (NoVA) and DC, including premium flower, edibles,
+                  vapes, and concentrates. Flat $20 delivery, 10 AM–10 PM
+                  daily. 21+ with valid ID.
                 </p>
               </div>
               <p className="max-w-xl text-pretty text-base text-muted-foreground sm:text-lg">
@@ -216,8 +216,7 @@ export default async function HomePage() {
                 Cannabis delivery near you
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Same-day weed delivery near you across Virginia and Washington,
-                DC.
+                Same-day weed delivery in north Virginia and Washington, DC.
               </p>
             </div>
             <Link

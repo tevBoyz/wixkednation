@@ -56,9 +56,9 @@ export default function AboutPage() {
                 </p>
                 <p>
                   Search for GasNation or gasnationweed — same shop. Same-day
-                  cannabis delivery, weed delivery, and marijuana delivery in
-                  Virginia and Washington, DC. 21+ with valid ID. No medical
-                  card required.
+                  weed delivery in north Virginia, cannabis delivery across
+                  Northern Virginia (NoVA), and marijuana delivery in
+                  Washington, DC. 21+ with valid ID. No medical card required.
                 </p>
                 <p>
                   We are focused on cannabis only. That is our lane. You will

@@ -29,6 +29,11 @@ export const FAQ_ITEMS: FaqItem[] = [
       "No. GasNation marijuana delivery and cannabis delivery in Virginia and Washington, DC is 21+ with a valid government ID. A medical card is not required.",
   },
   {
+    question: "Do you offer weed delivery in north Virginia?",
+    answer:
+      "Yes. We offer weed delivery in north Virginia (Northern Virginia / NoVA) and cannabis delivery across Arlington, Alexandria, Fairfax, Loudoun, Prince William, and the wider DC metro. Same-day marijuana delivery 10 AM–10 PM, flat $20 fee, cash on delivery, 21+ with valid ID. No medical card required.",
+  },
+  {
     question: "Do you offer DC weed delivery?",
     answer:
       "Yes. We offer DC weed delivery and weed delivery DC to Washington, DC addresses, plus weed delivery in Virginia across Northern Virginia. Same-day service 10 AM–10 PM, flat $20 fee, cash on delivery.",

@@ -11,7 +11,7 @@ import { buildPageMetadata } from "@/lib/seo/site-metadata";
 export const metadata: Metadata = buildPageMetadata({
   title: "Cannabis Delivery FAQ | Hours, Areas, ID, Cash & $20 Fee",
   description:
-    "How cannabis and marijuana delivery works in Virginia and DC: DC weed delivery, discreet weed delivery, cash on delivery, 10 AM–10 PM, $20 fee, 21+ ID, no medical card.",
+    "How cannabis and marijuana delivery works in north Virginia and DC: weed delivery in north Virginia, DC weed delivery, cash on delivery, 10 AM–10 PM, $20 fee, 21+ ID, no medical card.",
   path: "/faqs",
 });
 
@@ -31,8 +31,8 @@ export default function FaqsPage() {
             Frequently asked questions
           </h1>
           <p className="mt-3 text-base text-muted-foreground sm:text-lg">
-            Delivery areas, hours, ID rules, fees, and how GasNation cannabis
-            delivery works across Northern Virginia and Washington, DC.
+            Delivery areas, hours, ID rules, fees, and how weed delivery in north
+            Virginia and Washington, DC works at GasNation.
           </p>
         </header>
 

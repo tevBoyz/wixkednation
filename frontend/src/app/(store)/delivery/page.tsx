@@ -14,9 +14,9 @@ import { buildBreadcrumbJsonLd } from "@/lib/seo/json-ld";
 import { buildPageMetadata } from "@/lib/seo/site-metadata";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Weed Delivery Near You in Virginia & DC | Cannabis & Marijuana Delivery",
+  title: "Weed Delivery Near You in North Virginia & DC | Cannabis Delivery",
   description:
-    "Same-day cannabis delivery, weed delivery, and marijuana delivery across Virginia and Washington, DC. DC weed delivery, NoVA, Arlington, Alexandria, Fairfax, Reston, McLean, Tysons, and more. Flat $20. 10 AM–10 PM. 21+.",
+    "Same-day weed delivery in north Virginia and Washington, DC. Cannabis delivery, marijuana delivery, and DC weed delivery across NoVA — Arlington, Alexandria, Fairfax, Reston, McLean, Tysons, and more. Flat $20. 10 AM–10 PM. 21+.",
   path: "/delivery",
 });
 
@@ -33,15 +33,16 @@ export default function DeliveryPage() {
         <header className="max-w-3xl">
           <p className="text-sm font-medium text-primary">Local delivery</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-            Same-day weed delivery in Virginia and DC
+            Same-day weed delivery in north Virginia and DC
           </h1>
           <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
             GasNation is your online dispensary for fast, discreet, same-day
-            cannabis delivery, weed delivery, and marijuana delivery near you.
-            Order premium flower, edibles, THC gummies, vape cartridges,
-            disposable vapes, concentrates, live resin, rosin, and accessories.
-            We run 10 AM–10 PM daily with a flat $20 delivery fee and cash on
-            delivery. 21+ with valid ID required. No medical card needed.
+            weed delivery in north Virginia (Northern Virginia / NoVA) and
+            Washington, DC. Order premium flower, edibles, THC gummies, vape
+            cartridges, disposable vapes, concentrates, live resin, rosin, and
+            accessories. We run 10 AM–10 PM daily with a flat $20 delivery fee
+            and cash on delivery. 21+ with valid ID required. No medical card
+            needed.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Button render={<Link href="/products" />} nativeButton={false}>
@@ -66,7 +67,7 @@ export default function DeliveryPage() {
               href="/delivery/northern-virginia"
               className="font-medium text-primary underline-offset-4 hover:underline"
             >
-              Northern Virginia
+              North Virginia delivery
             </Link>
             <Link
               href="/delivery/washington-dc"
@@ -83,9 +84,9 @@ export default function DeliveryPage() {
           </h2>
           <p className="mt-2 text-sm text-muted-foreground sm:text-base">
             Cannabis delivery in McLean, Reston, Ashburn, Fairfax, Arlington,
-            Alexandria, Vienna, Washington DC, and more. Looking for DC weed
-            delivery or weed delivery in Virginia? If your city is nearby, ask
-            us — we probably cover it.
+            Alexandria, Vienna, Washington DC, and more. Weed delivery in north
+            Virginia, DC weed delivery, and statewide Virginia delivery — if
+            your city is nearby, ask us; we probably cover it.
           </p>
           <ul className="mt-6 grid gap-2 sm:grid-cols-2 md:grid-cols-3">
             {DELIVERY_CITIES.map((city) => {
@@ -194,8 +195,8 @@ export default function DeliveryPage() {
             Ready for same-day cannabis delivery?
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Browse the menu, place your order, and get discreet delivery across
-            Northern Virginia and DC today.
+            Browse the menu, place your order, and get discreet weed delivery in
+            north Virginia and DC today.
           </p>
           <Button
             className="mt-4"

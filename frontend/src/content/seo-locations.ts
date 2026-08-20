@@ -27,10 +27,10 @@ export const SEO_LOCATIONS: SeoLocation[] = [
     name: "Northern Virginia",
     kind: "region",
     area: "NoVA and the DC metro",
-    h1: "Weed delivery in Northern Virginia",
-    title: "Weed Delivery Northern Virginia | Cannabis Delivery NoVA | GasNation",
+    h1: "Weed delivery in north Virginia",
+    title: "Weed Delivery in North Virginia | Northern Virginia & NoVA | GasNation",
     blurb:
-      "Weed delivery in Northern Virginia (NoVA) from Arlington and Alexandria through Fairfax, Loudoun, and Prince William. Same-day cannabis delivery and marijuana delivery, discreet drop-off 10 AM–10 PM.",
+      "Looking for weed delivery in north Virginia? GasNation offers same-day cannabis delivery and marijuana delivery across Northern Virginia (NoVA) — from Arlington and Alexandria through Fairfax, Loudoun, and Prince William. Order weed online with discreet drop-off 10 AM–10 PM. No medical card required.",
   },
   {
     slug: "washington-dc",
