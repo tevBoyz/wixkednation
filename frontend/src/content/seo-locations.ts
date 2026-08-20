@@ -18,9 +18,9 @@ export const SEO_LOCATIONS: SeoLocation[] = [
     kind: "region",
     area: "Virginia and the DMV",
     h1: "Weed delivery in Virginia",
-    title: "Weed Delivery Virginia | Cannabis & Marijuana Delivery | GasNation",
+    title: "Weed Delivery Virginia | Cannabis & Marijuana Delivery | Gas Nation",
     blurb:
-      "Weed delivery in Virginia from GasNation. Same-day cannabis delivery and marijuana delivery across Northern Virginia, with service into Washington, DC. Order online, 21+, no medical card required.",
+      "Weed delivery in Virginia from Gas Nation. Same-day cannabis delivery and marijuana delivery across Northern Virginia, with service into Washington, DC. Order online, 21+, no medical card required.",
   },
   {
     slug: "northern-virginia",
@@ -28,9 +28,9 @@ export const SEO_LOCATIONS: SeoLocation[] = [
     kind: "region",
     area: "NoVA and the DC metro",
     h1: "Weed delivery in north Virginia",
-    title: "Weed Delivery in North Virginia | Northern Virginia & NoVA | GasNation",
+    title: "Weed Delivery in North Virginia | Northern Virginia & NoVA | Gas Nation",
     blurb:
-      "Looking for weed delivery in north Virginia? GasNation offers same-day cannabis delivery and marijuana delivery across Northern Virginia (NoVA) — from Arlington and Alexandria through Fairfax, Loudoun, and Prince William. Order weed online with discreet drop-off 10 AM–10 PM. No medical card required.",
+      "Looking for weed delivery in north Virginia? Gas Nation offers same-day cannabis delivery and marijuana delivery across Northern Virginia (NoVA) — from Arlington and Alexandria through Fairfax, Loudoun, and Prince William. Order weed online with discreet drop-off 10 AM–10 PM. No medical card required.",
   },
   {
     slug: "washington-dc",
@@ -38,9 +38,9 @@ export const SEO_LOCATIONS: SeoLocation[] = [
     kind: "region",
     area: "Washington, DC",
     h1: "DC weed delivery",
-    title: "DC Weed Delivery | Weed Delivery DC | Same-Day Cannabis | GasNation",
+    title: "DC Weed Delivery | Weed Delivery DC | Same-Day Cannabis | Gas Nation",
     blurb:
-      "DC weed delivery and weed delivery DC from GasNation. Same-day cannabis delivery and marijuana delivery to Washington, DC addresses. Flat $20 fee, cash on delivery, 21+ ID at the door.",
+      "DC weed delivery and weed delivery DC from Gas Nation. Same-day cannabis delivery and marijuana delivery to Washington, DC addresses. Flat $20 fee, cash on delivery, 21+ ID at the door.",
   },
   {
     slug: "mclean",
@@ -505,5 +505,5 @@ export function locationPageTitle(location: SeoLocation): string {
 }
 
 export function locationPageDescription(location: SeoLocation): string {
-  return `${location.blurb} Flat $20 delivery, 10 AM–10 PM daily, cash on delivery. 21+ with valid ID. GasNation online dispensary.`;
+  return `${location.blurb} Flat $20 delivery, 10 AM–10 PM daily, cash on delivery. 21+ with valid ID. Gas Nation online dispensary.`;
 }

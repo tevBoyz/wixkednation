@@ -1,4 +1,9 @@
-import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE } from "@/config/brand";
+import {
+  SITE_ALTERNATE_NAMES,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_TAGLINE,
+} from "@/config/brand";
 import { DELIVERY_CITIES } from "@/content/delivery-areas";
 import type { FaqItem } from "@/content/faqs";
 import { absoluteUrl } from "@/lib/seo/site-metadata";
@@ -12,6 +17,7 @@ export function buildOrganizationJsonLd() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: SITE_NAME,
+    alternateName: [...SITE_ALTERNATE_NAMES],
     url: absoluteUrl("/"),
     logo: absoluteUrl("/brand/gasnation-mark-v3.png"),
     description: SITE_DESCRIPTION,
@@ -27,8 +33,14 @@ export function buildWebSiteJsonLd() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: SITE_NAME,
+    alternateName: [...SITE_ALTERNATE_NAMES],
     url: absoluteUrl("/"),
     description: SITE_TAGLINE,
+    publisher: {
+      "@type": "Organization",
+      name: SITE_NAME,
+      alternateName: [...SITE_ALTERNATE_NAMES],
+    },
     potentialAction: {
       "@type": "SearchAction",
       target: {
@@ -45,6 +57,7 @@ export function buildLocalBusinessJsonLd() {
     "@context": "https://schema.org",
     "@type": "Store",
     name: SITE_NAME,
+    alternateName: [...SITE_ALTERNATE_NAMES],
     url: absoluteUrl("/"),
     image: absoluteUrl("/brand/gasnation-og.png"),
     description: SITE_DESCRIPTION,
