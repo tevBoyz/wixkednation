@@ -127,6 +127,75 @@ export function buildBreadcrumbJsonLd(
   };
 }
 
+export function buildArticleJsonLd(input: {
+  title: string;
+  description: string;
+  slug: string;
+  imageUrl?: string | null;
+  publishedAt?: string | null;
+  modifiedAt?: string | null;
+  authorName?: string | null;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: input.title,
+    description: input.description,
+    url: absoluteUrl(`/blog/${input.slug}`),
+    image: input.imageUrl
+      ? [input.imageUrl]
+      : [absoluteUrl("/brand/gasnation-og.png")],
+    datePublished: input.publishedAt || undefined,
+    dateModified: input.modifiedAt || input.publishedAt || undefined,
+    author: {
+      "@type": "Person",
+      name: input.authorName?.trim() || SITE_NAME,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: SITE_NAME,
+      logo: {
+        "@type": "ImageObject",
+        url: absoluteUrl("/brand/gasnation-mark-v3.png"),
+      },
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": absoluteUrl(`/blog/${input.slug}`),
+    },
+  };
+}
+
+export function buildTagCollectionJsonLd(input: {
+  name: string;
+  description: string;
+  slug: string;
+  posts: Array<{ title: string; slug: string }>;
+}) {
+  const pageUrl = absoluteUrl(`/tag/${input.slug}`);
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: input.name,
+    description: input.description,
+    url: pageUrl,
+    isPartOf: {
+      "@type": "WebSite",
+      name: SITE_NAME,
+      url: absoluteUrl("/"),
+    },
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: input.posts.map((post, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url: absoluteUrl(`/blog/${post.slug}`),
+        name: post.title,
+      })),
+    },
+  };
+}
+
 export function buildProductJsonLd(input: {
   name: string;
   description: string;

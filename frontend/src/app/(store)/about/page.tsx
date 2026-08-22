@@ -8,9 +8,9 @@ import { buildBreadcrumbJsonLd } from "@/lib/seo/json-ld";
 import { buildPageMetadata } from "@/lib/seo/site-metadata";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "About GasNation | Weed Delivery Virginia & DC",
+  title: "About Gas Nation | Weed Delivery in Northern Virginia & DC",
   description:
-    "GasNation (gasnationweed.com) is a premium online dispensary with same-day cannabis delivery, weed delivery, and marijuana delivery across Virginia and Washington, DC. 21+, cash on delivery, $20 fee.",
+    "Gas Nation (gasnationweed.com) is a Northern Virginia and DC weed delivery service. Same-day online orders, flat $20, cash on delivery, 21+ with ID.",
   path: "/about",
 });
 
@@ -38,7 +38,7 @@ export default function AboutPage() {
           />
           <div className="relative max-w-3xl">
             <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
-              About GasNation
+              About Gas Nation
             </h1>
           </div>
         </section>
@@ -48,17 +48,16 @@ export default function AboutPage() {
             <div className="rounded-2xl border border-border/70 bg-background/80 p-6 shadow-sm backdrop-blur-sm sm:p-7">
               <div className="space-y-5 text-base leading-relaxed text-muted-foreground sm:text-lg">
                 <p>
-                  Welcome to GasNation. We make it easy to get premium flower
+                  Welcome to Gas Nation. We make it easy to get premium flower
                   and related cannabis products delivered with the same ease as
                   ordering a pizza. From McLean, Reston, Vienna, and Fairfax to
                   Arlington, Alexandria, and DC, we bring quality product to
                   your door with clear communication and discreet delivery.
                 </p>
                 <p>
-                  Search for GasNation or gasnationweed — same shop. Same-day
-                  weed delivery in north Virginia, cannabis delivery across
-                  Northern Virginia (NoVA), and marijuana delivery in
-                  Washington, DC. 21+ with valid ID. No medical card required.
+                  Find us at gasnationweed.com. Gas Nation weed delivery for
+                  Northern Virginia and Washington, DC. Same-day drop-off 10
+                  AM-10 PM. 21+ with valid ID. No medical card required.
                 </p>
                 <p>
                   We are focused on cannabis only. That is our lane. You will

@@ -81,6 +81,14 @@ export function SiteFooter() {
             </li>
             <li>
               <Link
+                href="/blog"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Blog
+              </Link>
+            </li>
+            <li>
+              <Link
                 href="/faqs"
                 className="text-muted-foreground hover:text-foreground"
               >

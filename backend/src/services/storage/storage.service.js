@@ -4,6 +4,7 @@ const sharp = require("sharp");
 const env = require("../../config/env");
 const {
   getBannerImagePublicUrl,
+  getBlogImagePublicUrl,
   getProductImagePublicUrl
 } = require("../../config/assets");
 const { supabaseAdmin } = require("../../config/supabase");
@@ -159,11 +160,49 @@ async function uploadBannerImageBuffer({ bannerId, buffer, originalName }) {
   };
 }
 
+async function uploadBlogImageBuffer({
+  postId,
+  buffer,
+  originalName,
+  kind = "media",
+  mediaId
+}) {
+  const imageId = mediaId || crypto.randomUUID();
+  const compressed = await compressProductImage(buffer);
+  const folder = kind === "cover" ? "cover" : "media";
+  const path = `blog/${postId}/${folder}/${imageId}.${compressed.extension}`;
+
+  const { error } = await supabaseAdmin.storage
+    .from(env.supabase.storageBucket)
+    .upload(path, compressed.buffer, {
+      contentType: compressed.mimeType,
+      upsert: false
+    });
+
+  if (error) {
+    throw createStorageError(
+      `Failed to upload image to storage: ${error.message}`,
+      502
+    );
+  }
+
+  return {
+    id: imageId,
+    path,
+    url: getBlogImagePublicUrl(postId, path),
+    mimeType: compressed.mimeType,
+    size: compressed.size,
+    originalName: originalName || null,
+    createdAt: new Date().toISOString()
+  };
+}
+
 module.exports = {
   MAX_COMPRESSED_BYTES,
   compressProductImage,
   deleteProductImageFromStorage,
   downloadProductImageFromStorage,
   uploadBannerImageBuffer,
+  uploadBlogImageBuffer,
   uploadProductImageBuffer
 };

@@ -14,9 +14,9 @@ import { buildBreadcrumbJsonLd } from "@/lib/seo/json-ld";
 import { buildPageMetadata } from "@/lib/seo/site-metadata";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Weed Delivery Near You in North Virginia & DC | Cannabis Delivery",
+  title: "Weed Delivery Areas | Northern Virginia & DC | Gas Nation",
   description:
-    "Same-day weed delivery in north Virginia and Washington, DC. Cannabis delivery, marijuana delivery, and DC weed delivery across NoVA — Arlington, Alexandria, Fairfax, Reston, McLean, Tysons, and more. Flat $20. 10 AM–10 PM. 21+.",
+    "See where Gas Nation delivers same-day in Northern Virginia and Washington, DC — Arlington, Alexandria, Fairfax, Reston, McLean, Tysons, and more. Flat $20. 10 AM–10 PM. 21+.",
   path: "/delivery",
 });
 
@@ -33,16 +33,13 @@ export default function DeliveryPage() {
         <header className="max-w-3xl">
           <p className="text-sm font-medium text-primary">Local delivery</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-            Same-day weed delivery in north Virginia and DC
+            Same-day weed delivery in Northern Virginia and DC
           </h1>
           <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
-            GasNation is your online dispensary for fast, discreet, same-day
-            weed delivery in north Virginia (Northern Virginia / NoVA) and
-            Washington, DC. Order premium flower, edibles, THC gummies, vape
-            cartridges, disposable vapes, concentrates, live resin, rosin, and
-            accessories. We run 10 AM–10 PM daily with a flat $20 delivery fee
-            and cash on delivery. 21+ with valid ID required. No medical card
-            needed.
+            Gas Nation delivers same-day across Northern Virginia and Washington,
+            DC. Order flower, edibles, vapes, and concentrates online — flat $20
+            fee, 10 AM–10 PM, cash on delivery, 21+ with valid ID. No medical
+            card needed.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Button render={<Link href="/products" />} nativeButton={false}>
@@ -83,15 +80,13 @@ export default function DeliveryPage() {
             Cities we deliver to
           </h2>
           <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-            Cannabis delivery in McLean, Reston, Ashburn, Fairfax, Arlington,
-            Alexandria, Vienna, Washington DC, and more. Weed delivery in north
-            Virginia, DC weed delivery, and statewide Virginia delivery — if
-            your city is nearby, ask us; we probably cover it.
+            Same-day coverage across Northern Virginia hubs like McLean, Reston,
+            Ashburn, Fairfax, Arlington, Alexandria, Vienna, and Washington, DC.
+            If your city is nearby, ask — we likely cover it.
           </p>
           <ul className="mt-6 grid gap-2 sm:grid-cols-2 md:grid-cols-3">
             {DELIVERY_CITIES.map((city) => {
               const href = locationHrefByName(city);
-              const label = `Cannabis delivery ${city.replace(/, DC$/, " DC")}`;
               return (
                 <li
                   key={city}
@@ -102,10 +97,10 @@ export default function DeliveryPage() {
                       href={href}
                       className="font-medium hover:text-primary hover:underline"
                     >
-                      {label}
+                      {city}
                     </Link>
                   ) : (
-                    label
+                    city
                   )}
                 </li>
               );

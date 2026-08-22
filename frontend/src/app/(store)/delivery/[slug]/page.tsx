@@ -89,23 +89,20 @@ export default async function DeliveryLocationPage({
             {location.area} · {SITE_NAME}
           </p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-            {location.h1 ?? `Cannabis delivery in ${placeLabel}`}
+            {location.h1 ?? `Weed delivery in ${placeLabel}`}
           </h1>
           <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
             {location.blurb}
           </p>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-            GasNation is an online dispensary with same-day cannabis delivery,
-            marijuana delivery, and discreet weed delivery in {placeLabel}.
-            Browse premium flower (indica, sativa, hybrid), pre-rolls, edibles,
-            THC gummies, vape cartridges, disposable vapes, concentrates, live
-            resin, rosin, and accessories. Flat $20 delivery fee. Open 10 AM–10
-            PM daily. Cash on delivery. 21+ with valid ID required in person. No
-            medical card needed.
+            Order online from Gas Nation for {placeLabel}: flower, pre-rolls,
+            edibles, vapes, and concentrates. Flat $20 delivery, 10 AM–10 PM
+            daily, cash on delivery. 21+ with valid ID in person. No medical
+            card needed.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Button render={<Link href="/products" />} nativeButton={false}>
-              Shop the cannabis menu
+              Shop the menu
             </Button>
             <Button
               render={<Link href="/faqs" />}
@@ -137,7 +134,7 @@ export default async function DeliveryLocationPage({
 
         <section className="mt-12 max-w-3xl" aria-labelledby="nearby-heading">
           <h2 id="nearby-heading" className="text-xl font-semibold tracking-tight">
-            Nearby cannabis delivery areas
+            Nearby delivery areas
           </h2>
           <ul className="mt-4 grid gap-2 sm:grid-cols-2">
             {nearby.map((item) => (

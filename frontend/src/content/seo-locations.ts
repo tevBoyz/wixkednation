@@ -4,469 +4,287 @@ export type SeoLocation = {
   slug: string;
   name: string;
   kind: SeoLocationKind;
+  /** Broader geography shown on the page (county / metro). */
   area: string;
+  /** Unique intro copy — avoid synonym stuffing across pages. */
   blurb: string;
   h1?: string;
   title?: string;
 };
 
-/** Local landing pages for cannabis / weed delivery keywords. */
+/**
+ * Local landing pages for weed delivery SEO.
+ * Kept to high-intent cities/neighborhoods only — thin doorway pages removed.
+ */
 export const SEO_LOCATIONS: SeoLocation[] = [
-  {
-    slug: "virginia",
-    name: "Virginia",
-    kind: "region",
-    area: "Virginia and the DMV",
-    h1: "Weed delivery in Virginia",
-    title: "Weed Delivery Virginia | Cannabis & Marijuana Delivery | Gas Nation",
-    blurb:
-      "Weed delivery in Virginia from Gas Nation. Same-day cannabis delivery and marijuana delivery across Northern Virginia, with service into Washington, DC. Order online, 21+, no medical card required.",
-  },
   {
     slug: "northern-virginia",
     name: "Northern Virginia",
     kind: "region",
-    area: "NoVA and the DC metro",
-    h1: "Weed delivery in north Virginia",
-    title: "Weed Delivery in North Virginia | Northern Virginia & NoVA | Gas Nation",
+    area: "NoVA / DC metro",
+    h1: "Weed delivery in Northern Virginia",
+    title: "Weed Delivery in Northern Virginia | Same-Day | Gas Nation",
     blurb:
-      "Looking for weed delivery in north Virginia? Gas Nation offers same-day cannabis delivery and marijuana delivery across Northern Virginia (NoVA) — from Arlington and Alexandria through Fairfax, Loudoun, and Prince William. Order weed online with discreet drop-off 10 AM–10 PM. No medical card required.",
+      "Gas Nation delivers same-day across Northern Virginia (NoVA): Arlington, Alexandria, Fairfax, Loudoun, and Prince William. Order online 10 AM–10 PM, flat $20, cash on delivery, 21+ ID. No medical card required.",
   },
   {
     slug: "washington-dc",
     name: "Washington, DC",
     kind: "region",
     area: "Washington, DC",
-    h1: "DC weed delivery",
-    title: "DC Weed Delivery | Weed Delivery DC | Same-Day Cannabis | Gas Nation",
+    h1: "Weed delivery in Washington, DC",
+    title: "Weed Delivery in Washington, DC | Same-Day | Gas Nation",
     blurb:
-      "DC weed delivery and weed delivery DC from Gas Nation. Same-day cannabis delivery and marijuana delivery to Washington, DC addresses. Flat $20 fee, cash on delivery, 21+ ID at the door.",
+      "Same-day weed delivery to Washington, DC addresses from Gas Nation (gasnationweed.com). Flat $20 fee, cash on delivery, 21+ ID at the door. Order flower, edibles, vapes, and more online.",
   },
   {
-    slug: "mclean",
-    name: "McLean",
-    kind: "city",
-    area: "Fairfax County, Northern Virginia",
+    slug: "virginia",
+    name: "Virginia",
+    kind: "region",
+    area: "Virginia & the DMV",
+    h1: "Weed delivery in Virginia",
+    title: "Weed Delivery in Virginia | Same-Day NoVA & DC | Gas Nation",
     blurb:
-      "Cannabis delivery in McLean, VA near Tysons and the GW Parkway. Discreet same-day weed delivery to McLean homes and offices.",
+      "Gas Nation focuses on same-day delivery in Northern Virginia and into Washington, DC. Browse the online menu, check out, and meet the driver with cash and a valid 21+ ID.",
   },
   {
-    slug: "reston",
-    name: "Reston",
+    slug: "arlington",
+    name: "Arlington",
     kind: "city",
-    area: "Fairfax County, Northern Virginia",
+    area: "Arlington County, VA",
+    h1: "Weed delivery in Arlington, VA",
+    title: "Weed Delivery in Arlington, VA | Same-Day | Gas Nation",
     blurb:
-      "Weed delivery in Reston, including Reston Town Center. Same-day cannabis delivery across Reston with flower, edibles, and vapes on the menu.",
-  },
-  {
-    slug: "ashburn",
-    name: "Ashburn",
-    kind: "city",
-    area: "Loudoun County, Northern Virginia",
-    blurb:
-      "Cannabis delivery in Ashburn and nearby Loudoun neighborhoods. Order online for same-day weed delivery in Ashburn, VA.",
-  },
-  {
-    slug: "sterling",
-    name: "Sterling",
-    kind: "city",
-    area: "Loudoun County, Northern Virginia",
-    blurb:
-      "Weed delivery in Sterling, VA. Same-day cannabis delivery near Route 7 and Dulles Town Center with a flat $20 fee.",
-  },
-  {
-    slug: "leesburg",
-    name: "Leesburg",
-    kind: "city",
-    area: "Loudoun County, Northern Virginia",
-    blurb:
-      "Cannabis delivery in Leesburg, VA. Same-day discreet weed delivery to Leesburg addresses from our online dispensary menu.",
-  },
-  {
-    slug: "chantilly",
-    name: "Chantilly",
-    kind: "city",
-    area: "Fairfax County, Northern Virginia",
-    blurb:
-      "Weed delivery in Chantilly near Sully and Route 50. Same-day cannabis delivery for Chantilly, VA homes and hotels.",
-  },
-  {
-    slug: "herndon",
-    name: "Herndon",
-    kind: "city",
-    area: "Fairfax County, Northern Virginia",
-    blurb:
-      "Cannabis delivery in Herndon, VA. Same-day weed delivery near downtown Herndon and the Dulles Toll Road corridor.",
-  },
-  {
-    slug: "centreville",
-    name: "Centreville",
-    kind: "city",
-    area: "Fairfax County, Northern Virginia",
-    blurb:
-      "Weed delivery in Centreville, VA. Order flower, edibles, and carts online for same-day cannabis delivery in Centreville.",
-  },
-  {
-    slug: "fairfax",
-    name: "Fairfax",
-    kind: "city",
-    area: "Fairfax County, Northern Virginia",
-    blurb:
-      "Cannabis delivery in Fairfax, VA — City of Fairfax and nearby Fairfax County. Same-day weed delivery from GasNation.",
-  },
-  {
-    slug: "burke",
-    name: "Burke",
-    kind: "city",
-    area: "Fairfax County, Northern Virginia",
-    blurb:
-      "Weed delivery in Burke, VA. Same-day cannabis delivery to Burke and neighboring Springfield / Fairfax addresses.",
-  },
-  {
-    slug: "springfield",
-    name: "Springfield",
-    kind: "city",
-    area: "Fairfax County, Northern Virginia",
-    blurb:
-      "Cannabis delivery in Springfield, VA including West Springfield. Same-day discreet weed delivery along the Beltway and Franconia corridor.",
+      "Same-day weed delivery in Arlington, VA — Clarendon, Ballston, Rosslyn, Crystal City, and nearby corridors. Order from Gas Nation online; discreet drop-off 10 AM–10 PM with a flat $20 fee.",
   },
   {
     slug: "alexandria",
     name: "Alexandria",
     kind: "city",
     area: "Northern Virginia",
+    h1: "Weed delivery in Alexandria, VA",
+    title: "Weed Delivery in Alexandria, VA | Same-Day | Gas Nation",
     blurb:
-      "Weed delivery in Alexandria, VA. Same-day cannabis delivery to Alexandria, including areas near Old Town, Kingstowne, and the Eisenhower Valley.",
+      "Same-day weed delivery in Alexandria, VA including Old Town, Del Ray, Kingstowne, and the Eisenhower corridor. Gas Nation brings the menu to your door with cash on delivery and 21+ ID check.",
   },
   {
-    slug: "annandale",
-    name: "Annandale",
+    slug: "fairfax",
+    name: "Fairfax",
     kind: "city",
-    area: "Fairfax County, Northern Virginia",
+    area: "Fairfax County, VA",
+    h1: "Weed delivery in Fairfax, VA",
+    title: "Weed Delivery in Fairfax, VA | Same-Day | Gas Nation",
     blurb:
-      "Cannabis delivery in Annandale, VA. Same-day weed delivery near Little River Turnpike and the Annandale commercial corridor.",
+      "Same-day weed delivery in Fairfax, VA — City of Fairfax and nearby Fairfax County addresses. Order flower, edibles, and vapes online from Gas Nation; flat $20, 10 AM–10 PM.",
   },
   {
-    slug: "arlington",
-    name: "Arlington",
+    slug: "mclean",
+    name: "McLean",
     kind: "city",
-    area: "Arlington County, Northern Virginia",
+    area: "Fairfax County, VA",
+    h1: "Weed delivery in McLean, VA",
+    title: "Weed Delivery in McLean, VA | Same-Day | Gas Nation",
     blurb:
-      "Cannabis delivery in Arlington, VA. Same-day weed delivery across Arlington, including Clarendon, Ballston, Rosslyn, and Crystal City.",
+      "Discreet same-day weed delivery in McLean, VA near Tysons and the GW Parkway. Gas Nation delivers to homes and offices with cash on delivery and valid 21+ ID.",
   },
   {
-    slug: "lorton",
-    name: "Lorton",
+    slug: "reston",
+    name: "Reston",
     kind: "city",
-    area: "Fairfax County, Northern Virginia",
+    area: "Fairfax County, VA",
+    h1: "Weed delivery in Reston, VA",
+    title: "Weed Delivery in Reston, VA | Same-Day | Gas Nation",
     blurb:
-      "Weed delivery in Lorton, VA. Same-day cannabis delivery near Lorton Station and the I-95 corridor.",
+      "Same-day weed delivery in Reston, VA including Reston Town Center and nearby neighborhoods. Browse Gas Nation’s menu online and schedule discreet delivery 10 AM–10 PM.",
   },
   {
-    slug: "woodbridge",
-    name: "Woodbridge",
+    slug: "ashburn",
+    name: "Ashburn",
     kind: "city",
-    area: "Prince William County, Northern Virginia",
+    area: "Loudoun County, VA",
+    h1: "Weed delivery in Ashburn, VA",
+    title: "Weed Delivery in Ashburn, VA | Same-Day | Gas Nation",
     blurb:
-      "Cannabis delivery in Woodbridge, VA. Same-day weed delivery to Woodbridge, Lake Ridge, and nearby Prince William addresses.",
+      "Same-day weed delivery in Ashburn, VA and nearby Loudoun neighborhoods. Order from Gas Nation’s online dispensary — flat $20 fee, cash on delivery, 21+.",
   },
   {
-    slug: "dumfries",
-    name: "Dumfries",
+    slug: "springfield",
+    name: "Springfield",
     kind: "city",
-    area: "Prince William County, Northern Virginia",
+    area: "Fairfax County, VA",
+    h1: "Weed delivery in Springfield, VA",
+    title: "Weed Delivery in Springfield, VA | Same-Day | Gas Nation",
     blurb:
-      "Weed delivery in Dumfries, VA. Same-day cannabis delivery along the Quantico / I-95 stretch of Prince William County.",
-  },
-  {
-    slug: "stafford",
-    name: "Stafford",
-    kind: "city",
-    area: "Stafford County, Northern Virginia",
-    blurb:
-      "Cannabis delivery in Stafford, VA. Same-day weed delivery across Stafford County from our online menu.",
-  },
-  {
-    slug: "fredericksburg",
-    name: "Fredericksburg",
-    kind: "city",
-    area: "Northern Virginia",
-    blurb:
-      "Weed delivery in Fredericksburg, VA. Same-day cannabis delivery when your address is in our Fredericksburg / Spotsylvania service area.",
-  },
-  {
-    slug: "haymarket",
-    name: "Haymarket",
-    kind: "city",
-    area: "Prince William County, Northern Virginia",
-    blurb:
-      "Cannabis delivery in Haymarket, VA. Same-day discreet weed delivery near I-66 and the Haymarket / Gainesville area.",
-  },
-  {
-    slug: "gainesville",
-    name: "Gainesville",
-    kind: "city",
-    area: "Prince William County, Northern Virginia",
-    blurb:
-      "Weed delivery in Gainesville, VA. Same-day cannabis delivery to Gainesville and neighboring Haymarket and Bristow.",
-  },
-  {
-    slug: "clifton",
-    name: "Clifton",
-    kind: "city",
-    area: "Fairfax County, Northern Virginia",
-    blurb:
-      "Cannabis delivery in Clifton, VA. Same-day weed delivery to Clifton and nearby Centreville / Fairfax addresses.",
-  },
-  {
-    slug: "manassas",
-    name: "Manassas",
-    kind: "city",
-    area: "Prince William County, Northern Virginia",
-    blurb:
-      "Weed delivery in Manassas, VA. Same-day cannabis delivery in Manassas and nearby Manassas Park / Yorkshire.",
+      "Same-day weed delivery in Springfield and West Springfield, VA along the Beltway and Franconia corridor. Gas Nation: online menu, flat $20, cash on delivery.",
   },
   {
     slug: "vienna",
     name: "Vienna",
     kind: "city",
-    area: "Fairfax County, Northern Virginia",
+    area: "Fairfax County, VA",
+    h1: "Weed delivery in Vienna, VA",
+    title: "Weed Delivery in Vienna, VA | Same-Day | Gas Nation",
     blurb:
-      "Weed delivery in Vienna, VA. Same-day cannabis delivery to Vienna homes and offices near Tysons, Maple Avenue, and the Metro.",
+      "Same-day weed delivery in Vienna, VA near Maple Avenue, the Metro, and Tysons. Order online with Gas Nation for discreet drop-off 10 AM–10 PM.",
   },
   {
-    slug: "oakton",
-    name: "Oakton",
+    slug: "falls-church",
+    name: "Falls Church",
     kind: "city",
-    area: "Fairfax County, Northern Virginia",
+    area: "Northern Virginia",
+    h1: "Weed delivery in Falls Church, VA",
+    title: "Weed Delivery in Falls Church, VA | Same-Day | Gas Nation",
     blurb:
-      "Cannabis delivery in Oakton, VA. Same-day weed delivery between Vienna, Fairfax, and Reston.",
+      "Same-day weed delivery in Falls Church, VA and nearby Seven Corners. Gas Nation delivers from an online menu with cash on delivery and 21+ ID at the door.",
   },
   {
-    slug: "great-falls",
-    name: "Great Falls",
+    slug: "woodbridge",
+    name: "Woodbridge",
     kind: "city",
-    area: "Fairfax County, Northern Virginia",
+    area: "Prince William County, VA",
+    h1: "Weed delivery in Woodbridge, VA",
+    title: "Weed Delivery in Woodbridge, VA | Same-Day | Gas Nation",
     blurb:
-      "Weed delivery in Great Falls, VA. Discreet same-day cannabis delivery to Great Falls and nearby McLean.",
+      "Same-day weed delivery in Woodbridge, VA including Lake Ridge and nearby Prince William addresses. Flat $20 from Gas Nation, cash on delivery, 21+.",
   },
   {
-    slug: "aldie",
-    name: "Aldie",
+    slug: "manassas",
+    name: "Manassas",
     kind: "city",
-    area: "Loudoun County, Northern Virginia",
+    area: "Prince William County, VA",
+    h1: "Weed delivery in Manassas, VA",
+    title: "Weed Delivery in Manassas, VA | Same-Day | Gas Nation",
     blurb:
-      "Cannabis delivery in Aldie, VA. Same-day weed delivery near South Riding, Chantilly, and the Route 50 corridor.",
+      "Same-day weed delivery in Manassas, VA and nearby Manassas Park. Order online from Gas Nation — discreet delivery, flat $20, cash only.",
+  },
+  {
+    slug: "herndon",
+    name: "Herndon",
+    kind: "city",
+    area: "Fairfax County, VA",
+    h1: "Weed delivery in Herndon, VA",
+    title: "Weed Delivery in Herndon, VA | Same-Day | Gas Nation",
+    blurb:
+      "Same-day weed delivery in Herndon, VA near downtown and the Dulles Toll Road. Gas Nation online ordering with cash on delivery and 21+ ID.",
+  },
+  {
+    slug: "sterling",
+    name: "Sterling",
+    kind: "city",
+    area: "Loudoun County, VA",
+    h1: "Weed delivery in Sterling, VA",
+    title: "Weed Delivery in Sterling, VA | Same-Day | Gas Nation",
+    blurb:
+      "Same-day weed delivery in Sterling, VA near Route 7 and Dulles Town Center. Flat $20 fee from Gas Nation; order flower, edibles, and vapes online.",
+  },
+  {
+    slug: "leesburg",
+    name: "Leesburg",
+    kind: "city",
+    area: "Loudoun County, VA",
+    h1: "Weed delivery in Leesburg, VA",
+    title: "Weed Delivery in Leesburg, VA | Same-Day | Gas Nation",
+    blurb:
+      "Same-day weed delivery in Leesburg, VA from Gas Nation’s online menu. Discreet drop-off 10 AM–10 PM, flat $20, cash on delivery, 21+.",
+  },
+  {
+    slug: "chantilly",
+    name: "Chantilly",
+    kind: "city",
+    area: "Fairfax County, VA",
+    h1: "Weed delivery in Chantilly, VA",
+    title: "Weed Delivery in Chantilly, VA | Same-Day | Gas Nation",
+    blurb:
+      "Same-day weed delivery in Chantilly, VA near Sully and Route 50. Gas Nation delivers to homes and hotels with cash on delivery and valid 21+ ID.",
+  },
+  {
+    slug: "annandale",
+    name: "Annandale",
+    kind: "city",
+    area: "Fairfax County, VA",
+    h1: "Weed delivery in Annandale, VA",
+    title: "Weed Delivery in Annandale, VA | Same-Day | Gas Nation",
+    blurb:
+      "Same-day weed delivery in Annandale, VA near Little River Turnpike. Order online from Gas Nation — flat $20, cash on delivery, 10 AM–10 PM.",
   },
   {
     slug: "old-town-alexandria",
     name: "Old Town Alexandria",
     kind: "neighborhood",
-    area: "Alexandria, Northern Virginia",
+    area: "Alexandria, VA",
+    h1: "Weed delivery in Old Town Alexandria",
+    title: "Weed Delivery in Old Town Alexandria | Same-Day | Gas Nation",
     blurb:
-      "Cannabis delivery in Old Town Alexandria. Discreet same-day weed delivery to Old Town streets, waterfront stays, and nearby hotels.",
-  },
-  {
-    slug: "crystal-city",
-    name: "Crystal City",
-    kind: "neighborhood",
-    area: "Arlington, Northern Virginia",
-    blurb:
-      "Weed delivery in Crystal City / National Landing. Same-day cannabis delivery to Crystal City apartments, hotels, and offices.",
-  },
-  {
-    slug: "ballston",
-    name: "Ballston",
-    kind: "neighborhood",
-    area: "Arlington, Northern Virginia",
-    blurb:
-      "Cannabis delivery in Ballston. Same-day weed delivery near Ballston Quarter and the Orange/Silver Line corridor.",
-  },
-  {
-    slug: "rosslyn",
-    name: "Rosslyn",
-    kind: "neighborhood",
-    area: "Arlington, Northern Virginia",
-    blurb:
-      "Weed delivery in Rosslyn. Same-day cannabis delivery to Rosslyn high-rises, hotels, and the Key Bridge area.",
-  },
-  {
-    slug: "clarendon",
-    name: "Clarendon",
-    kind: "neighborhood",
-    area: "Arlington, Northern Virginia",
-    blurb:
-      "Cannabis delivery in Clarendon. Same-day discreet weed delivery along Clarendon and nearby Courthouse.",
-  },
-  {
-    slug: "tysons",
-    name: "Tysons",
-    kind: "neighborhood",
-    area: "Fairfax County, Northern Virginia",
-    blurb:
-      "Cannabis delivery in Tysons. Same-day weed delivery around Tysons, including offices, residences, and hotels off the Beltway.",
-  },
-  {
-    slug: "tysons-corner",
-    name: "Tysons Corner",
-    kind: "neighborhood",
-    area: "Fairfax County, Northern Virginia",
-    blurb:
-      "Weed delivery in Tysons Corner. Same-day cannabis delivery near Tysons Corner Center, Tysons Galleria, and the Silver Line.",
-  },
-  {
-    slug: "mosaic-district",
-    name: "Mosaic District",
-    kind: "neighborhood",
-    area: "Fairfax, Northern Virginia",
-    blurb:
-      "Cannabis delivery in the Mosaic District. Same-day weed delivery to Mosaic apartments, hotels, and nearby Merrifield.",
-  },
-  {
-    slug: "kingstowne",
-    name: "Kingstowne",
-    kind: "neighborhood",
-    area: "Alexandria / Fairfax County",
-    blurb:
-      "Weed delivery in Kingstowne. Same-day cannabis delivery to Kingstowne and nearby Franconia / Alexandria addresses.",
-  },
-  {
-    slug: "south-riding",
-    name: "South Riding",
-    kind: "neighborhood",
-    area: "Loudoun County, Northern Virginia",
-    blurb:
-      "Cannabis delivery in South Riding. Same-day weed delivery across South Riding and nearby Chantilly / Aldie.",
-  },
-  {
-    slug: "broadlands",
-    name: "Broadlands",
-    kind: "neighborhood",
-    area: "Loudoun County, Northern Virginia",
-    blurb:
-      "Weed delivery in Broadlands. Same-day cannabis delivery to Broadlands and nearby Ashburn addresses.",
-  },
-  {
-    slug: "bristow",
-    name: "Bristow",
-    kind: "neighborhood",
-    area: "Prince William County, Northern Virginia",
-    blurb:
-      "Cannabis delivery in Bristow. Same-day weed delivery near Bristow and the Gainesville / Manassas corridor.",
-  },
-  {
-    slug: "lake-ridge",
-    name: "Lake Ridge",
-    kind: "neighborhood",
-    area: "Prince William County, Northern Virginia",
-    blurb:
-      "Weed delivery in Lake Ridge. Same-day cannabis delivery to Lake Ridge and nearby Woodbridge.",
-  },
-  {
-    slug: "occoquan",
-    name: "Occoquan",
-    kind: "neighborhood",
-    area: "Prince William County, Northern Virginia",
-    blurb:
-      "Cannabis delivery in Occoquan. Same-day discreet weed delivery to Occoquan and the surrounding waterfront area.",
-  },
-  {
-    slug: "dale-city",
-    name: "Dale City",
-    kind: "neighborhood",
-    area: "Prince William County, Northern Virginia",
-    blurb:
-      "Weed delivery in Dale City. Same-day cannabis delivery across Dale City and nearby Woodbridge.",
-  },
-  {
-    slug: "fair-lakes",
-    name: "Fair Lakes",
-    kind: "neighborhood",
-    area: "Fairfax County, Northern Virginia",
-    blurb:
-      "Cannabis delivery in Fair Lakes. Same-day weed delivery near Fair Lakes and the I-66 / West Ox area.",
-  },
-  {
-    slug: "seven-corners",
-    name: "Seven Corners",
-    kind: "neighborhood",
-    area: "Fairfax County, Northern Virginia",
-    blurb:
-      "Weed delivery in Seven Corners. Same-day cannabis delivery near Seven Corners, Falls Church, and Bailey’s Crossroads.",
-  },
-  {
-    slug: "falls-church",
-    name: "Falls Church",
-    kind: "neighborhood",
-    area: "Northern Virginia",
-    blurb:
-      "Cannabis delivery in Falls Church, VA. Same-day weed delivery to Falls Church and nearby Seven Corners / Arlington edges.",
-  },
-  {
-    slug: "baileys-crossroads",
-    name: "Baileys Crossroads",
-    kind: "neighborhood",
-    area: "Fairfax County, Northern Virginia",
-    blurb:
-      "Weed delivery in Bailey’s Crossroads. Same-day cannabis delivery near Columbia Pike and Route 7.",
-  },
-  {
-    slug: "west-springfield",
-    name: "West Springfield",
-    kind: "neighborhood",
-    area: "Fairfax County, Northern Virginia",
-    blurb:
-      "Cannabis delivery in West Springfield. Same-day weed delivery to West Springfield and nearby Burke / Springfield.",
-  },
-  {
-    slug: "pentagon-city",
-    name: "Pentagon City",
-    kind: "neighborhood",
-    area: "Arlington, Northern Virginia",
-    blurb:
-      "Weed delivery in Pentagon City. Same-day cannabis delivery to Pentagon City apartments, hotels, and the Fashion Centre area.",
+      "Discreet same-day weed delivery to Old Town Alexandria streets, waterfront stays, and nearby hotels. Gas Nation: online menu, flat $20, cash on delivery, 21+.",
   },
   {
     slug: "national-landing",
     name: "National Landing",
     kind: "neighborhood",
-    area: "Arlington, Northern Virginia",
+    area: "Arlington, VA",
+    h1: "Weed delivery in National Landing",
+    title: "Weed Delivery in National Landing | Same-Day | Gas Nation",
     blurb:
-      "Cannabis delivery in National Landing. Same-day weed delivery across National Landing, including Crystal City and Pentagon City.",
+      "Same-day weed delivery across National Landing — Crystal City and Pentagon City apartments, hotels, and offices. Order with Gas Nation online.",
   },
   {
-    slug: "del-ray",
-    name: "Del Ray",
+    slug: "ballston",
+    name: "Ballston",
     kind: "neighborhood",
-    area: "Alexandria, Northern Virginia",
+    area: "Arlington, VA",
+    h1: "Weed delivery in Ballston",
+    title: "Weed Delivery in Ballston, Arlington | Same-Day | Gas Nation",
     blurb:
-      "Weed delivery in Del Ray, Alexandria. Same-day cannabis delivery along Mount Vernon Avenue and nearby Old Town.",
+      "Same-day weed delivery near Ballston Quarter and the Orange/Silver Line. Gas Nation drops off discreetly 10 AM–10 PM with cash on delivery.",
   },
   {
-    slug: "merrifield",
-    name: "Merrifield",
+    slug: "clarendon",
+    name: "Clarendon",
     kind: "neighborhood",
-    area: "Fairfax County, Northern Virginia",
+    area: "Arlington, VA",
+    h1: "Weed delivery in Clarendon",
+    title: "Weed Delivery in Clarendon, Arlington | Same-Day | Gas Nation",
     blurb:
-      "Cannabis delivery in Merrifield, VA. Same-day weed delivery near the Mosaic District, Dunn Loring, and I-66.",
+      "Same-day weed delivery along Clarendon and nearby Courthouse. Browse Gas Nation’s menu and get discreet delivery with a flat $20 fee.",
+  },
+  {
+    slug: "rosslyn",
+    name: "Rosslyn",
+    kind: "neighborhood",
+    area: "Arlington, VA",
+    h1: "Weed delivery in Rosslyn",
+    title: "Weed Delivery in Rosslyn, Arlington | Same-Day | Gas Nation",
+    blurb:
+      "Same-day weed delivery to Rosslyn high-rises, hotels, and the Key Bridge area. Gas Nation: online order, cash on delivery, 21+ ID.",
+  },
+  {
+    slug: "tysons",
+    name: "Tysons",
+    kind: "neighborhood",
+    area: "Fairfax County, VA",
+    h1: "Weed delivery in Tysons",
+    title: "Weed Delivery in Tysons, VA | Same-Day | Gas Nation",
+    blurb:
+      "Same-day weed delivery around Tysons Corner Center, the Galleria, and nearby offices and residences. Flat $20 from Gas Nation, cash on delivery.",
+  },
+  {
+    slug: "mosaic-district",
+    name: "Mosaic District",
+    kind: "neighborhood",
+    area: "Fairfax / Merrifield, VA",
+    h1: "Weed delivery in the Mosaic District",
+    title: "Weed Delivery in Mosaic District | Same-Day | Gas Nation",
+    blurb:
+      "Same-day weed delivery to Mosaic District apartments, hotels, and nearby Merrifield. Order online with Gas Nation — discreet, flat $20, 21+.",
   },
 ];
 
 export const PRODUCT_SEO_LINKS = [
   { label: "Buy flower online", href: "/categories/flower" },
-  { label: "Indica flower delivery", href: "/categories/indica" },
-  { label: "Sativa flower delivery", href: "/categories/sativa" },
-  { label: "Hybrid flower delivery", href: "/categories/hybrid" },
-  { label: "Premium flower", href: "/categories/flower" },
-  { label: "Pre-rolls", href: "/products" },
-  { label: "Edibles delivery", href: "/products" },
-  { label: "THC gummies delivery", href: "/products" },
-  { label: "Vape cartridge delivery", href: "/products" },
-  { label: "Disposable vape delivery", href: "/products" },
-  { label: "Concentrates", href: "/products" },
-  { label: "Live resin delivery", href: "/products" },
-  { label: "Rosin delivery", href: "/products" },
-  { label: "Accessories", href: "/products" },
+  { label: "Indica flower", href: "/categories/indica" },
+  { label: "Sativa flower", href: "/categories/sativa" },
+  { label: "Hybrid flower", href: "/categories/hybrid" },
+  { label: "Shop all products", href: "/products" },
 ] as const;
 
 export function getSeoLocation(slug: string): SeoLocation | undefined {
@@ -475,10 +293,11 @@ export function getSeoLocation(slug: string): SeoLocation | undefined {
 
 export function locationHrefByName(name: string): string | undefined {
   const normalized = name.trim().toLowerCase();
-  const match = SEO_LOCATIONS.find((item) => item.name.toLowerCase() === normalized);
+  const match = SEO_LOCATIONS.find(
+    (item) => item.name.toLowerCase() === normalized,
+  );
   return match ? `/delivery/${match.slug}` : undefined;
 }
-
 
 export function nearbySeoLocations(slug: string, limit = 8): SeoLocation[] {
   const current = getSeoLocation(slug);
@@ -494,16 +313,20 @@ export function nearbySeoLocations(slug: string, limit = 8): SeoLocation[] {
   return [...sameKind, ...rest].slice(0, limit);
 }
 
+/** Standard SERP title: one intent + place + brand. */
 export function locationPageTitle(location: SeoLocation): string {
   if (location.title) {
     return location.title;
   }
   if (location.kind === "region") {
-    return `Cannabis Delivery in ${location.name} | Same-Day Weed Delivery`;
+    return `Weed Delivery in ${location.name} | Same-Day | Gas Nation`;
   }
-  return `Cannabis Delivery in ${location.name} | Weed Delivery ${location.name}`;
+  if (location.name.includes("DC") || location.area.includes("Washington, DC")) {
+    return `Weed Delivery in ${location.name} | Same-Day | Gas Nation`;
+  }
+  return `Weed Delivery in ${location.name}, VA | Same-Day | Gas Nation`;
 }
 
 export function locationPageDescription(location: SeoLocation): string {
-  return `${location.blurb} Flat $20 delivery, 10 AM–10 PM daily, cash on delivery. 21+ with valid ID. Gas Nation online dispensary.`;
+  return `${location.blurb} Gas Nation online dispensary — gasnationweed.com.`;
 }

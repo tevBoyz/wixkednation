@@ -126,6 +126,23 @@ Auth header: `Authorization: Bearer <accessToken>` where noted.
 - `POST /api/analytics/collect` — public; `{ visitorId, sessionId, path, referrer?, landingPath?, utm* }` — first-party pageviews (hashed IP + geoip-lite). Skips `/admin/*` and bots.
 - `GET /api/admin/analytics` — staff; query `from`/`to` → totals, daily series, top paths/countries/sources
 
+### Blog (4 public + 11 staff)
+
+- `GET /api/blog` — public; published only; `?page&limit&showOnHomepage=true`
+- `GET /api/blog/tags` — public; active tags with ≥1 published post
+- `GET /api/blog/tags/:slug` — public; tag + published posts; `?page&limit`
+- `GET /api/blog/:slug` — public; published only (includes `tags`)
+- `GET/POST /api/admin/blog` — staff; list/create (`bodyJson`, sanitized `bodyHtml`, `showOnHomepage`, `tagIds?`)
+- `GET/POST /api/admin/blog/tags` — staff; list/create tags (`includeInactive` on GET)
+- `PATCH /api/admin/blog/tags/:id` — staff; update tag SEO / active
+- `GET/PATCH/DELETE /api/admin/blog/:id` — staff; soft delete; PATCH accepts `tagIds`
+- `PATCH /api/admin/blog/:id/restore`
+- `POST /api/admin/blog/:id/cover` — multipart cover image
+- `POST /api/admin/blog/:id/media` — multipart inline image
+- `GET /api/assets/blog-images/:postId/:kind/:file` — `cover` \| `media`
+
+Additive Prisma models: `BlogPost`, `BlogMedia`, `BlogTag`, `BlogPostTag` (migrations `20260820140000_blog`, `20260822193000_blog_tags`). Seed: `npm run seed:blog-tags`. Unpublish clears `publishedAt`.
+
 ### Users (2)
 
 - `GET /api/users/me` — Bearer; `{ data: { user } }`, no reputation
@@ -572,7 +589,7 @@ Rules:
 
 ## 17. Prisma models (quick reference)
 
-`User`, `AuthAccount`, `OtpChallenge`, `RefreshToken`, `Address`, `Category`, `Product`, `Cart`, `CartItem`, `Order`, `OrderStatusHistory`, `Notification`, `AdminSettings`, `SmsLog`
+`User`, `AuthAccount`, `OtpChallenge`, `RefreshToken`, `Address`, `Category`, `Product`, `Cart`, `CartItem`, `Order`, `OrderStatusHistory`, `Notification`, `AdminSettings`, `SmsLog`, `PromoBanner`, `AnalyticsSession`, `AnalyticsPageView`, `BlogPost`, `BlogMedia`, `BlogTag`, `BlogPostTag`
 
 Order stores `items` and `deliveryAddress` as JSON snapshots. Product stores `images` as JSON array.
 

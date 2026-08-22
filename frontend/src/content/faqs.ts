@@ -7,36 +7,36 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Where do you deliver?",
     answer:
-      "We deliver across Virginia and Washington, DC. Areas we commonly serve include McLean, Reston, Vienna, Oakton, Great Falls, Sterling, Ashburn, Leesburg, Aldie, Chantilly, Herndon, Centreville, Fairfax, Manassas, Burke, Springfield, Alexandria, Annandale, Lorton, Woodbridge, Stafford, Fredericksburg, Dumfries, Haymarket, Gainesville, Arlington, Clifton, Pentagon City, Del Ray, Merrifield, and Washington, DC, and more.\n\nIf we missed your city, please reach out. We probably deliver there too.",
+      "We deliver across Northern Virginia and Washington, DC. Areas we commonly serve include McLean, Reston, Vienna, Ashburn, Sterling, Leesburg, Chantilly, Herndon, Fairfax, Manassas, Springfield, Alexandria, Annandale, Woodbridge, Arlington, and DC.\n\nIf we missed your city, reach out — we probably cover it.",
   },
   {
     question: "Where can I buy cannabis near me?",
     answer:
-      "GasNation offers cannabis delivery near you across Northern Virginia and Washington, DC. Order online from our cannabis menu, then we deliver discreetly to your door the same day during open hours (10 AM–10 PM).",
+      "Order from Gas Nation’s online menu and get same-day delivery to your door across Northern Virginia and Washington, DC (10 AM–10 PM).",
   },
   {
     question: "What are your hours? Are you open now?",
     answer:
-      "GasNation delivery is open seven days a week from 10 AM to 10 PM. Same-day and evening cannabis delivery is available while we are open.",
+      "We deliver seven days a week from 10 AM to 10 PM. Same-day and evening delivery is available while we are open.",
   },
   {
     question: "How old do I have to be?",
-    answer: "You must be 21 years of age to order from GasNation.",
+    answer: "You must be 21 or older to order from Gas Nation.",
   },
   {
-    question: "Do I need a medical card for marijuana delivery?",
+    question: "Do I need a medical card?",
     answer:
-      "No. GasNation marijuana delivery and cannabis delivery in Virginia and Washington, DC is 21+ with a valid government ID. A medical card is not required.",
+      "No. Gas Nation delivery in Northern Virginia and Washington, DC is for adults 21+ with a valid government ID. A medical card is not required.",
   },
   {
-    question: "Do you offer weed delivery in north Virginia?",
+    question: "Do you deliver in Northern Virginia?",
     answer:
-      "Yes. We offer weed delivery in north Virginia (Northern Virginia / NoVA) and cannabis delivery across Arlington, Alexandria, Fairfax, Loudoun, Prince William, and the wider DC metro. Same-day marijuana delivery 10 AM–10 PM, flat $20 fee, cash on delivery, 21+ with valid ID. No medical card required.",
+      "Yes. Same-day delivery across Arlington, Alexandria, Fairfax, Loudoun, Prince William, and the wider NoVA / DC metro. Flat $20 fee, cash on delivery, 21+ with valid ID.",
   },
   {
-    question: "Do you offer DC weed delivery?",
+    question: "Do you deliver in Washington, DC?",
     answer:
-      "Yes. We offer DC weed delivery and weed delivery DC to Washington, DC addresses, plus weed delivery in Virginia across Northern Virginia. Same-day service 10 AM–10 PM, flat $20 fee, cash on delivery.",
+      "Yes. We deliver to Washington, DC addresses with the same hours and flat $20 fee. Cash on delivery and 21+ ID required.",
   },
   {
     question: "Is there a delivery fee?",
@@ -44,9 +44,9 @@ export const FAQ_ITEMS: FaqItem[] = [
       "Yes. Everyone pays a $20 delivery fee, regardless of location.",
   },
   {
-    question: "How does cannabis delivery work?",
+    question: "How does delivery work?",
     answer:
-      "Browse our online dispensary menu, add products to your cart, check out, and we deliver to your address in our Northern Virginia or DC service area. You must be present with a valid 21+ ID when the driver arrives. Payment is cash only.",
+      "Browse the online menu, add products to your cart, check out, and we deliver to your address in our service area. You must be present with a valid 21+ ID when the driver arrives. Payment is cash only.",
   },
   {
     question: "How can I pay?",
@@ -65,7 +65,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Is the delivery discreet?",
     answer:
-      "Yes. Delivery from GasNation is always discreet. We use plain cars and plain clothes. If you have special delivery requests, you can note them at checkout.",
+      "Yes. Delivery is always discreet — plain cars and plain clothes. Add special delivery notes at checkout if you need them.",
   },
   {
     question: "What is a valid ID?",
@@ -104,13 +104,8 @@ export const FAQ_ITEMS: FaqItem[] = [
       "No. We deliver to homes, hotels, and temporary stays within our Northern Virginia and DC service area. If you are unsure whether we cover your spot, reach out. We probably do.",
   },
   {
-    question: "Is cannabis delivery cash on delivery?",
+    question: "Is payment cash on delivery?",
     answer:
-      "Yes. GasNation is cash only. Pay the driver in cash when your same-day cannabis delivery arrives. There is a flat $20 delivery fee on every order.",
-  },
-  {
-    question: "Do you offer discreet weed delivery in Northern Virginia?",
-    answer:
-      "Yes. Delivery is always discreet: plain cars and plain clothes. Same-day discreet cannabis delivery is available across Northern Virginia and Washington, DC from 10 AM to 10 PM.",
+      "Yes. Gas Nation is cash only. Pay the driver in cash when your order arrives. There is a flat $20 delivery fee on every order.",
   },
 ];

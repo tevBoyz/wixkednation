@@ -65,6 +65,29 @@ Backend does not enforce age gate on catalog routes yet (frontend UX owns gate f
 | POST | `/api/analytics/collect` | none | Body `{ visitorId, sessionId, path, referrer?, landingPath?, utmSource?, utmMedium?, utmCampaign? }`. UUIDs required. Rejects `/admin/*`. IP hashed; geo via geoip-lite. Bots → 204. |
 | GET | `/api/admin/analytics` | staff | Query `from`, `to` (default last 7 days, max 90). Returns `totals`, `series`, `topPaths`, `topCountries`, `topSources`. |
 
+## Blog (2 public + 8 admin)
+
+| Method | Path | Auth | Notes |
+|--------|------|------|-------|
+| GET | `/api/blog` | none | Published only. Query `page`, `limit`, optional `showOnHomepage=true`. Returns `{ posts, pagination }`. |
+| GET | `/api/blog/tags` | none | Active tags that have ≥1 published post. |
+| GET | `/api/blog/tags/:slug` | none | Tag + published posts. Query `page`, `limit`. |
+| GET | `/api/blog/:slug` | none | Published post by slug (includes `tags`); 404 if draft/missing. |
+| GET | `/api/admin/blog` | staff | List posts. Query `status`, `includeDeleted`. |
+| POST | `/api/admin/blog` | staff | Create draft/post. Body: `title`, `slug?`, `excerpt?`, `bodyJson?`, `bodyHtml?`, `status?`, `seoTitle?`, `seoDescription?`, `authorName?`, `showOnHomepage?`, `tagIds?`. |
+| GET | `/api/admin/blog/tags` | staff | List tags. Query `includeInactive`. |
+| POST | `/api/admin/blog/tags` | staff | Create tag. Body: `name`, `slug?`, `description?`, `seoTitle?`, `seoDescription?`, `isActive?`. |
+| PATCH | `/api/admin/blog/tags/:id` | staff | Update tag fields / activate. |
+| GET | `/api/admin/blog/:id` | staff | Full post incl. `bodyJson` / `bodyHtml` / `tags`. |
+| PATCH | `/api/admin/blog/:id` | staff | Update fields; publish/unpublish via `status` (unpublish clears `publishedAt`); replace tags via `tagIds`. |
+| DELETE | `/api/admin/blog/:id` | staff | Soft delete. |
+| PATCH | `/api/admin/blog/:id/restore` | staff | Restore soft-deleted post. |
+| POST | `/api/admin/blog/:id/cover` | staff | Multipart `image` → cover WebP. |
+| POST | `/api/admin/blog/:id/media` | staff | Multipart `image` (+ optional `alt`) → inline media URL. |
+| GET | `/api/assets/blog-images/:postId/:kind/:file` | none | `kind` = `cover` \| `media`. |
+
+Additive tables: `blog_posts`, `blog_media`, `blog_tags`, `blog_post_tags`. `bodyHtml` is sanitized server-side. Seed tags: `node scripts/seed-blog-tags.js`.
+
 ---
 
 ## Public catalog (5)

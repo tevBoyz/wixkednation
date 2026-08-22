@@ -99,6 +99,53 @@ export type ProductsListResult = {
   };
 };
 
+export type BlogPostStatus = "draft" | "published";
+
+export type BlogTag = {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  isActive?: boolean;
+  postCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type BlogPost = {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt?: string | null;
+  bodyJson?: unknown;
+  bodyHtml?: string;
+  coverImagePath?: string | null;
+  coverImageUrl?: string | null;
+  status: BlogPostStatus;
+  publishedAt?: string | null;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  authorName?: string | null;
+  showOnHomepage?: boolean;
+  tags?: BlogTag[];
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string | null;
+};
+
+export type BlogListResult = {
+  posts: BlogPost[];
+  pagination: PaginatedMeta;
+};
+
+export type BlogTagPageResult = {
+  tag: BlogTag;
+  posts: BlogPost[];
+  pagination: PaginatedMeta;
+};
+
 export type PromoBannerImageMode = "composed" | "uploaded";
 
 export type PromoBanner = {

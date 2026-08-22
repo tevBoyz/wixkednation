@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
+import { BlogPostCard } from "@/components/blog/blog-post-card";
 import { CategoryCard } from "@/components/catalog/category-card";
 import { HeroBrandDescription } from "@/components/catalog/hero-brand-description";
 import {
@@ -13,6 +14,7 @@ import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { SITE_DEFAULT_TITLE, SITE_DESCRIPTION } from "@/config/brand";
 import { SEO_LOCATIONS } from "@/content/seo-locations";
+import { listPublicBlogPosts } from "@/lib/api/blog.api";
 import { listActiveStoreBanners } from "@/lib/api/banners.api";
 import { listCategories } from "@/lib/api/categories.api";
 import { listFeaturedProducts } from "@/lib/api/products.api";
@@ -31,6 +33,9 @@ export default async function HomePage() {
   let featured: Awaited<ReturnType<typeof listFeaturedProducts>> = [];
   let categories: Awaited<ReturnType<typeof listCategories>> = [];
   let banners: Awaited<ReturnType<typeof listActiveStoreBanners>> = [];
+  let homepagePosts: Awaited<
+    ReturnType<typeof listPublicBlogPosts>
+  >["posts"] = [];
   let featuredError: string | null = null;
   let categoriesError: string | null = null;
 
@@ -50,6 +55,16 @@ export default async function HomePage() {
     banners = await listActiveStoreBanners();
   } catch {
     banners = [];
+  }
+
+  try {
+    const blog = await listPublicBlogPosts({
+      showOnHomepage: true,
+      limit: 6,
+    });
+    homepagePosts = blog.posts ?? [];
+  } catch {
+    homepagePosts = [];
   }
 
   const heroItems: HeroStackItem[] = featured.map((product) => ({
@@ -78,11 +93,9 @@ export default async function HomePage() {
                 </h1>
                 <HeroBrandDescription />
                 <p className="max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-                  Same-day weed delivery in north Virginia and Washington, DC.
-                  Cannabis delivery and marijuana delivery across Northern
-                  Virginia (NoVA) and DC, including premium flower, edibles,
-                  vapes, and concentrates. Flat $20 delivery, 10 AM–10 PM
-                  daily. 21+ with valid ID.
+                  Same-day weed delivery in Northern Virginia and Washington,
+                  DC. Order flower, edibles, vapes, and concentrates online.
+                  Cash on delivery. 21+ with valid ID.
                 </p>
               </div>
               <p className="max-w-xl text-pretty text-base text-muted-foreground sm:text-lg">
@@ -162,6 +175,37 @@ export default async function HomePage() {
           ) : null}
         </section>
 
+        {homepagePosts.length > 0 ? (
+          <section aria-labelledby="blog-heading" className="min-w-0">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div className="min-w-0">
+                <h2
+                  id="blog-heading"
+                  className="text-xl font-semibold tracking-tight"
+                >
+                  From the blog
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Guides for weed delivery in north Virginia and DC.
+                </p>
+              </div>
+              <Link
+                href="/blog"
+                className="shrink-0 text-sm font-medium underline-offset-4 hover:underline"
+              >
+                View all posts
+              </Link>
+            </div>
+            <ul className="mt-6 grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {homepagePosts.map((post) => (
+                <li key={post.id} className="min-w-0">
+                  <BlogPostCard post={post} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
         <section aria-labelledby="categories-heading" className="min-w-0">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div className="min-w-0">
@@ -213,10 +257,10 @@ export default async function HomePage() {
                 id="delivery-heading"
                 className="text-xl font-semibold tracking-tight"
               >
-                Cannabis delivery near you
+                Delivery near you
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Same-day weed delivery in north Virginia and Washington, DC.
+                Same-day weed delivery in Northern Virginia and Washington, DC.
               </p>
             </div>
             <Link

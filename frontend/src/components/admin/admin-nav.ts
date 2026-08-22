@@ -4,9 +4,11 @@ import {
   LayoutDashboardIcon,
   ImageIcon,
   MegaphoneIcon,
+  NewspaperIcon,
   PackageIcon,
   SettingsIcon,
   ShoppingBagIcon,
+  TagsIcon,
   UserCogIcon,
   UsersIcon,
   type LucideIcon,
@@ -38,6 +40,16 @@ export const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     href: "/admin/banners",
     label: "Banners",
     icon: MegaphoneIcon,
+  },
+  {
+    href: "/admin/blog",
+    label: "Blog",
+    icon: NewspaperIcon,
+  },
+  {
+    href: "/admin/blog/tags",
+    label: "Blog tags",
+    icon: TagsIcon,
   },
   {
     href: "/admin/media",
@@ -81,7 +93,19 @@ export function isAdminNavActive(pathname: string, item: AdminNavItem) {
   if (item.exact) {
     return pathname === item.href;
   }
-  return pathname === item.href || pathname.startsWith(`${item.href}/`);
+  const matches =
+    pathname === item.href || pathname.startsWith(`${item.href}/`);
+  if (!matches) {
+    return false;
+  }
+  // Prefer a more specific nav item when paths nest (e.g. /admin/blog/tags).
+  const hasMoreSpecificMatch = ADMIN_NAV_ITEMS.some(
+    (other) =>
+      other.href !== item.href &&
+      other.href.length > item.href.length &&
+      (pathname === other.href || pathname.startsWith(`${other.href}/`)),
+  );
+  return !hasMoreSpecificMatch;
 }
 
 export function adminTitleFromPath(pathname: string): string {
@@ -89,9 +113,9 @@ export function adminTitleFromPath(pathname: string): string {
     return "Dashboard";
   }
 
-  const match = ADMIN_NAV_ITEMS.find((item) =>
-    isAdminNavActive(pathname, item),
-  );
+  const match = [...ADMIN_NAV_ITEMS]
+    .sort((a, b) => b.href.length - a.href.length)
+    .find((item) => isAdminNavActive(pathname, item));
   if (match) {
     return match.label;
   }

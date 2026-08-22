@@ -285,6 +285,76 @@ const collection = {
       ]
     },
     {
+      name: "Blog",
+      item: [
+        req("List public blog posts", "GET", "/api/blog", {
+          description:
+            "Status: implemented\nAuth: none\nQuery: page, limit, showOnHomepage=true (optional).\nReturns published posts only: { posts, pagination }."
+        }),
+        req("Get public blog post", "GET", "/api/blog/{{blogSlug}}", {
+          description:
+            "Status: implemented\nAuth: none\nPublished post by slug; 404 if draft/missing."
+        }),
+        req("Admin list blog posts", "GET", "/api/admin/blog", {
+          auth: "admin",
+          description:
+            "Status: implemented\nAuth: staff Bearer JWT\nQuery: status, includeDeleted."
+        }),
+        req("Admin create blog post", "POST", "/api/admin/blog", {
+          auth: "admin",
+          body: {
+            title: "Weed delivery in north Virginia",
+            slug: "weed-delivery-north-virginia",
+            excerpt: "How same-day delivery works across NoVA.",
+            status: "draft",
+            showOnHomepage: false,
+            bodyJson: {
+              type: "doc",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Hello from Gas Nation." }]
+                }
+              ]
+            }
+          },
+          description:
+            "Status: implemented\nAuth: staff\nCreates post; bodyHtml sanitized server-side."
+        }),
+        req("Admin get blog post", "GET", "/api/admin/blog/{{blogPostId}}", {
+          auth: "admin",
+          description: "Status: implemented\nAuth: staff"
+        }),
+        req("Admin update blog post", "PATCH", "/api/admin/blog/{{blogPostId}}", {
+          auth: "admin",
+          body: {
+            status: "published",
+            showOnHomepage: true
+          },
+          description:
+            "Status: implemented\nAuth: staff\nUnpublish clears publishedAt."
+        }),
+        req("Admin upload blog cover", "POST", "/api/admin/blog/{{blogPostId}}/cover", {
+          auth: "admin",
+          description:
+            "Status: implemented\nAuth: staff\nMultipart field: image"
+        }),
+        req("Admin upload blog media", "POST", "/api/admin/blog/{{blogPostId}}/media", {
+          auth: "admin",
+          description:
+            "Status: implemented\nAuth: staff\nMultipart field: image; optional alt"
+        }),
+        req("Admin delete blog post", "DELETE", "/api/admin/blog/{{blogPostId}}", {
+          auth: "admin",
+          description: "Status: implemented\nAuth: staff\nSoft delete"
+        }),
+        req("Admin restore blog post", "PATCH", "/api/admin/blog/{{blogPostId}}/restore", {
+          auth: "admin",
+          description: "Status: implemented\nAuth: staff"
+        })
+      ]
+    },
+    {
       name: "Public Catalog",
       item: [
         req("List categories", "GET", "/api/categories", {

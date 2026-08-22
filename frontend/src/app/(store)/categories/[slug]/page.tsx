@@ -35,24 +35,24 @@ export async function generateMetadata({
     const category = await fetchCategoryBySlug(slug);
     const seoBySlug: Record<string, { title: string; description: string }> = {
       flower: {
-        title: "Buy Flower Online | Premium Flower Delivery NoVA & DC",
+        title: "Buy Flower Online | Same-Day Delivery | Gas Nation",
         description:
-          "Buy flower online with same-day cannabis delivery in Northern Virginia and Washington, DC. Premium flower from GasNation. 21+.",
+          "Shop flower online with same-day delivery in Northern Virginia and Washington, DC from Gas Nation. 21+.",
       },
       indica: {
-        title: "Indica Flower Delivery | Northern Virginia & DC",
+        title: "Indica Flower | Same-Day Delivery | Gas Nation",
         description:
-          "Indica flower delivery from GasNation. Shop indica for evening and relaxation-oriented strains. Same-day weed delivery in NoVA and DC.",
+          "Shop indica flower for evening and relaxation-oriented strains. Same-day delivery in NoVA and DC from Gas Nation.",
       },
       sativa: {
-        title: "Sativa Flower Delivery | Northern Virginia & DC",
+        title: "Sativa Flower | Same-Day Delivery | Gas Nation",
         description:
-          "Sativa flower delivery from GasNation. Daytime sativa strains with same-day cannabis delivery across Northern Virginia and DC.",
+          "Shop sativa flower for daytime strains. Same-day delivery across Northern Virginia and DC from Gas Nation.",
       },
       hybrid: {
-        title: "Hybrid Flower Delivery | Northern Virginia & DC",
+        title: "Hybrid Flower | Same-Day Delivery | Gas Nation",
         description:
-          "Hybrid flower delivery from GasNation. Shop hybrid strains with same-day weed delivery in Northern Virginia and Washington, DC.",
+          "Shop hybrid flower with same-day delivery in Northern Virginia and Washington, DC from Gas Nation.",
       },
     };
 
@@ -60,10 +60,10 @@ export async function generateMetadata({
     const description =
       extras?.description ||
       category.description?.trim() ||
-      `Shop ${category.name} cannabis products with same-day delivery from ${SITE_NAME} across Northern Virginia and Washington, DC.`;
+      `Shop ${category.name} with same-day delivery from ${SITE_NAME} across Northern Virginia and Washington, DC.`;
 
     return buildPageMetadata({
-      title: extras?.title || `${category.name} | Cannabis Menu Delivery`,
+      title: extras?.title || `${category.name} | Menu | Gas Nation`,
       description,
       path: `/categories/${slug}`,
     });

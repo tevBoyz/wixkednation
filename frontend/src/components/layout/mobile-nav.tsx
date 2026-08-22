@@ -70,6 +70,15 @@ export function MobileNav() {
               <ul className="flex flex-col gap-1">
                 <li>
                   <Link
+                    href="/blog"
+                    onClick={() => setOpen(false)}
+                    className={linkClassName}
+                  >
+                    Blog
+                  </Link>
+                </li>
+                <li>
+                  <Link
                     href="/faqs"
                     onClick={() => setOpen(false)}
                     className={linkClassName}

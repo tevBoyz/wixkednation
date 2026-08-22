@@ -944,3 +944,32 @@
     animation: none !important;
   }
 }
+
+/* TipTap + blog prose */
+.blog-editor-content .ProseMirror,
+.ProseMirror {
+  min-height: 16rem;
+  outline: none;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: var(--muted-foreground);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.ProseMirror img,
+.blog-prose img {
+  height: auto;
+  max-width: 100%;
+}
+
+.ProseMirror iframe,
+.blog-prose iframe {
+  aspect-ratio: 16 / 9;
+  height: auto;
+  max-width: 100%;
+  width: 100%;
+}

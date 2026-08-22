@@ -500,3 +500,77 @@ model AnalyticsPageView {
   @@index([createdAt])
   @@map("analytics_page_views")
 }
+
+enum BlogPostStatus {
+  draft
+  published
+}
+
+model BlogPost {
+  id             String         @id @default(uuid()) @db.Uuid
+  title          String
+  slug           String         @unique
+  excerpt        String?
+  bodyJson       Json           @default("{}")
+  bodyHtml       String         @default("") @db.Text
+  coverImagePath String?
+  status         BlogPostStatus @default(draft)
+  publishedAt    DateTime?
+  seoTitle       String?
+  seoDescription String?
+  authorName     String?
+  showOnHomepage Boolean        @default(false)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  deletedAt      DateTime?
+
+  media BlogMedia[]
+  tags  BlogPostTag[]
+
+  @@index([status, publishedAt])
+  @@index([status, showOnHomepage])
+  @@index([deletedAt])
+  @@map("blog_posts")
+}
+
+model BlogMedia {
+  id        String   @id @default(uuid()) @db.Uuid
+  postId    String   @db.Uuid
+  path      String
+  alt       String?
+  createdAt DateTime @default(now())
+
+  post BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@map("blog_media")
+}
+
+model BlogTag {
+  id             String   @id @default(uuid()) @db.Uuid
+  name           String
+  slug           String   @unique
+  description    String?  @db.Text
+  seoTitle       String?
+  seoDescription String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  posts BlogPostTag[]
+
+  @@index([isActive])
+  @@map("blog_tags")
+}
+
+model BlogPostTag {
+  postId String @db.Uuid
+  tagId  String @db.Uuid
+
+  post BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  BlogTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([tagId])
+  @@map("blog_post_tags")
+}

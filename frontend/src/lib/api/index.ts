@@ -6,6 +6,22 @@ export * from "@/lib/api/age-gate";
 export * from "@/lib/api/auth.api";
 export * from "@/lib/api/categories.api";
 export * from "@/lib/api/products.api";
+export {
+  createAdminBlogPost,
+  deleteAdminBlogPost,
+  fetchAdminBlogPost,
+  fetchBlogPostBySlug,
+  fetchBlogPostsPage,
+  fetchPublicBlogPost,
+  listAdminBlogPosts,
+  listBlogPosts,
+  listHomepageBlogPosts,
+  listPublicBlogPosts,
+  restoreAdminBlogPost,
+  updateAdminBlogPost,
+  type AdminBlogBody,
+  type BlogMediaItem,
+} from "@/lib/api/blog.api";
 export * from "@/lib/api/cart.api";
 export * from "@/lib/api/users.api";
 export * from "@/lib/api/addresses.api";

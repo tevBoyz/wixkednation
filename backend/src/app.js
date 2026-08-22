@@ -26,11 +26,13 @@ const adminMediaRoutes = require("./modules/admin/media/media.routes");
 const adminTeamRoutes = require("./modules/admin/team/team.routes");
 const adminBannersRoutes = require("./modules/admin/banners/banners.routes");
 const adminAnalyticsRoutes = require("./modules/admin/analytics/analytics.routes");
+const adminBlogRoutes = require("./modules/admin/blog/blog.routes");
 const usersRoutes = require("./modules/users/users.routes");
 const notificationsRoutes = require("./modules/notifications/notifications.routes");
 const ageGateRoutes = require("./modules/age-gate/age-gate.routes");
 const storeRoutes = require("./modules/store/store.routes");
 const analyticsRoutes = require("./modules/analytics/analytics.routes");
+const blogRoutes = require("./modules/blog/blog.routes");
 
 const notFoundHandler = require("./middleware/notFound.middleware");
 const errorHandler = require("./middleware/error.middleware");
@@ -79,10 +81,12 @@ app.use("/api/admin/media", adminMediaRoutes);
 app.use("/api/admin/team", adminTeamRoutes);
 app.use("/api/admin/banners", adminBannersRoutes);
 app.use("/api/admin/analytics", adminAnalyticsRoutes);
+app.use("/api/admin/blog", adminBlogRoutes);
 app.use("/api/notifications", notificationsRoutes);
 app.use("/api/age-gate", ageGateRoutes);
 app.use("/api/store", storeRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/blog", blogRoutes);
 
 app.use("/api/assets", assetsRoutes);
 

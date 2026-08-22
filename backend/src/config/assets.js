@@ -47,11 +47,33 @@ function getBannerImagePublicUrl(bannerId, imagePath) {
   return `${base}/api/assets/banner-images/${bannerId}/${filename}`;
 }
 
+/** Public URL for a stored blog cover/inline image (proxied through this API). */
+function getBlogImagePublicUrl(postId, imagePath) {
+  const base = String(env.backendUrl || "").replace(/\/$/, "");
+
+  if (!postId || !imagePath) {
+    return null;
+  }
+
+  const normalized = String(imagePath).replace(/\\/g, "/");
+  const parts = normalized.split("/");
+  // Expected: blog/{postId}/cover|media/{file}
+  if (parts.length >= 4 && parts[0] === "blog") {
+    const kind = parts[2];
+    const filename = parts[parts.length - 1];
+    return `${base}/api/assets/blog-images/${postId}/${kind}/${filename}`;
+  }
+
+  const filename = path.basename(imagePath);
+  return `${base}/api/assets/blog-images/${postId}/media/${filename}`;
+}
+
 module.exports = {
   assetsDir,
   DEFAULT_PRODUCT_IMAGE_FILENAME,
   getDefaultProductImagePath,
   getDefaultProductImageUrl,
   getProductImagePublicUrl,
-  getBannerImagePublicUrl
+  getBannerImagePublicUrl,
+  getBlogImagePublicUrl
 };
