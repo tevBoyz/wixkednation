@@ -1,16 +1,12 @@
-import Link from "next/link";
-
+import {
+  BlogPostTags,
+  type BlogPostTagItem,
+} from "@/components/blog/blog-post-tags";
 import { resolveCatalogAssetUrl } from "@/lib/catalog/catalog-image-url";
 import { sanitizeBlogHtml } from "@/lib/blog/sanitize-blog-html";
 import { cn } from "@/lib/utils";
 
 export { sanitizeBlogHtml } from "@/lib/blog/sanitize-blog-html";
-
-type BlogTagLink = {
-  id?: string;
-  name: string;
-  slug: string;
-};
 
 type BlogPostBodyProps = {
   title?: string;
@@ -22,7 +18,7 @@ type BlogPostBodyProps = {
   publishedAt?: string | null;
   authorName?: string | null;
   excerpt?: string | null;
-  tags?: BlogTagLink[];
+  tags?: BlogPostTagItem[];
   className?: string;
   /** Compact preview mode (admin). */
   compact?: boolean;
@@ -131,20 +127,7 @@ export function BlogPostBody({
             {excerpt.trim()}
           </p>
         ) : null}
-        {tags && tags.length > 0 ? (
-          <ul className="mt-4 flex flex-wrap gap-2" aria-label="Tags">
-            {tags.map((tag) => (
-              <li key={tag.id || tag.slug}>
-                <Link
-                  href={`/tag/${tag.slug}`}
-                  className="inline-flex min-h-9 items-center rounded-md border border-border px-3 text-sm text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
-                >
-                  {tag.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        ) : null}
+        {tags && tags.length > 0 ? <BlogPostTags tags={tags} /> : null}
       </header>
 
       {coverSrc ? (
