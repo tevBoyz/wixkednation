@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 
 import { AGE_GATE_COOKIE } from "@/lib/age-gate/constants";
 import { isSearchCrawlerUserAgent } from "@/lib/seo/is-search-crawler";
+import { getSiteOrigin } from "@/lib/seo/site-metadata";
 
 const PUBLIC_PATHS = ["/age-gate", "/blocked", "/auth/google/callback"];
 
@@ -12,10 +13,12 @@ function redirectWwwToApex(request: NextRequest): NextResponse | null {
   if (!host?.startsWith("www.")) {
     return null;
   }
-  const url = request.nextUrl.clone();
-  url.hostname = host.slice(4);
-  url.protocol = "https:";
-  return NextResponse.redirect(url, 301);
+  // Build from configured origin — nextUrl keeps internal :3000 behind nginx.
+  const target = new URL(
+    `${request.nextUrl.pathname}${request.nextUrl.search}`,
+    getSiteOrigin(),
+  );
+  return NextResponse.redirect(target, 301);
 }
 
 function isPublicPath(pathname: string): boolean {
