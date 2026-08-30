@@ -6,6 +6,18 @@ import { isSearchCrawlerUserAgent } from "@/lib/seo/is-search-crawler";
 
 const PUBLIC_PATHS = ["/age-gate", "/blocked", "/auth/google/callback"];
 
+/** Collapse www → apex so Search Console and canonicals stay on one host. */
+function redirectWwwToApex(request: NextRequest): NextResponse | null {
+  const host = request.headers.get("host");
+  if (!host?.startsWith("www.")) {
+    return null;
+  }
+  const url = request.nextUrl.clone();
+  url.hostname = host.slice(4);
+  url.protocol = "https:";
+  return NextResponse.redirect(url, 301);
+}
+
 function isPublicPath(pathname: string): boolean {
   if (PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`))) {
     return true;
@@ -24,6 +36,11 @@ function isPublicPath(pathname: string): boolean {
 }
 
 export function proxy(request: NextRequest) {
+  const wwwRedirect = redirectWwwToApex(request);
+  if (wwwRedirect) {
+    return wwwRedirect;
+  }
+
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/dev")) {
