@@ -10,7 +10,7 @@ import {
   getSeoLocation,
   locationPageDescription,
   locationPageTitle,
-  nearbySeoLocations,
+  nearbySeoLocationGroups,
   PRODUCT_SEO_LINKS,
   SEO_LOCATIONS,
 } from "@/content/seo-locations";
@@ -53,7 +53,7 @@ export default async function DeliveryLocationPage({
     notFound();
   }
 
-  const nearby = nearbySeoLocations(location.slug);
+  const nearbyGroups = nearbySeoLocationGroups(location.slug);
   const placeLabel =
     location.name === "Washington, DC" ? "Washington DC" : location.name;
 
@@ -136,18 +136,27 @@ export default async function DeliveryLocationPage({
           <h2 id="nearby-heading" className="text-xl font-semibold tracking-tight">
             Nearby delivery areas
           </h2>
-          <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-            {nearby.map((item) => (
-              <li key={item.slug}>
-                <Link
-                  href={`/delivery/${item.slug}`}
-                  className="text-sm font-medium text-primary underline-offset-4 hover:underline"
-                >
-                  Weed delivery in {item.name}
-                </Link>
-              </li>
+          <div className="mt-6 space-y-8">
+            {nearbyGroups.map((group) => (
+              <div key={group.clusterId}>
+                <h3 className="text-sm font-semibold tracking-tight text-foreground">
+                  {group.label}
+                </h3>
+                <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {group.locations.map((item) => (
+                    <li key={item.slug}>
+                      <Link
+                        href={`/delivery/${item.slug}`}
+                        className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+                      >
+                        Weed delivery in {item.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
+          </div>
         </section>
       </Container>
     </main>

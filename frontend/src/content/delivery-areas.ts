@@ -28,6 +28,7 @@ export const DELIVERY_CITIES = [
   "Oakton",
   "Great Falls",
   "Aldie",
+  "Warrenton",
   "Washington, DC",
 ] as const;
 

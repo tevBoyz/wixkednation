@@ -208,6 +208,66 @@ export const SEO_LOCATIONS: SeoLocation[] = [
       "Same-day weed delivery in Annandale, VA near Little River Turnpike. Order online from Gas Nation — flat $20, cash on delivery, 10 AM–10 PM.",
   },
   {
+    slug: "centreville",
+    name: "Centreville",
+    kind: "city",
+    area: "Fairfax County, VA",
+    h1: "Weed delivery in Centreville, VA",
+    title: "Weed Delivery in Centreville, VA | Same-Day | Gas Nation",
+    blurb:
+      "Same-day weed delivery in Centreville, VA along Route 28 and the Sully District. Gas Nation brings flower, edibles, and vapes to your door — flat $20, cash on delivery, 21+.",
+  },
+  {
+    slug: "stafford",
+    name: "Stafford",
+    kind: "city",
+    area: "Stafford County, VA",
+    h1: "Weed delivery in Stafford, VA",
+    title: "Weed Delivery in Stafford, VA | Same-Day | Gas Nation",
+    blurb:
+      "Same-day weed delivery in Stafford, VA along the I-95 corridor and Quantico area. Order online from Gas Nation — discreet drop-off, flat $20, cash on delivery, 21+ ID.",
+  },
+  {
+    slug: "fredericksburg",
+    name: "Fredericksburg",
+    kind: "city",
+    area: "Spotsylvania & Fredericksburg, VA",
+    h1: "Weed delivery in Fredericksburg, VA",
+    title: "Weed Delivery in Fredericksburg, VA | Same-Day | Gas Nation",
+    blurb:
+      "Same-day weed delivery in Fredericksburg, VA and nearby Spotsylvania addresses. Browse Gas Nation’s online menu for flower, edibles, and vapes — flat $20, 10 AM–10 PM.",
+  },
+  {
+    slug: "gainesville",
+    name: "Gainesville",
+    kind: "city",
+    area: "Prince William County, VA",
+    h1: "Weed delivery in Gainesville, VA",
+    title: "Weed Delivery in Gainesville, VA | Same-Day | Gas Nation",
+    blurb:
+      "Same-day weed delivery in Gainesville, VA near Route 29 and the Prince William Parkway. Gas Nation online ordering with cash on delivery and valid 21+ ID.",
+  },
+  {
+    slug: "haymarket",
+    name: "Haymarket",
+    kind: "city",
+    area: "Prince William County, VA",
+    h1: "Weed delivery in Haymarket, VA",
+    title: "Weed Delivery in Haymarket, VA | Same-Day | Gas Nation",
+    blurb:
+      "Same-day weed delivery in Haymarket, VA and western Prince William neighborhoods. Order from Gas Nation — flat $20 fee, discreet delivery, cash on delivery, 21+.",
+  },
+  {
+    slug: "warrenton",
+    name: "Warrenton",
+    kind: "city",
+    area: "Fauquier County, VA",
+    h1: "Weed delivery in Warrenton, VA",
+    title: "Weed Delivery in Warrenton, VA | Same-Day | Gas Nation",
+    blurb:
+      "Same-day weed delivery in Warrenton, VA and nearby Fauquier County addresses along Route 29. Gas Nation delivers flower, edibles, and vapes — flat $20, cash on delivery, 21+.",
+  },
+  {
     slug: "old-town-alexandria",
     name: "Old Town Alexandria",
     kind: "neighborhood",
@@ -279,6 +339,144 @@ export const SEO_LOCATIONS: SeoLocation[] = [
   },
 ];
 
+export type SeoClusterId =
+  | "region"
+  | "arlington-metro"
+  | "alexandria"
+  | "fairfax-county"
+  | "loudoun"
+  | "prince-william"
+  | "stafford-fredericksburg"
+  | "fauquier";
+
+const SEO_SLUG_CLUSTER: Record<string, SeoClusterId> = {
+  "northern-virginia": "region",
+  virginia: "region",
+  "washington-dc": "region",
+  arlington: "arlington-metro",
+  ballston: "arlington-metro",
+  clarendon: "arlington-metro",
+  rosslyn: "arlington-metro",
+  "national-landing": "arlington-metro",
+  alexandria: "alexandria",
+  "old-town-alexandria": "alexandria",
+  fairfax: "fairfax-county",
+  "falls-church": "fairfax-county",
+  annandale: "fairfax-county",
+  springfield: "fairfax-county",
+  vienna: "fairfax-county",
+  mclean: "fairfax-county",
+  chantilly: "fairfax-county",
+  centreville: "fairfax-county",
+  herndon: "fairfax-county",
+  reston: "fairfax-county",
+  tysons: "fairfax-county",
+  "mosaic-district": "fairfax-county",
+  ashburn: "loudoun",
+  sterling: "loudoun",
+  leesburg: "loudoun",
+  manassas: "prince-william",
+  woodbridge: "prince-william",
+  gainesville: "prince-william",
+  haymarket: "prince-william",
+  stafford: "stafford-fredericksburg",
+  fredericksburg: "stafford-fredericksburg",
+  warrenton: "fauquier",
+};
+
+const CLUSTER_LABELS: Record<SeoClusterId, string> = {
+  region: "Northern Virginia & DC",
+  "arlington-metro": "Arlington & National Landing",
+  alexandria: "Alexandria",
+  "fairfax-county": "Fairfax County",
+  loudoun: "Loudoun County",
+  "prince-william": "Prince William County",
+  "stafford-fredericksburg": "Stafford & Fredericksburg",
+  fauquier: "Fauquier County",
+};
+
+/** Adjacent clusters shown after the primary cluster on delivery pages. */
+const CLUSTER_ADJACENCY: Record<SeoClusterId, SeoClusterId[]> = {
+  region: [
+    "arlington-metro",
+    "alexandria",
+    "fairfax-county",
+    "loudoun",
+    "prince-william",
+    "stafford-fredericksburg",
+  ],
+  "arlington-metro": ["alexandria", "fairfax-county", "region"],
+  alexandria: ["arlington-metro", "fairfax-county", "prince-william"],
+  "fairfax-county": [
+    "arlington-metro",
+    "alexandria",
+    "loudoun",
+    "prince-william",
+  ],
+  loudoun: ["fairfax-county", "prince-william", "fauquier"],
+  "prince-william": [
+    "fairfax-county",
+    "stafford-fredericksburg",
+    "fauquier",
+    "alexandria",
+  ],
+  "stafford-fredericksburg": ["prince-william", "fauquier"],
+  fauquier: ["prince-william", "loudoun", "stafford-fredericksburg"],
+};
+
+function locationsInCluster(
+  clusterId: SeoClusterId,
+  excludeSlug: string,
+): SeoLocation[] {
+  return SEO_LOCATIONS.filter(
+    (item) =>
+      item.slug !== excludeSlug && SEO_SLUG_CLUSTER[item.slug] === clusterId,
+  );
+}
+
+export type NearbyDeliveryGroup = {
+  clusterId: SeoClusterId;
+  label: string;
+  locations: SeoLocation[];
+};
+
+/** Geographic clusters for internal linking on delivery landing pages. */
+export function nearbySeoLocationGroups(slug: string): NearbyDeliveryGroup[] {
+  const primaryCluster = SEO_SLUG_CLUSTER[slug] ?? "region";
+  const groups: NearbyDeliveryGroup[] = [];
+  const seenClusters = new Set<SeoClusterId>();
+
+  const pushCluster = (clusterId: SeoClusterId) => {
+    if (seenClusters.has(clusterId)) {
+      return;
+    }
+    const locations = locationsInCluster(clusterId, slug);
+    if (locations.length === 0) {
+      return;
+    }
+    seenClusters.add(clusterId);
+    groups.push({
+      clusterId,
+      label: CLUSTER_LABELS[clusterId],
+      locations,
+    });
+  };
+
+  pushCluster(primaryCluster);
+  for (const adjacent of CLUSTER_ADJACENCY[primaryCluster] ?? []) {
+    pushCluster(adjacent);
+  }
+
+  return groups;
+}
+
+/** @deprecated Prefer {@link nearbySeoLocationGroups} for grouped nearby links. */
+export function nearbySeoLocations(slug: string, limit = 8): SeoLocation[] {
+  return nearbySeoLocationGroups(slug)
+    .flatMap((group) => group.locations)
+    .slice(0, limit);
+}
+
 export const PRODUCT_SEO_LINKS = [
   { label: "Buy flower online", href: "/categories/flower" },
   { label: "Indica flower", href: "/categories/indica" },
@@ -297,20 +495,6 @@ export function locationHrefByName(name: string): string | undefined {
     (item) => item.name.toLowerCase() === normalized,
   );
   return match ? `/delivery/${match.slug}` : undefined;
-}
-
-export function nearbySeoLocations(slug: string, limit = 8): SeoLocation[] {
-  const current = getSeoLocation(slug);
-  if (!current) {
-    return SEO_LOCATIONS.slice(0, limit);
-  }
-  const sameKind = SEO_LOCATIONS.filter(
-    (item) => item.slug !== slug && item.kind === current.kind,
-  );
-  const rest = SEO_LOCATIONS.filter(
-    (item) => item.slug !== slug && item.kind !== current.kind,
-  );
-  return [...sameKind, ...rest].slice(0, limit);
 }
 
 /** Standard SERP title: one intent + place + brand. */
