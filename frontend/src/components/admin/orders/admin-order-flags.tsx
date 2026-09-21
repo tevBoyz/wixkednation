@@ -22,17 +22,30 @@ export function guestPlacementLabel(order: {
 type AdminOrderFlagsProps = {
   order: Pick<
     AdminOrder,
-    "placedAsGuest" | "matchedExistingAccount" | "risk"
+    | "placedAsGuest"
+    | "matchedExistingAccount"
+    | "risk"
+    | "deliveryFee"
+    | "couponCode"
   >;
   className?: string;
 };
 
 export function AdminOrderFlags({ order, className }: AdminOrderFlagsProps) {
+  const deliveryFee =
+    order.deliveryFee != null ? Number(order.deliveryFee) : null;
+  const freeDelivery = deliveryFee === 0 && Boolean(order.couponCode);
+
   return (
     <div className={cn("flex flex-wrap items-center gap-1.5", className)}>
       <Badge variant={order.placedAsGuest ? "secondary" : "outline"}>
         {guestPlacementLabel(order)}
       </Badge>
+      {freeDelivery ? (
+        <Badge variant="default">FREE DELIVERY</Badge>
+      ) : order.couponCode ? (
+        <Badge variant="secondary">COUPON: {order.couponCode}</Badge>
+      ) : null}
       {order.risk?.lowReputation ? (
         <Badge variant="destructive">Low reputation</Badge>
       ) : null}

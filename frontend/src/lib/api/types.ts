@@ -402,6 +402,11 @@ export type Order = {
   status: OrderStatus;
   paymentMethod?: string;
   totalAmount?: number | string;
+  subtotalAmount?: number | string | null;
+  deliveryFee?: number | string | null;
+  discountAmount?: number | string | null;
+  couponCode?: string | null;
+  couponId?: string | null;
   createdAt?: string;
   updatedAt?: string;
   items?: OrderItemSnapshot[];
@@ -410,6 +415,33 @@ export type Order = {
   placedAsGuest?: boolean;
   matchedExistingAccount?: boolean;
   risk?: OrderRisk;
+};
+
+export type CouponType = "free_delivery" | "fixed_amount" | "percent_off";
+
+export type CouponStatus = "active" | "archived";
+
+export type Coupon = {
+  id: string;
+  code: string;
+  name: string;
+  type: CouponType;
+  amount?: number | string | null;
+  status: CouponStatus;
+  startsAt?: string | null;
+  endsAt?: string | null;
+  maxRedemptions?: number | null;
+  redemptionCount?: number;
+  maxPerCustomer?: number;
+  minSubtotal?: number | string | null;
+  newCustomersOnly?: boolean;
+  isUniqueIssue?: boolean;
+  claimSlug?: string | null;
+  claimUrl?: string | null;
+  parentCouponId?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  deletedAt?: string | null;
 };
 
 export type MyOrdersResult = {

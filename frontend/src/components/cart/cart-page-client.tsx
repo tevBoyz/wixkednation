@@ -77,7 +77,7 @@ export function CartPageClient() {
               <span className="font-semibold">{formatPrice(subtotal)}</span>
             </p>
             <p className="mt-2 text-xs text-muted-foreground">
-              Final total is confirmed at checkout.
+              Delivery ($20) is added at checkout.
             </p>
             <Button
               render={<Link href={checkoutHref} />}

@@ -36,6 +36,17 @@ enum NotificationType {
   general
 }
 
+enum CouponType {
+  free_delivery
+  fixed_amount
+  percent_off
+}
+
+enum CouponStatus {
+  active
+  archived
+}
+
 enum OtpChannel {
   sms
   email
@@ -344,6 +355,11 @@ model Order {
   deliveryAddress Json
   status          OrderStatus   @default(Pending)
   totalAmount     Decimal       @db.Decimal(10, 2)
+  subtotalAmount  Decimal?      @db.Decimal(10, 2)
+  deliveryFee     Decimal?      @db.Decimal(10, 2)
+  discountAmount  Decimal?      @db.Decimal(10, 2)
+  couponCode      String?
+  couponId        String?       @db.Uuid
   paymentMethod   PaymentMethod @default(COD)
 
   placedAsGuest            Boolean @default(false)
@@ -354,13 +370,98 @@ model Order {
   deletedAt DateTime?
 
   user          User                 @relation(fields: [userId], references: [id], onDelete: Restrict)
+  coupon        Coupon?              @relation(fields: [couponId], references: [id], onDelete: SetNull)
   notifications Notification[]
   statusHistory OrderStatusHistory[]
+  couponRedemptions CouponRedemption[]
 
   @@index([userId])
   @@index([status])
   @@index([deletedAt])
+  @@index([couponId])
   @@map("orders")
+}
+
+model Coupon {
+  id String @id @default(uuid()) @db.Uuid
+
+  code   String       @unique
+  name   String
+  type   CouponType
+  amount Decimal?     @db.Decimal(10, 2)
+  status CouponStatus @default(active)
+
+  startsAt DateTime?
+  endsAt   DateTime?
+
+  maxRedemptions  Int?
+  redemptionCount Int @default(0)
+  maxPerCustomer  Int @default(1)
+  minSubtotal     Decimal? @db.Decimal(10, 2)
+  newCustomersOnly Boolean @default(false)
+  isUniqueIssue    Boolean @default(false)
+  claimSlug        String? @unique
+  parentCouponId   String? @db.Uuid
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  parentCoupon Coupon?  @relation("CouponChildren", fields: [parentCouponId], references: [id], onDelete: SetNull)
+  childCoupons Coupon[] @relation("CouponChildren")
+  orders       Order[]
+  redemptions  CouponRedemption[]
+  leadSignups  LeadSignup[]
+
+  @@index([status])
+  @@index([claimSlug])
+  @@index([parentCouponId])
+  @@index([deletedAt])
+  @@map("coupons")
+}
+
+model CouponRedemption {
+  id String @id @default(uuid()) @db.Uuid
+
+  couponId String @db.Uuid
+  orderId  String @db.Uuid
+  userId   String? @db.Uuid
+  email    String?
+  phone    String?
+
+  discountAmount     Decimal @db.Decimal(10, 2)
+  deliveryFeeBefore  Decimal @db.Decimal(10, 2)
+  deliveryFeeAfter   Decimal @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+
+  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Restrict)
+  order  Order  @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@unique([orderId])
+  @@index([couponId])
+  @@index([userId])
+  @@index([email])
+  @@index([phone])
+  @@map("coupon_redemptions")
+}
+
+model LeadSignup {
+  id String @id @default(uuid()) @db.Uuid
+
+  email       String
+  couponId    String @db.Uuid
+  campaignKey String
+  source      String?
+
+  createdAt DateTime @default(now())
+
+  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Restrict)
+
+  @@unique([email, campaignKey])
+  @@index([couponId])
+  @@index([campaignKey])
+  @@map("lead_signups")
 }
 
 model Notification {

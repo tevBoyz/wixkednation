@@ -48,3 +48,27 @@ export function getPublicEnv(): PublicEnv {
     appUrl: trimTrailingSlash(appUrl),
   };
 }
+
+/**
+ * Absolute storefront origin for shareable links (claim URLs, etc.).
+ * Prefers the current browser host when not loopback so admin copies
+ * match whatever domain the app is hosted on; otherwise APP_URL / production.
+ */
+export function getStorefrontOrigin(): string {
+  if (typeof window !== "undefined") {
+    const origin = window.location.origin;
+    if (origin && !isLoopbackOrigin(origin)) {
+      return trimTrailingSlash(origin);
+    }
+  }
+  return getPublicEnv().appUrl;
+}
+
+export function buildClaimUrl(slug: string): string {
+  const normalized = slug
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return `${getStorefrontOrigin()}/claim/${normalized}`;
+}

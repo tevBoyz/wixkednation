@@ -4,6 +4,7 @@ const mockProvider = require("./providers/mock.provider");
 const smtpProvider = require("./providers/smtp.provider");
 const { buildOtpEmail } = require("./templates/otp");
 const { buildOrderStatusEmail } = require("./templates/order-status");
+const { buildCouponIssueEmail } = require("./templates/coupon-issue");
 
 function parseEmailList(value) {
   if (Array.isArray(value)) {
@@ -257,12 +258,18 @@ async function sendAdminOrderEmail({ order, riskPrefix = "", metadata }) {
     order.totalAmount !== undefined && order.totalAmount !== null
       ? Number(order.totalAmount).toFixed(2)
       : "?";
+  const delivery =
+    order.deliveryFee !== undefined && order.deliveryFee !== null
+      ? Number(order.deliveryFee).toFixed(2)
+      : null;
   const subject = `${riskPrefix}New COD order ${order.orderNumber}`;
   const base = getPublicAppOrigin();
   const adminUrl = base ? `${base}/admin/orders/${order.id}` : null;
   const text = [
     `${riskPrefix}New COD order ${order.orderNumber}.`,
     `Total: ${total}.`,
+    delivery != null ? `Delivery fee: ${delivery}${Number(delivery) === 0 ? " (FREE DELIVERY)" : ""}.` : null,
+    order.couponCode ? `Coupon: ${order.couponCode}.` : null,
     `Status: ${order.status || "Pending"}.`,
     adminUrl ? `Admin: ${adminUrl}` : null
   ]
@@ -349,6 +356,35 @@ async function sendSystemAlert({ subject, text, metadata }) {
   };
 }
 
+async function sendCouponIssueEmail({
+  to,
+  couponCode,
+  campaignName,
+  expiresAt,
+  metadata,
+}) {
+  const base = getPublicAppOrigin();
+  const content = buildCouponIssueEmail({
+    logoUrl: getLogoUrl(),
+    couponCode,
+    campaignName,
+    expiresAt,
+    checkoutUrl: base ? `${base}/checkout` : null,
+  });
+
+  return sendEmail({
+    to,
+    subject: content.subject,
+    text: content.text,
+    html: content.html,
+    purpose: "coupon_issue",
+    metadata: {
+      couponCode: couponCode || null,
+      ...(metadata && typeof metadata === "object" ? metadata : {}),
+    },
+  });
+}
+
 module.exports = {
   getActiveEmailProviderName,
   getLogoUrl,
@@ -356,6 +392,7 @@ module.exports = {
   isEmailConfigured,
   parseEmailList,
   sendAdminOrderEmail,
+  sendCouponIssueEmail,
   sendEmail,
   sendOrderStatusEmail,
   sendOtpEmail,

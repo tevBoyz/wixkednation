@@ -5,6 +5,7 @@ import { toQuery } from "@/lib/api/types";
 export async function createOrder(body: {
   addressId: string;
   paymentMethod?: "COD";
+  couponCode?: string;
 }) {
   const data = await apiData<{ order: Order }>("/api/orders", {
     method: "POST",
@@ -43,6 +44,7 @@ export async function createGuestOrder(body: {
   phone: string;
   name?: string;
   paymentMethod?: "COD";
+  couponCode?: string;
   items: Array<{ productId: string; skuId: string; quantity: number }>;
   address: GuestOrderAddressBody;
 }) {

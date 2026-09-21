@@ -7,6 +7,14 @@ const {
   sendOrderStatusEmail
 } = require("../../services/email/email.service");
 const { assertDeliveryZip } = require("../../utils/delivery-area");
+const {
+  computeOrderTotals,
+} = require("../../services/pricing/order-totals.service");
+const {
+  validateCouponForCheckout,
+  redeemCouponInTx,
+  normalizeCode,
+} = require("../../services/coupons/coupons.service");
 const { assertUsPhone } = require("../../utils/phone");
 const {
   getOrCreateCart,
@@ -160,6 +168,11 @@ function mapOrder(order) {
     deliveryAddress: order.deliveryAddress,
     status: order.status,
     totalAmount: serializeDecimal(order.totalAmount),
+    subtotalAmount: serializeDecimal(order.subtotalAmount),
+    deliveryFee: serializeDecimal(order.deliveryFee),
+    discountAmount: serializeDecimal(order.discountAmount),
+    couponCode: order.couponCode || null,
+    couponId: order.couponId || null,
     paymentMethod: order.paymentMethod,
     placedAsGuest: Boolean(order.placedAsGuest),
     matchedExistingAccount: Boolean(order.matchedExistingAccount),
@@ -542,7 +555,11 @@ async function sendNewOrderAdminAlerts(order, risk = null) {
         `[orders] No admin phone numbers configured for order ${order.orderNumber}.`
       );
     } else {
-      const message = `${riskPrefix}New COD order ${order.orderNumber}. Total: ${serializeDecimal(order.totalAmount)}. Status: Pending.`;
+      const message = `${riskPrefix}New COD order ${order.orderNumber}. Total: ${serializeDecimal(order.totalAmount)}${
+        order.deliveryFee != null
+          ? ` (delivery ${serializeDecimal(order.deliveryFee)})`
+          : ""
+      }${order.couponCode ? ` coupon ${order.couponCode}` : ""}. Status: Pending.`;
       const results = [];
       let sent = 0;
       let failed = 0;
@@ -699,6 +716,8 @@ async function createOrderFromCart(userId, payload = {}) {
     },
     select: {
       id: true,
+      email: true,
+      phone: true,
       deletedAt: true,
       reputationScore: true,
       cancelledOrderCount: true,
@@ -743,10 +762,24 @@ async function createOrderFromCart(userId, payload = {}) {
   const itemSnapshots = cart.items.map((item) =>
     mapOrderItemSnapshot(item, saleMap)
   );
-  const totalAmount = itemSnapshots
-    .reduce((sum, item) => sum + Number(item.lineTotal), 0)
-    .toFixed(2);
+  const subtotal = itemSnapshots
+    .reduce((sum, item) => sum + Number(item.lineTotal), 0);
   const deliveryAddress = mapAddressSnapshot(address);
+
+  let appliedCoupon = null;
+  let totals = computeOrderTotals({ subtotal });
+  const couponCode = normalizeCode(payload.couponCode);
+  if (couponCode) {
+    const validated = await validateCouponForCheckout({
+      code: couponCode,
+      subtotal,
+      userId,
+      email: user.email || null,
+      phone: user.phone || null,
+    });
+    appliedCoupon = validated.coupon;
+    totals = validated.totals;
+  }
 
   let order;
 
@@ -762,12 +795,28 @@ async function createOrderFromCart(userId, payload = {}) {
             items: itemSnapshots,
             deliveryAddress,
             status: "Pending",
-            totalAmount,
+            totalAmount: totals.totalAmount,
+            subtotalAmount: totals.subtotalAmount,
+            deliveryFee: totals.deliveryFeeAmount,
+            discountAmount: totals.discountAmount,
+            couponCode: appliedCoupon ? appliedCoupon.code : null,
+            couponId: appliedCoupon ? appliedCoupon.id : null,
             paymentMethod: "COD",
             placedAsGuest: false,
             matchedExistingAccount: false
           }
         });
+
+        if (appliedCoupon) {
+          await redeemCouponInTx(tx, {
+            coupon: appliedCoupon,
+            orderId: createdOrder.id,
+            userId,
+            email: user.email || null,
+            phone: user.phone || null,
+            totals,
+          });
+        }
 
         await tx.orderStatusHistory.create({
           data: {
@@ -775,7 +824,9 @@ async function createOrderFromCart(userId, payload = {}) {
             oldStatus: null,
             newStatus: "Pending",
             changedBy: userId,
-            note: "Order created"
+            note: appliedCoupon
+              ? `Order created with coupon ${appliedCoupon.code}`
+              : "Order created"
           }
         });
 
@@ -908,9 +959,8 @@ async function createGuestOrder(payload = {}) {
   }
 
   const itemSnapshots = await buildGuestItemSnapshots(payload.items);
-  const totalAmount = itemSnapshots
-    .reduce((sum, item) => sum + Number(item.lineTotal), 0)
-    .toFixed(2);
+  const subtotal = itemSnapshots
+    .reduce((sum, item) => sum + Number(item.lineTotal), 0);
 
   const resolved = await resolveGuestCheckoutUser(phone);
   let user = resolved.user;
@@ -932,6 +982,21 @@ async function createGuestOrder(payload = {}) {
   const risk = buildRisk(user, pendingOrderCount);
   const hasPin = Boolean(user.pinHash);
   const postOrderCta = hasPin ? "login" : "register";
+
+  let appliedCoupon = null;
+  let totals = computeOrderTotals({ subtotal });
+  const couponCode = normalizeCode(payload.couponCode);
+  if (couponCode) {
+    const validated = await validateCouponForCheckout({
+      code: couponCode,
+      subtotal,
+      userId: user.id,
+      email: user.email || null,
+      phone,
+    });
+    appliedCoupon = validated.coupon;
+    totals = validated.totals;
+  }
 
   let order;
 
@@ -967,12 +1032,28 @@ async function createGuestOrder(payload = {}) {
             items: itemSnapshots,
             deliveryAddress,
             status: "Pending",
-            totalAmount,
+            totalAmount: totals.totalAmount,
+            subtotalAmount: totals.subtotalAmount,
+            deliveryFee: totals.deliveryFeeAmount,
+            discountAmount: totals.discountAmount,
+            couponCode: appliedCoupon ? appliedCoupon.code : null,
+            couponId: appliedCoupon ? appliedCoupon.id : null,
             paymentMethod: "COD",
             placedAsGuest: true,
             matchedExistingAccount: resolved.matchedExistingAccount
           }
         });
+
+        if (appliedCoupon) {
+          await redeemCouponInTx(tx, {
+            coupon: appliedCoupon,
+            orderId: createdOrder.id,
+            userId: user.id,
+            email: user.email || null,
+            phone,
+            totals,
+          });
+        }
 
         await tx.orderStatusHistory.create({
           data: {
@@ -980,7 +1061,9 @@ async function createGuestOrder(payload = {}) {
             oldStatus: null,
             newStatus: "Pending",
             changedBy: user.id,
-            note: "Guest order created"
+            note: appliedCoupon
+              ? `Guest order created with coupon ${appliedCoupon.code}`
+              : "Guest order created"
           }
         });
 

@@ -24,11 +24,18 @@ import {
   usPhoneLocalSchema,
 } from "@/components/ui/us-phone-input";
 import { createGuestOrder, createOrder } from "@/lib/api/orders.api";
-import { getOrderSubmitErrorMessage } from "@/lib/api/errors";
+import { validateStoreCoupon } from "@/lib/api/store-coupons.api";
+import { getOrderSubmitErrorMessage, getErrorMessage } from "@/lib/api/errors";
 import { saveGuestOrderSnapshot } from "@/lib/orders/guest-order-snapshot";
+import {
+  computeOrderTotals,
+  DELIVERY_FEE,
+  toMoneyNumber,
+} from "@/lib/cart/delivery-fee";
 import { zipCodeSchema } from "@/lib/delivery/zip-codes";
 import { normalizePhone, toUsE164 } from "@/lib/phone";
 import { useGuestCartStore } from "@/stores/guest-cart-store";
+import type { CouponType } from "@/lib/api/types";
 
 const guestCheckoutSchema = z.object({
   phone: usPhoneLocalSchema(),
@@ -59,6 +66,19 @@ export function CheckoutPageClient() {
     null,
   );
   const submitLockRef = useRef(false);
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(
+    null,
+  );
+  const [couponType, setCouponType] = useState<CouponType | null>(null);
+  const [couponAmount, setCouponAmount] = useState<number | null>(null);
+  const [couponBusy, setCouponBusy] = useState(false);
+
+  const totals = computeOrderTotals({
+    subtotal,
+    couponType,
+    couponAmount,
+  });
 
   const {
     register,
@@ -86,6 +106,44 @@ export function CheckoutPageClient() {
     }
   }, [isAuthenticated, refresh]);
 
+  async function onApplyCoupon() {
+    const code = couponInput.trim();
+    if (!code) {
+      toast.error("Enter a coupon code");
+      return;
+    }
+    setCouponBusy(true);
+    try {
+      const result = await validateStoreCoupon({
+        code,
+        subtotal,
+      });
+      setAppliedCouponCode(result.coupon.code);
+      setCouponType(result.type);
+      setCouponAmount(
+        result.coupon.amount != null
+          ? toMoneyNumber(result.coupon.amount)
+          : null,
+      );
+      setCouponInput(result.coupon.code);
+      toast.success("Coupon applied");
+    } catch (error) {
+      setAppliedCouponCode(null);
+      setCouponType(null);
+      setCouponAmount(null);
+      toast.error(getErrorMessage(error, "Invalid coupon"));
+    } finally {
+      setCouponBusy(false);
+    }
+  }
+
+  function onClearCoupon() {
+    setAppliedCouponCode(null);
+    setCouponType(null);
+    setCouponAmount(null);
+    setCouponInput("");
+  }
+
   async function onPlaceSignedInOrder() {
     if (!selectedAddressId) {
       toast.error("Select a delivery address");
@@ -104,6 +162,7 @@ export function CheckoutPageClient() {
       const order = await createOrder({
         addressId: selectedAddressId,
         paymentMethod: "COD",
+        couponCode: appliedCouponCode || undefined,
       });
 
       router.replace(`/order-success/${order.id}`);
@@ -143,6 +202,7 @@ export function CheckoutPageClient() {
         phone,
         name: values.name.trim() || undefined,
         paymentMethod: "COD",
+        couponCode: appliedCouponCode || undefined,
         items: items.map((item) => ({
           productId: item.productId,
           skuId: item.skuId,
@@ -221,6 +281,53 @@ export function CheckoutPageClient() {
     </div>
   ) : null;
 
+  const couponSection = (
+    <section aria-labelledby="checkout-coupon-heading" className="space-y-3">
+      <h2 id="checkout-coupon-heading" className="text-lg font-medium">
+        Coupon
+      </h2>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+        <div className="min-w-0 flex-1 space-y-2">
+          <Label htmlFor="checkout-coupon">Code</Label>
+          <Input
+            id="checkout-coupon"
+            value={couponInput}
+            onChange={(event) => setCouponInput(event.target.value)}
+            placeholder="Enter code"
+            disabled={couponBusy || submitting}
+            autoCapitalize="characters"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={couponBusy || submitting}
+            onClick={() => void onApplyCoupon()}
+          >
+            {couponBusy ? "Checking…" : "Apply"}
+          </Button>
+          {appliedCouponCode ? (
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={couponBusy || submitting}
+              onClick={onClearCoupon}
+            >
+              Clear
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+
+  const summaryProps = {
+    productDiscount: totals.productDiscount,
+    deliveryFee: totals.deliveryFee,
+    couponCode: appliedCouponCode,
+  };
+
   if (isAuthenticated) {
     return (
       <>
@@ -255,6 +362,8 @@ export function CheckoutPageClient() {
               </div>
             </section>
 
+            {couponSection}
+
             <section aria-labelledby="checkout-payment-heading">
               <h2
                 id="checkout-payment-heading"
@@ -265,7 +374,9 @@ export function CheckoutPageClient() {
               <div className="mt-4 rounded-lg border border-border bg-muted/30 p-4">
                 <p className="font-medium">Cash on Delivery (COD)</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Pay {formatPrice(subtotal)} when your order is delivered.
+                  Pay {formatPrice(totals.total)} when your order is delivered
+                  (includes ${DELIVERY_FEE} delivery
+                  {totals.deliveryFee === 0 ? ", waived by coupon" : ""}).
                   Online payment is not available.
                 </p>
               </div>
@@ -284,7 +395,7 @@ export function CheckoutPageClient() {
           </div>
 
           <div className="space-y-4 lg:sticky lg:top-20">
-            <CheckoutOrderSummary />
+            <CheckoutOrderSummary {...summaryProps} />
             <Button
               type="button"
               className="hidden w-full lg:inline-flex"
@@ -506,6 +617,8 @@ export function CheckoutPageClient() {
             </div>
           </section>
 
+          {couponSection}
+
           <section aria-labelledby="checkout-guest-payment-heading">
             <h2
               id="checkout-guest-payment-heading"
@@ -516,7 +629,9 @@ export function CheckoutPageClient() {
             <div className="mt-4 rounded-lg border border-border bg-muted/30 p-4">
               <p className="font-medium">Cash on Delivery (COD)</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Pay {formatPrice(subtotal)} when your order is delivered. Online
+                Pay {formatPrice(totals.total)} when your order is delivered
+                (includes ${DELIVERY_FEE} delivery
+                {totals.deliveryFee === 0 ? ", waived by coupon" : ""}). Online
                 payment is not available.
               </p>
             </div>
@@ -530,7 +645,7 @@ export function CheckoutPageClient() {
         </div>
 
         <div className="space-y-4 lg:sticky lg:top-20">
-          <CheckoutOrderSummary />
+          <CheckoutOrderSummary {...summaryProps} />
           <Button
             type="submit"
             className="hidden w-full lg:inline-flex"

@@ -287,9 +287,29 @@ export function AdminOrderDetailClient({ orderId }: AdminOrderDetailClientProps)
                 Payment
               </h3>
               <p>Cash on Delivery</p>
-              <p className="text-sm text-muted-foreground">
-                Total {formatPrice(order.totalAmount)}
-              </p>
+              {order.subtotalAmount != null ? (
+                <div className="space-y-1 text-sm text-muted-foreground">
+                  <p>Subtotal {formatPrice(order.subtotalAmount)}</p>
+                  {order.discountAmount != null &&
+                  Number(order.discountAmount) > 0 ? (
+                    <p>Discount −{formatPrice(order.discountAmount)}</p>
+                  ) : null}
+                  <p>
+                    Delivery{" "}
+                    {order.deliveryFee != null && Number(order.deliveryFee) === 0
+                      ? "FREE"
+                      : formatPrice(order.deliveryFee ?? 0)}
+                    {order.couponCode ? ` (${order.couponCode})` : ""}
+                  </p>
+                  <p className="font-medium text-foreground">
+                    Total {formatPrice(order.totalAmount)}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Total {formatPrice(order.totalAmount)}
+                </p>
+              )}
             </div>
 
             {order.deliveryAddress ? (

@@ -36,3 +36,6 @@ export * from "@/lib/api/admin/settings.api";
 export * from "@/lib/api/admin/sms.api";
 export * from "@/lib/api/admin/team.api";
 export * from "@/lib/api/admin/analytics.api";
+export * from "@/lib/api/admin/coupons.api";
+export * from "@/lib/api/admin/leads.api";
+export * from "@/lib/api/store-coupons.api";

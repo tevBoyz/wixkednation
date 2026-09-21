@@ -6,6 +6,7 @@ import {
   listPublicBlogTags,
 } from "@/lib/api/blog.api";
 import { fetchProductsPage } from "@/lib/api/products.api";
+import { listClaimCampaigns } from "@/lib/api/store-coupons.api";
 import { flattenCategoryTree } from "@/lib/catalog/category-tree";
 import { SEO_LOCATIONS } from "@/content/seo-locations";
 import { getSiteOrigin } from "@/lib/seo/site-metadata";
@@ -112,6 +113,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let productRoutes: MetadataRoute.Sitemap = [];
   let blogRoutes: MetadataRoute.Sitemap = [];
   let tagRoutes: MetadataRoute.Sitemap = [];
+  let claimRoutes: MetadataRoute.Sitemap = [];
 
   try {
     const categories = await listCategories();
@@ -122,6 +124,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       );
   } catch {
     categoryRoutes = [];
+  }
+
+  try {
+    const campaigns = await listClaimCampaigns();
+    claimRoutes = campaigns
+      .filter((campaign) => campaign.claimSlug)
+      .map((campaign) =>
+        entry(`/claim/${campaign.claimSlug}`, {
+          changeFrequency: "weekly",
+          priority: 0.4,
+          lastModified: campaign.updatedAt
+            ? new Date(campaign.updatedAt)
+            : new Date(),
+        }),
+      );
+  } catch {
+    claimRoutes = [];
   }
 
   try {
@@ -151,5 +170,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...productRoutes,
     ...blogRoutes,
     ...tagRoutes,
+    ...claimRoutes,
   ];
 }

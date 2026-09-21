@@ -41,7 +41,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Is there a delivery fee?",
     answer:
-      "Yes. Everyone pays a $20 delivery fee, regardless of location.",
+      "Yes. Every order includes a flat $20 delivery fee. Free delivery only applies when you redeem a free-delivery coupon issued by Gas Nation.",
   },
   {
     question: "How does delivery work?",
