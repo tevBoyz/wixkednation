@@ -8,6 +8,7 @@ import {
 import { fetchProductsPage } from "@/lib/api/products.api";
 import { listClaimCampaigns } from "@/lib/api/store-coupons.api";
 import { flattenCategoryTree } from "@/lib/catalog/category-tree";
+import { LEARN_GUIDES, learnGuidePath } from "@/content/learn";
 import { SEO_LOCATIONS } from "@/content/seo-locations";
 import { getSiteOrigin } from "@/lib/seo/site-metadata";
 
@@ -105,10 +106,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }),
     ),
     entry("/blog", { changeFrequency: "daily", priority: 0.8 }),
-    entry("/learn/how-delivery-works", {
-      changeFrequency: "monthly",
-      priority: 0.8,
-    }),
+    entry("/learn", { changeFrequency: "monthly", priority: 0.8 }),
+    ...LEARN_GUIDES.map((guide) =>
+      entry(learnGuidePath(guide.slug), {
+        changeFrequency: "monthly",
+        priority: 0.8,
+      }),
+    ),
     entry("/faqs", { changeFrequency: "monthly", priority: 0.7 }),
     entry("/about", { changeFrequency: "monthly", priority: 0.6 }),
   ];

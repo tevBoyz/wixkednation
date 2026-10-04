@@ -196,6 +196,35 @@ export function buildTagCollectionJsonLd(input: {
   };
 }
 
+export function buildCollectionPageJsonLd(input: {
+  name: string;
+  description: string;
+  path: string;
+  items: Array<{ name: string; path: string }>;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: input.name,
+    description: input.description,
+    url: absoluteUrl(input.path),
+    isPartOf: {
+      "@type": "WebSite",
+      name: SITE_NAME,
+      url: absoluteUrl("/"),
+    },
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: input.items.map((item, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url: absoluteUrl(item.path),
+        name: item.name,
+      })),
+    },
+  };
+}
+
 export function buildProductJsonLd(input: {
   name: string;
   description: string;
