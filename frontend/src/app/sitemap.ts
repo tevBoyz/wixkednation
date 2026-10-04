@@ -105,6 +105,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }),
     ),
     entry("/blog", { changeFrequency: "daily", priority: 0.8 }),
+    entry("/learn/how-delivery-works", {
+      changeFrequency: "monthly",
+      priority: 0.8,
+    }),
     entry("/faqs", { changeFrequency: "monthly", priority: 0.7 }),
     entry("/about", { changeFrequency: "monthly", priority: 0.6 }),
   ];

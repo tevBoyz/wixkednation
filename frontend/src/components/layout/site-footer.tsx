@@ -41,6 +41,14 @@ export function SiteFooter() {
             </li>
             <li>
               <Link
+                href="/learn/how-delivery-works"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                How delivery works
+              </Link>
+            </li>
+            <li>
+              <Link
                 href="/delivery"
                 className="text-muted-foreground hover:text-foreground"
               >
