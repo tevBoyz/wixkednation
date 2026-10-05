@@ -50,7 +50,22 @@ export default function HowDeliveryWorksPage() {
         <GuideHero
           eyebrow={guide.eyebrow}
           title={guide.title}
-          lead="Order from our online menu, meet the driver at your door, and pay in cash. This page covers our hours, ID rules, the flat $20 delivery fee, and how drop-offs work in Northern Virginia and Washington, DC."
+          lead={
+            <>
+              Order from our <GuideLink href="/products">online menu</GuideLink>,
+              meet the driver at your door, and pay in cash. This page covers{" "}
+              <GuideLink href="/">Gas Nation</GuideLink> hours,{" "}
+              <GuideLink href={learnGuidePath("is-weed-delivery-legal-virginia-dc")}>
+                ID rules
+              </GuideLink>
+              , the flat $20 delivery fee, and how drop-offs work in{" "}
+              <GuideLink href="/delivery/northern-virginia">
+                Northern Virginia
+              </GuideLink>{" "}
+              and{" "}
+              <GuideLink href="/delivery/washington-dc">Washington, DC</GuideLink>.
+            </>
+          }
           primary={{ label: "Shop the menu", href: "/products" }}
           secondary={{ label: "See delivery areas", href: "/delivery" }}
         />
@@ -108,7 +123,14 @@ export default function HowDeliveryWorksPage() {
         <GuideSection
           id="areas"
           title="Where we deliver"
-          intro="Same-day coverage across Northern Virginia and into Washington, DC. If your city is nearby but not listed, ask us. We probably cover it."
+          intro={
+            <>
+              Same-day coverage across Northern Virginia and into Washington, DC.
+              If your city is nearby but not listed, check{" "}
+              <GuideLink href="/delivery">all delivery areas</GuideLink> or ask
+              us. We probably cover it.
+            </>
+          }
         >
           <GuideAreaLinks slugs={DELIVERY_FEATURED_AREA_SLUGS} />
         </GuideSection>
@@ -116,7 +138,14 @@ export default function HowDeliveryWorksPage() {
         <GuideSection
           id="order"
           title="What you can order"
-          intro="Premium flower by strain type, pre-rolls, edibles, vape carts, disposables, and concentrates like live resin and rosin."
+          intro={
+            <>
+              Premium <GuideLink href="/categories/flower">flower</GuideLink> by
+              strain type, pre-rolls, edibles, vape carts, disposables, and
+              concentrates like live resin and rosin. Browse them all by{" "}
+              <GuideLink href="/categories">category</GuideLink>.
+            </>
+          }
         >
           <GuideChipLinks links={PRODUCT_SEO_LINKS} />
           <p className="mt-6 text-sm text-muted-foreground">

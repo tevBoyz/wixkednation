@@ -48,7 +48,20 @@ export default function WhoCanOrderPage() {
         <GuideHero
           eyebrow={guide.eyebrow}
           title={guide.title}
-          lead="If you are 21 or older with a valid ID and you are at an address we serve in Northern Virginia or Washington, DC, you can order. Below is what we check at the door, who is eligible, and the limits on every order."
+          lead={
+            <>
+              If you are 21 or older with a valid ID and you are at an{" "}
+              <GuideLink href="/delivery">address we serve</GuideLink> in{" "}
+              <GuideLink href="/delivery/northern-virginia">
+                Northern Virginia
+              </GuideLink>{" "}
+              or{" "}
+              <GuideLink href="/delivery/washington-dc">Washington, DC</GuideLink>
+              , you can order from <GuideLink href="/">Gas Nation</GuideLink>.
+              Below is what we check at the door, who is eligible, and the limits
+              on every order.
+            </>
+          }
           primary={{ label: "Shop the menu", href: "/products" }}
           secondary={{ label: "Check delivery areas", href: "/delivery" }}
         />
@@ -73,7 +86,12 @@ export default function WhoCanOrderPage() {
         <GuideSection
           id="ids"
           title="Which IDs we accept"
-          intro="We check ID on every order and make no exceptions."
+          intro={
+            <>
+              We check ID on every order and make no exceptions. See the{" "}
+              <GuideLink href="/faqs">delivery FAQ</GuideLink> for more.
+            </>
+          }
         >
           <GuideChecklist items={RULES_ACCEPTED_IDS} />
         </GuideSection>
@@ -121,7 +139,16 @@ export default function WhoCanOrderPage() {
         <GuideSection
           id="areas"
           title="Where you can order to"
-          intro="Same-day delivery across Northern Virginia and into Washington, DC. Homes, apartments, hotels, and temporary stays all work."
+          intro={
+            <>
+              Same-day delivery across Northern Virginia and into Washington, DC.
+              Homes, apartments, hotels, and temporary stays all work.{" "}
+              <GuideLink href={learnGuidePath("how-delivery-works")}>
+                See how delivery works
+              </GuideLink>
+              .
+            </>
+          }
         >
           <GuideAreaLinks slugs={RULES_AREA_SLUGS} />
         </GuideSection>

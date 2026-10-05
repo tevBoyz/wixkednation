@@ -5,6 +5,7 @@ import { Container } from "@/components/layout/container";
 import { GuideBreadcrumb } from "@/components/learn/guide-breadcrumb";
 import { GuideCtaBand } from "@/components/learn/guide-cta-band";
 import { GuideHero } from "@/components/learn/guide-hero";
+import { GuideLink } from "@/components/learn/guide-link";
 import { GuideNextLinks } from "@/components/learn/guide-next-links";
 import { GuideSection } from "@/components/learn/guide-section";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -76,7 +77,28 @@ export default function LearnHubPage() {
         <GuideHero
           eyebrow="Guides · Ordering with Gas Nation"
           title={TITLE}
-          lead="Short guides for new and returning customers. Learn how same-day delivery works, what to order, how strain types differ, and who can order."
+          lead={
+            <>
+              Short guides for new and returning{" "}
+              <GuideLink href="/">Gas Nation</GuideLink> customers. Learn{" "}
+              <GuideLink href={learnGuidePath("how-delivery-works")}>
+                how same-day delivery works
+              </GuideLink>
+              ,{" "}
+              <GuideLink href={learnGuidePath("first-delivery-what-to-order")}>
+                what to order
+              </GuideLink>
+              ,{" "}
+              <GuideLink href={learnGuidePath("indica-vs-sativa-vs-hybrid")}>
+                how strain types differ
+              </GuideLink>
+              , and{" "}
+              <GuideLink href={learnGuidePath("is-weed-delivery-legal-virginia-dc")}>
+                who can order
+              </GuideLink>
+              .
+            </>
+          }
           primary={{ label: "Shop the menu", href: "/products" }}
           secondary={{
             label: "Start with how delivery works",

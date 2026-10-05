@@ -53,7 +53,18 @@ export default function FirstDeliveryWhatToOrderPage() {
         <GuideHero
           eyebrow={guide.eyebrow}
           title={guide.title}
-          lead="First time ordering with Gas Nation? Pick based on your plans for the night, keep the first order small, and check what you will pay at the door before you check out."
+          lead={
+            <>
+              First time ordering with <GuideLink href="/">Gas Nation</GuideLink>?
+              Pick a{" "}
+              <GuideLink href={learnGuidePath("indica-vs-sativa-vs-hybrid")}>
+                strain type
+              </GuideLink>{" "}
+              based on your plans for the night, keep the first order small, and
+              check <GuideLink href="#basket-heading">what you will pay</GuideLink> at
+              the door before you check out.
+            </>
+          }
           primary={{ label: "Shop the menu", href: "/products" }}
           secondary={{ label: "Shop by category", href: "/categories" }}
         />
@@ -63,7 +74,12 @@ export default function FirstDeliveryWhatToOrderPage() {
         <GuideSection
           id="goals"
           title="Start with your plans"
-          intro="Pick the option closest to your night and start shopping in that category."
+          intro={
+            <>
+              Pick the option closest to your night and start shopping in that{" "}
+              <GuideLink href="/categories">category</GuideLink>.
+            </>
+          }
           wide
         >
           <GuideNextLinks links={FIRST_ORDER_GOALS} />
@@ -83,7 +99,13 @@ export default function FirstDeliveryWhatToOrderPage() {
         <GuideSection
           id="formats"
           title="Pick a format"
-          intro="The format changes how you use it, how fast you feel it, and how strong it is."
+          intro={
+            <>
+              The format changes how you use it, how fast you feel it, and how
+              strong it is. Everything below is on the{" "}
+              <GuideLink href="/products">full menu</GuideLink>.
+            </>
+          }
         >
           <GuideChecklist items={FIRST_ORDER_FORMATS} />
         </GuideSection>
@@ -91,7 +113,16 @@ export default function FirstDeliveryWhatToOrderPage() {
         <GuideSection
           id="basket"
           title="What you will pay: an example"
-          intro="Menu prices are for the products only. The flat $20 delivery fee is added at checkout, and you pay the total in cash."
+          intro={
+            <>
+              <GuideLink href="/products">Menu</GuideLink> prices are for the
+              products only. The{" "}
+              <GuideLink href={learnGuidePath("how-delivery-works")}>
+                flat $20 delivery fee
+              </GuideLink>{" "}
+              is added at checkout, and you pay the total in cash.
+            </>
+          }
         >
           <dl className="mt-6 divide-y divide-border rounded-lg border border-border bg-card/50">
             {EXAMPLE_BASKET.map((row, index) => (
@@ -134,7 +165,12 @@ export default function FirstDeliveryWhatToOrderPage() {
         <GuideSection
           id="checklist"
           title="Before the driver arrives"
-          intro="Have these ready before the driver gets to you."
+          intro={
+            <>
+              Have these ready before the driver gets to you. Full ID rules are
+              in the <GuideLink href="/faqs">delivery FAQ</GuideLink>.
+            </>
+          }
         >
           <GuideChecklist items={FIRST_ORDER_CHECKLIST} />
           <p className="mt-6 text-sm text-muted-foreground">

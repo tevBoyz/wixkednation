@@ -47,7 +47,19 @@ export default function IndicaVsSativaVsHybridPage() {
         <GuideHero
           eyebrow={guide.eyebrow}
           title={guide.title}
-          lead="Almost every jar of flower is labeled indica, sativa, or hybrid. This guide covers what each is usually chosen for, how to pick one for your evening, and where to find each on our menu."
+          lead={
+            <>
+              Almost every jar of{" "}
+              <GuideLink href="/categories/flower">flower</GuideLink> is labeled{" "}
+              <GuideLink href="/categories/indica">indica</GuideLink>,{" "}
+              <GuideLink href="/categories/sativa">sativa</GuideLink>, or{" "}
+              <GuideLink href="/categories/hybrid">hybrid</GuideLink>. This guide
+              covers what each is usually chosen for, how to pick one for your
+              evening, and where to find each on our{" "}
+              <GuideLink href="/products">menu</GuideLink> at{" "}
+              <GuideLink href="/">Gas Nation</GuideLink>.
+            </>
+          }
           primary={{ label: "Shop flower", href: "/categories/flower" }}
           secondary={{ label: "Browse the full menu", href: "/products" }}
         />
@@ -104,7 +116,12 @@ export default function IndicaVsSativaVsHybridPage() {
         <GuideSection
           id="evening"
           title="Pick by what you have planned"
-          intro="Think about the next few hours, then start in the matching category."
+          intro={
+            <>
+              Think about the next few hours, then start in the matching{" "}
+              <GuideLink href="/categories">category</GuideLink>.
+            </>
+          }
           wide
         >
           <GuideNextLinks links={STRAIN_EVENING_PICKS} />
@@ -113,8 +130,7 @@ export default function IndicaVsSativaVsHybridPage() {
         <GuideSection id="format" title="Format and amount">
           <GuideProse>
             How you consume it and how much you have make a big difference too,
-            especially if you are new or it has been a while.
-          </GuideProse>
+            especially if you are new or it has been a while.          </GuideProse>
           <GuideChecklist items={STRAIN_FORMAT_NOTES} />
           <p className="mt-6 text-sm text-muted-foreground">
             Building your first order? See{" "}
