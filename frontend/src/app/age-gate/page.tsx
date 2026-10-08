@@ -34,7 +34,7 @@ function AgeGateForm() {
       const data = await verifyAgeGate();
       persistAgeGateToken(data.ageGateToken);
       const next = searchParams.get("next") || "/";
-      router.replace(next.startsWith("/") ? next : "/");
+      router.replace(next.startsWith("/") && !next.startsWith("//") ? next : "/");
       router.refresh();
     } catch (error) {
       toast.error(getErrorMessage(error, "Age verification failed"));

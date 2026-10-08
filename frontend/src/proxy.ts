@@ -61,9 +61,11 @@ export function proxy(request: NextRequest) {
       const token = request.cookies.get(AGE_GATE_COOKIE)?.value;
       if (token) {
         const next = request.nextUrl.searchParams.get("next") || "/";
+        const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
+        const target = new URL(safeNext, request.nextUrl.origin);
         const redirectUrl = request.nextUrl.clone();
-        redirectUrl.pathname = next.startsWith("/") ? next : "/";
-        redirectUrl.search = "";
+        redirectUrl.pathname = target.pathname;
+        redirectUrl.search = target.search;
         return NextResponse.redirect(redirectUrl);
       }
     }
@@ -82,7 +84,8 @@ export function proxy(request: NextRequest) {
   if (!token) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/age-gate";
-    loginUrl.searchParams.set("next", pathname);
+    loginUrl.search = "";
+    loginUrl.searchParams.set("next", `${pathname}${request.nextUrl.search}`);
     return NextResponse.redirect(loginUrl);
   }
 
