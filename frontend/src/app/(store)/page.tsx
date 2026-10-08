@@ -80,6 +80,10 @@ export default async function HomePage() {
     <main className="min-w-0 overflow-x-clip lg:overflow-x-visible">
       {showPromoCarousel ? (
         <section className="relative w-full min-w-0 overflow-x-clip border-b border-border">
+          <h1 className="sr-only">
+            Gas Nation: same-day weed delivery in Northern Virginia and
+            Washington, DC
+          </h1>
           <PromoBannerCarousel banners={banners} />
         </section>
       ) : (
