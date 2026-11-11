@@ -1247,6 +1247,20 @@ Acceptance tests:
 - Production environment uses HTTPS API URL.
 - No frontend bundle contains backend secrets.
 
+Stage 53: Admin media library (product images)
+- Add GET /api/admin/media (backend): flatten Product.images across
+  products with pagination, search, includeArchived, summary totals.
+- Add /admin/media page: grid, summary bar, filters, delete confirm.
+- Reuse DELETE /api/admin/products/:id/images/:imageId for deletes.
+- Add Media item to admin sidebar nav.
+- DB-first list only; no Supabase bucket browser in v1.
+
+Acceptance tests:
+- All uploaded product images visible in media library.
+- Delete from media library syncs product gallery and storage.
+- Search and archived toggle work.
+- Summary totals are accurate.
+
 ============================================================
 10. TESTING CHECKLIST
 ============================================================

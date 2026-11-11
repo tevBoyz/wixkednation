@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Build / cache
+.next/
+dist/
+build/
+out/
+coverage/
+*.tsbuildinfo
+.turbo/
+
+# Logs / OS
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Client product photos (local catalog assets)
+baseDocs/images/
+
+baseDocs/demo 1.mp4
+baseDocs/demo 2.mp4

@@ -1,6 +1,6 @@
 # Frontend Final Testing Checklist
 
-Manual QA for the complete frontend. Run sections as stages complete, then run **full pass** after Stage 52.
+Manual QA for the complete frontend. Run sections as stages complete, then run **full pass** after Stage 53.
 
 **Prereqs (all tests):**
 - Backend: `cd backend && npm run dev` (port 5000)
@@ -181,31 +181,32 @@ Mark each item: `[ ]` not tested · `[x]` pass · `[!]` fail (note in comments)
 
 ---
 
-## 16. SEO and quality (Stages 50–51)
+## 16. Quality and SEO (Stages 51–52)
 
-- [ ] Product pages have title, description, Open Graph tags (Stage 50)
-- [ ] `/robots.txt` disallows `/admin`, `/account`, `/login` (Stage 50)
-- [ ] `/sitemap.xml` includes public product/category URLs (Stage 50)
 - [ ] Keyboard navigation works on checkout and main nav (Stage 51)
-- [ ] Mobile layout usable at 375px width (Stage 51)
+- [ ] Skip link jumps to main content (Stage 51)
+- [ ] Mobile layout usable at 375px width — cart and checkout (Stage 51)
+- [ ] Product images use optimized loading (Stage 51)
 - [ ] `npm run build` succeeds (Stage 51)
+- [ ] Product pages have title, description, Open Graph tags (Stage 52)
+- [ ] `/robots.txt` disallows `/admin`, `/account`, `/login` (Stage 52)
+- [ ] `/sitemap.xml` includes public product/category URLs (Stage 52)
 
 ---
 
-## 17. Automated tests (Stage 52)
+## 17. Automated tests (Stage 53)
 
 - [ ] `npm run lint` passes
-- [ ] `npx tsc --noEmit` passes
-- [ ] Unit tests pass (cart utils, validators)
-- [ ] Playwright E2E: public browse
-- [ ] Playwright E2E: OTP login (mock)
-- [ ] Playwright E2E: guest cart → login → merge
-- [ ] Playwright E2E: checkout COD order
-- [ ] Playwright E2E: customer order history + cancel
-- [ ] Playwright E2E: admin product create/edit
-- [ ] Playwright E2E: admin order status update
-- [ ] Playwright E2E: notification read flow
-- [ ] No `JWT_*`, `SERVICE_ROLE`, or SMS secrets in frontend source
+- [ ] `npm run typecheck` passes
+- [ ] `npm run test` unit tests pass (phone, errors, cart utils, format)
+- [ ] `npm run build` succeeds
+- [ ] Playwright: `npm run test:e2e:install` then `npm run test:e2e` (frontend + backend running)
+- [ ] Playwright smoke: age gate → browse products; robots.txt; sitemap.xml
+- [ ] Playwright guest cart: open product → add to cart
+- [ ] Optional PIN login: set `E2E_PIN` (+ `E2E_PHONE` or `E2E_EMAIL`)
+- [ ] Optional register OTP → setup PIN: set `E2E_OTP` (+ `E2E_PHONE`) from mock SMS console
+- [ ] No `JWT_*`, `SERVICE_ROLE`, or SMS secrets in frontend source / `.env.example`
+- [ ] `npm run verify` (lint + typecheck + unit + build) passes
 
 ---
 
@@ -215,11 +216,12 @@ Run once after Stages 1–30 complete:
 
 1. [ ] Clear storage → age gate Yes → homepage
 2. [ ] Browse products → open detail → add to cart as guest
-3. [ ] Go to checkout → login with OTP → cart merged
+3. [ ] Go to checkout → login with PIN (or register → OTP → setup PIN) → cart merged
 4. [ ] Add address if needed → place COD order
 5. [ ] View order in `/account/orders`
 6. [ ] Cancel order if Pending (with `cancelledFromStatus`)
 7. [ ] Check notifications inbox + polling badge
+8. [ ] Change PIN from `/account/profile`
 
 ---
 
@@ -249,11 +251,35 @@ Run once after Stages 31–49 complete:
 
 ---
 
+## 21. Admin media library (Stage 50)
+
+- [ ] `/admin/media` lists all product images from DB aggregate (not raw bucket)
+- [ ] Summary shows total image count and total storage size
+- [ ] Search by product name filters the grid
+- [ ] Include archived toggle shows images on hidden/soft-deleted products
+- [ ] Each card links to the product edit page
+- [ ] Delete from media library removes image from product gallery and storage
+- [ ] Deleting cover image leaves product with valid cover (index 0 or default)
+- [ ] Default placeholder asset does not appear in media library
+
+---
+
 ## Sign-off
 
 | Role | Name | Date | Notes |
 |------|------|------|-------|
-| Developer tested | | | |
+| Developer tested | | 2026-07-22 | Unit 25/25; Playwright smoke+guest cart pass; OTP E2E optional via `E2E_OTP` |
 | Product owner approved | | | |
 
-When all sections pass, mark Stage 52 `done` in [`master-plan-checklist.md`](master-plan-checklist.md).
+When all sections pass, mark Stage 53 `done` in [`master-plan-checklist.md`](master-plan-checklist.md).
+
+### Stage 53 quick commands
+
+```bash
+cd frontend
+npm run verify          # lint + typecheck + unit + build
+npm run test:e2e        # needs frontend (+ backend for catalog/cart) on :3000
+# optional OTP:
+# E2E_OTP=...... E2E_PHONE=+251911000000 npm run test:e2e -- e2e/otp-login.spec.ts
+```
+

@@ -1,106 +1,144 @@
-# Backend ↔ Frontend Handoff (`inbetween.md`)
+# Frontend handoff: SEO Blog (TipTap blocks + HTML paste + preview)
 
-Shared communication file between backend and frontend.
-- **Frontend** writes requests / blockers here.
-- **Backend** updates status + notes when done.
-- API contract source of truth: [`baseDocs/backend-postman-collection.json`](baseDocs/backend-postman-collection.json) (72 routes)
+> **Owner:** Frontend agent only.  
+> **Backend:** Separate backend agent owns schema, Express APIs, storage, sanitization, Postman/E2E. Do not change Prisma or `backend/`.  
+> **Prerequisite:** Backend blog APIs are implemented (additive migration `20260820140000_blog`, routes under `/api/blog` and `/api/admin/blog`). Run `npx prisma migrate deploy` on the backend if tables are missing. Align fields below with `baseDocs/api-endpoints.md` if anything differs.
 
-Last backend update: **2026-07-21** — Stage 38 complete (inbetween A1–A3)
+## Goal
 
----
+Ship an admin-managed, SEO-ready blog:
 
-## Completed backend work (frontend can proceed)
+- Block editor (TipTap): text, images, video embeds, links, etc.
+- HTML paste tab for content created elsewhere
+- Live preview that matches the public post page
+- Public `/blog` + `/blog/[slug]` that are **mobile-first with no compromise**
+- Sitemap + nav/footer links
+- Optional homepage strip: only posts with **Show on homepage** enabled (and published)
 
-### A1. Age gate API — `done`
+## Locked decisions
 
-| Method | Path | Auth | Body | Response |
-|--------|------|------|------|----------|
-| `POST` | `/api/age-gate/verify` | none | `{ "accepted": true }` or `{ "over21": true }` | `{ success, message, data: { approved, ageGateToken, expiresIn: "30d" } }` |
-| `POST` | `/api/age-gate/block` | none | `{ "accepted": false }` or `{ "over21": false }` | `{ success, message, data: { blocked: true } }` |
+- Additive backend only (new `blog_posts` / `blog_media` tables). FE must not assume schema edits on products/banners/etc.
+- `bodyJson` = TipTap doc (source of truth); `bodyHtml` = sanitized HTML for public render + SEO (returned by API).
+- Drafts never appear on public list/detail or sitemap.
+- Unpublish clears `publishedAt` (sitemap accurate).
+- Cover image + inline media uploads via admin multipart endpoints.
+- Video in v1 = URL embeds (YouTube/Vimeo), not file upload.
+- Shared `BlogPostBody` component powers **admin preview** and **storefront** (one renderer).
+- `showOnHomepage` (boolean, default false): admin toggle. Homepage shows **only** published posts with this flag. If none qualify, **omit the homepage blog section entirely**; all published posts still appear on `/blog`.
 
-**Frontend integration:**
-- On “Yes”: call `/verify`, store `data.ageGateToken` client-side (cookie or localStorage).
-- On “No”: call `/block`, redirect to `/blocked`.
-- Backend does **not** enforce the token on catalog/auth routes yet (frontend gate UX owns MVP).
+## Mobile responsive (no compromise)
 
----
+Acceptance: usable and correct at ~375px and ~390px width; no horizontal page scroll; content readable without pinch-zoom.
 
-### A2. Google OAuth secure handoff — `done` (breaking change)
+### Public `/blog` and `/blog/[slug]`
 
-**Old (removed):** redirect with `?accessToken=...&refreshToken=...` in URL.
+- Default **single column**; multi-column card grids only from `md`/`lg` up.
+- Content column: centered, `max-w-prose` or `max-w-3xl`, horizontal padding ≥ `px-4`.
+- Cover + inline images: `max-w-full h-auto`; never overflow viewport.
+- Video embeds: full-width **16:9** responsive wrapper (`aspect-video` or equivalent).
+- Typography: comfortable body size on mobile (`text-base`+); headings wrap cleanly.
+- Cards/list items: full-width tap targets; spacing that doesn’t crush content.
 
-**New flow:**
-1. User hits `GET /api/auth/google/start` (browser redirect).
-2. After Google consent, backend callback redirects to:  
-   `{FRONTEND_URL}/auth/google/callback?code=<one-time-handoff-code>`
-3. Frontend calls `POST /api/auth/exchange-code` with `{ "code": "..." }`.
-4. Response: `{ success, message, data: { accessToken, refreshToken, user } }`.
+### Admin `/admin/blog/*`
 
-**Rules:** code is single-use, TTL **60s**. Errors redirect with `?error=...` only (no tokens in URL).
+- Meta form + editor + toolbar must work on a phone-width admin viewport.
+- **Preview stacks below the editor on mobile**; side-by-side preview only from `lg:` up (do not squeeze a narrow side panel on small screens).
+- TipTap toolbar wraps or scrolls horizontally **without** widening the page.
+- Primary actions (Save, Publish, Apply HTML) remain reachable; tap targets ≥ ~44px where practical.
 
----
+## Frontend changes
 
-### A3. Postman / response contract notes — `done` (no new features)
+### 1. API clients
 
-Confirmed in Postman descriptions:
+- `frontend/src/lib/api/admin/blog.api.ts` — admin CRUD + types.
+- Cover/media upload helpers (mirror [`frontend/src/lib/api/admin/banner-image-upload.ts`](frontend/src/lib/api/admin/banner-image-upload.ts)): progress, auth refresh on 401.
+- Public: `frontend/src/lib/api/blog.api.ts` — list + get by slug (published only).
+- Re-export from `frontend/src/lib/api/index.ts` if that barrel is the project norm.
 
-| Topic | Contract |
-|-------|----------|
-| Create order | `{ "addressId", "paymentMethod"?: "COD" }` — use **`addressId`**, not `deliveryAddressId` |
-| Customer cancel | Required `{ "cancelledFromStatus": "Pending"\|"Confirmed"\|"OutForDelivery", "note"?: string }` — 409 if stale |
-| OTP verify | Field name is **`otp`** (not `code`) |
-| Profile endpoints | `GET /api/auth/me` → top-level `{ user }` (legacy). `GET /api/users/me` → `{ data: { user } }` (preferred) |
-| Reputation | **Admin-only** — never on customer auth/order/profile endpoints |
-| Notifications | **Polling only** — `GET /api/notifications`; no Supabase Realtime |
+### 2. Admin nav + routes
 
----
+- Add **Blog** to [`frontend/src/components/admin/admin-nav.ts`](frontend/src/components/admin/admin-nav.ts) (all staff; not superadmin-only).
+- Pages (thin App Router shells + clients, same pattern as banners):
+  - `/admin/blog` — list (title, status, publishedAt, edit, soft-delete/restore if API supports)
+  - `/admin/blog/new` — create draft → redirect to `/admin/blog/[id]`
+  - `/admin/blog/[id]` — full editor
 
-## Intentional backend decisions (do not re-request)
+### 3. Admin editor UX (`/admin/blog/[id]`)
 
-| Item | Backend truth |
-|------|---------------|
-| Customer cancellation admin toggle | **Removed** — cancel from Pending \| Confirmed \| OutForDelivery with `cancelledFromStatus` |
-| Supabase Realtime | **Polling only** — see `baseDocs/notification-polling.md` |
-| Admin cancel route | Use `PATCH /api/admin/orders/:id/status` with `Cancelled` |
-| Customer reputation | **Admin-only** |
+Layout:
 
----
+1. **Meta:** title, slug (editable), excerpt, `seoTitle`, `seoDescription`, optional authorName, cover upload, **Show on homepage** checkbox (`showOnHomepage`), status Publish / Unpublish / Save draft.
+2. **Tabs:**
+   - **Blocks** — TipTap: paragraph, headings, lists, links, image (upload → insert URL from media API), YouTube/Vimeo embed, horizontal rule.
+   - **HTML** — large textarea; paste external HTML; **Apply to editor** (parse into TipTap doc or HTML node); client sanitize before apply/save.
+3. **Live preview** — renders via shared `BlogPostBody` (title/cover/date/body). Updates on debounce as blocks/HTML change.
 
-## Frontend setup
+Deps to add in frontend: `@tiptap/react`, starter-kit, image, link, youtube (or iframe), plus `isomorphic-dompurify` (or equivalent) for paste/HTML.
 
-- Base URL: `http://localhost:5000` (or `NEXT_PUBLIC_API_URL`)
-- Auth: `Authorization: Bearer <accessToken>`
-- Only call routes in Postman collection
-- OTP dev: `SMS_PROVIDER=mock` → read `[otp-dev]` from backend console
+### 4. Shared body renderer
 
-**Previously blocked stages now unblocked:**
-- Stage 6 — Age gate (API-backed)
-- Stage 11 — Google OAuth (secure handoff)
+- `BlogPostBody` (e.g. under `frontend/src/components/blog/`) consumes sanitized `bodyHtml`.
+- Styles for prose, images, embeds must satisfy the mobile rules above.
+- Used by admin preview **and** `(store)/blog/[slug]`.
 
----
+### 5. Storefront SEO pages
 
-## Open backend work
+- `(store)/blog/page.tsx` — published index (cards: title, excerpt, date, cover).
+- `(store)/blog/[slug]/page.tsx` — full post:
+  - `buildPageMetadata` (`seoTitle` / `seoDescription` fallbacks to title/excerpt)
+  - Article JSON-LD + breadcrumbs ([`frontend/src/lib/seo/json-ld.ts`](frontend/src/lib/seo/json-ld.ts))
+  - Default author display **Gas Nation** if `authorName` null
+- [`frontend/src/app/sitemap.ts`](frontend/src/app/sitemap.ts) — add `/blog` + each published slug from public API.
+- Footer + store nav: additive **Blog** link to `/blog`.
+- Age gate / robots: no special cases required (`/blog` allowed; crawlers already bypass age gate).
 
-_None. Frontend may add new requests below._
+### 5b. Homepage blog section (conditional)
 
-```text
-### Request — YYYY-MM-DD
-Status: open
-Owner: backend
-Why:
-Ask:
+- On [`frontend/src/app/(store)/page.tsx`](frontend/src/app/(store)/page.tsx): fetch `GET /api/blog?showOnHomepage=true` (reasonable `limit`, e.g. 3–6).
+- **If the list is empty:** do not render any blog section on the homepage.
+- **If one or more posts:** render a mobile-first “From the blog” (or similar) section — single-column cards on mobile, multi-col from `md`/`lg`; each card links to `/blog/[slug]`; include “View all” → `/blog`.
+- Only published + flagged posts appear here; drafts with the flag still must not show (API enforces). Unflagged published posts remain on `/blog` only.
+
+### 6. Types
+
+Mirror API fields: `id`, `title`, `slug`, `excerpt`, `bodyJson`, `bodyHtml`, `coverImagePath`, `status`, `publishedAt`, `seoTitle`, `seoDescription`, `authorName`, `showOnHomepage`, `createdAt`, `updatedAt`, media URLs as returned.
+
+## API quick reference
+
+Confirm against backend docs after backend agent ships. Expected contract:
+
+| Method | Path | Auth | Notes |
+|--------|------|------|--------|
+| GET | `/api/admin/blog` | staff | List all non-deleted (or include deleted flag); filter status optional |
+| POST | `/api/admin/blog` | staff | Create draft `{ title, slug?, excerpt?, bodyJson?, showOnHomepage?, ... }` |
+| GET | `/api/admin/blog/:id` | staff | Full post including `bodyJson` / `bodyHtml` / `showOnHomepage` |
+| PATCH | `/api/admin/blog/:id` | staff | Update fields; publish/unpublish via `status`; toggle `showOnHomepage` |
+| DELETE | `/api/admin/blog/:id` | staff | Soft delete |
+| PATCH | `/api/admin/blog/:id/restore` | staff | Restore |
+| POST | `/api/admin/blog/:id/cover` | staff | Multipart image → `coverImagePath` / URL |
+| POST | `/api/admin/blog/:id/media` | staff | Multipart inline image → URL for TipTap image node |
+| GET | `/api/blog` | public | Published only; pagination `page` / `limit`; optional `showOnHomepage=true` for homepage |
+| GET | `/api/blog/:slug` | public | Published only; 404 if draft/missing |
+| GET | `/api/assets/blog-images/:postId/:file` | public | Serve cover/inline images |
+
+Envelope: `{ success, message, data }` (same as rest of API).
+
+Save body: send `bodyJson` (required for block editor). Include `bodyHtml` only if backend accepts client HTML; prefer letting backend sanitize/regenerate `bodyHtml` when documented that way.
+
+## Out of scope (FE)
+
+- Prisma / Express / migrations
+- Tags, comments, RSS, scheduled publish UI
+- Auto-showing newest posts on homepage without `showOnHomepage`
+- Video file uploads
+- Changing age-gate or analytics
+
+## Suggested first message for frontend agent
+
 ```
+Read @inbetween.md (Blog handoff). Backend blog APIs should already be live — verify against baseDocs/api-endpoints.md.
 
----
+Implement the frontend only: admin TipTap + HTML paste + live preview, public /blog pages, sitemap + nav, and a conditional homepage blog section driven by showOnHomepage.
 
-## How to test (backend)
-
-```bash
-cd backend
-npm run postman:generate   # refreshes baseDocs/backend-postman-collection.json
-npm run test:e2e           # 114 passed (last run 2026-07-21)
+Hard requirement: blog index, post, homepage strip (when present), and admin editor preview are mobile-first with no compromise (see Mobile responsive section). Do not modify backend/ or Prisma.
 ```
-
-**Manual checks:**
-- Age gate: `POST /api/age-gate/verify` with `{ "accepted": true }` → returns JWT in `data.ageGateToken`
-- Google: complete OAuth in browser → frontend receives `?code=` → exchange via `POST /api/auth/exchange-code`

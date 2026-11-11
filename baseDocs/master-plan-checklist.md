@@ -25,7 +25,7 @@ Current divergence to fix early:
 
 ## Stage Checklist
 
-> Status sync note (2026-07-21): statuses through **Stage 38**. Stage 38 adds Google secure handoff (`POST /api/auth/exchange-code`), age gate API, and Postman contract updates. See `baseDocs/api-endpoints.md`.
+> Status sync note (2026-07-22): statuses through **Stage 40**. Stage 40 adds default store currency (`defaultCurrency` on admin settings + `GET /api/store/config`). See `baseDocs/api-endpoints.md`.
 
 ### Stage 1: Environment setup and health check
 - Status: `done`
@@ -641,6 +641,31 @@ Current divergence to fix early:
   - `src/app.js`
   - `scripts/generate-postman-collection.js`
   - `scripts/e2e-full-scenario.js`
+
+### Stage 39: Admin media library list
+- Status: `done`
+- Delivered:
+  - `GET /api/admin/media` — DB-first flatten of `Product.images` with pagination, search, includeArchived, summary totals
+  - No schema/seed changes (read-only aggregation)
+  - Updated Postman generator, E2E coverage, `api-endpoints.md`, `inbetween.md`
+- Key files:
+  - `src/modules/admin/media/*`
+  - `src/app.js`
+  - `scripts/generate-postman-collection.js`
+  - `scripts/e2e-full-scenario.js`
+
+### Stage 40: Default store currency (inbetween D1)
+- Status: `done`
+- Delivered:
+  - Migration `20260722091407_add_default_currency` — additive `defaultCurrency` column on `admin_settings` (default `ETB`)
+  - `GET/PATCH /api/admin/settings` — includes `defaultCurrency` (allowed: ETB, USD, EUR, GBP)
+  - `GET /api/store/config` — public storefront display currency read
+  - Updated Postman, E2E, `api-endpoints.md`, `inbetween.md`
+- Key files:
+  - `prisma/schema.prisma`, `prisma/migrations/20260722091407_add_default_currency/`
+  - `src/modules/admin/settings/settings.service.js`
+  - `src/modules/store/*`
+  - `src/app.js`
 
 ## Recommended Next Execution Order
 
