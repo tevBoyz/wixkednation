@@ -35,24 +35,24 @@ export async function generateMetadata({
     const category = await fetchCategoryBySlug(slug);
     const seoBySlug: Record<string, { title: string; description: string }> = {
       flower: {
-        title: "Buy Flower Online | Same-Day Delivery | Gas Nation",
+        title: "Flower on the Wixked Nation Menu",
         description:
-          "Shop flower online with same-day delivery in Northern Virginia and Washington, DC from Gas Nation. 21+.",
+          "Shop flower online with same-day delivery in Ohio from Wixked Nation. 21+.",
       },
       indica: {
-        title: "Indica Flower | Same-Day Delivery | Gas Nation",
+        title: "Indica Flower from Wixked Nation",
         description:
-          "Shop indica flower for evening and relaxation-oriented strains. Same-day delivery in NoVA and DC from Gas Nation.",
+          "Shop indica flower for evening and relaxation-oriented strains. Same-day delivery across Ohio from Wixked Nation.",
       },
       sativa: {
-        title: "Sativa Flower | Same-Day Delivery | Gas Nation",
+        title: "Sativa Flower from Wixked Nation",
         description:
-          "Shop sativa flower for daytime strains. Same-day delivery across Northern Virginia and DC from Gas Nation.",
+          "Shop sativa flower for daytime strains. Same-day delivery across Ohio from Wixked Nation.",
       },
       hybrid: {
-        title: "Hybrid Flower | Same-Day Delivery | Gas Nation",
+        title: "Hybrid Flower from Wixked Nation",
         description:
-          "Shop hybrid flower with same-day delivery in Northern Virginia and Washington, DC from Gas Nation.",
+          "Shop hybrid flower with same-day delivery in Ohio from Wixked Nation.",
       },
     };
 
@@ -60,10 +60,10 @@ export async function generateMetadata({
     const description =
       extras?.description ||
       category.description?.trim() ||
-      `Shop ${category.name} with same-day delivery from ${SITE_NAME} across Northern Virginia and Washington, DC.`;
+      `Shop ${category.name} with same-day delivery from ${SITE_NAME} across Ohio.`;
 
     return buildPageMetadata({
-      title: extras?.title || `${category.name} | Menu | Gas Nation`,
+      title: extras?.title || `${category.name} | Wixked Nation Menu`,
       description,
       path: `/categories/${slug}`,
     });
@@ -149,11 +149,11 @@ export default async function CategoryDetailPage({
         </ol>
       </nav>
 
-      <header className="mt-6 max-w-2xl min-w-0">
+      <header className="wn-page-head mt-6 min-w-0">
         <h1>{category.name}</h1>
           <p className="mt-3 text-muted-foreground">
             {category.description?.trim() ||
-              `Shop ${category.name} with same-day cannabis delivery from ${SITE_NAME} across Northern Virginia and Washington, DC.`}
+              `Shop ${category.name} with same-day cannabis delivery from ${SITE_NAME} across Ohio.`}
           </p>
       </header>
 

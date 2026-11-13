@@ -17,12 +17,12 @@ import {
 import { buildPageMetadata } from "@/lib/seo/site-metadata";
 
 const PATH = "/learn";
-const TITLE = "Cannabis guides from Gas Nation";
+const TITLE = "Ordering guides from Wixked Nation";
 const DESCRIPTION =
-  "Guides to ordering weed delivery in Northern Virginia and DC: how delivery works, what to order first, indica vs sativa vs hybrid, and who can order.";
+  "Guides to ordering weed delivery in Ohio: how delivery works, what to order first, indica vs sativa vs hybrid, and who can order.";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Cannabis Delivery Guides for NoVA & DC | Gas Nation",
+  title: "Ordering Guides | Wixked Nation",
   description: DESCRIPTION,
   path: PATH,
 });
@@ -41,7 +41,7 @@ const NEXT_STEPS = [
   {
     href: "/delivery",
     title: "Delivery areas",
-    description: "Every city and neighborhood we cover across NoVA and DC.",
+    description: "Every incorporated city we cover in Ohio.",
   },
   {
     href: "/faqs",
@@ -75,12 +75,11 @@ export default function LearnHubPage() {
         <GuideBreadcrumb />
 
         <GuideHero
-          eyebrow="Guides · Ordering with Gas Nation"
           title={TITLE}
           lead={
             <>
               Short guides for new and returning{" "}
-              <GuideLink href="/">Gas Nation</GuideLink> customers. Learn{" "}
+              <GuideLink href="/">Wixked Nation</GuideLink> customers. Learn{" "}
               <GuideLink href={learnGuidePath("how-delivery-works")}>
                 how same-day delivery works
               </GuideLink>
@@ -93,7 +92,7 @@ export default function LearnHubPage() {
                 how strain types differ
               </GuideLink>
               , and{" "}
-              <GuideLink href={learnGuidePath("is-weed-delivery-legal-virginia-dc")}>
+              <GuideLink href={learnGuidePath("is-weed-delivery-legal-ohio")}>
                 who can order
               </GuideLink>
               .
@@ -114,10 +113,7 @@ export default function LearnHubPage() {
                   href={learnGuidePath(guide.slug)}
                   className="flex h-full flex-col rounded-lg border border-border bg-card/50 p-5 transition-colors hover:border-primary/40"
                 >
-                  <span className="text-xs font-medium text-primary">
-                    {guide.eyebrow}
-                  </span>
-                  <span className="mt-2 text-lg font-semibold tracking-tight">
+                  <span className="text-lg font-semibold tracking-tight">
                     {guide.title}
                   </span>
                   <span className="mt-2 text-sm leading-relaxed text-muted-foreground">

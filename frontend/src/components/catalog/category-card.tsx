@@ -13,20 +13,30 @@ export function CategoryCard({ category, className }: CategoryCardProps) {
     <Link
       href={`/categories/${category.slug}`}
       className={cn(
-        "group block rounded-lg border border-border bg-background px-4 py-5 transition-colors hover:border-foreground/25 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "group flex items-start gap-4 rounded-xl border border-white/10 bg-[#0b0e0c] px-4 py-5 transition-colors hover:border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         className,
       )}
     >
-      <h2 className="text-base font-semibold tracking-tight group-hover:underline">
-        {category.name}
-      </h2>
-      {category.description ? (
-        <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-          {category.description}
+      <span
+        aria-hidden
+        className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-white/10 text-xl font-semibold text-primary"
+      >
+        {category.name.charAt(0).toUpperCase()}
+      </span>
+      <span className="min-w-0 flex-1">
+        <h2 className="text-base font-semibold tracking-tight group-hover:underline">
+          {category.name}
+        </h2>
+        <p className="mt-1 line-clamp-2 text-sm leading-6 text-muted-foreground">
+          {category.description || "Browse products"}
         </p>
-      ) : (
-        <p className="mt-2 text-sm text-muted-foreground">Browse products</p>
-      )}
+      </span>
+      <span
+        aria-hidden
+        className="self-center text-lg text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-foreground"
+      >
+        →
+      </span>
     </Link>
   );
 }

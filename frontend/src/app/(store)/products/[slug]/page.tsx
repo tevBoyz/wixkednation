@@ -50,10 +50,10 @@ export async function generateMetadata({
     ]);
     const description =
       product.description?.trim() ||
-      `Buy ${product.name} with cannabis delivery from ${SITE_NAME} in Northern Virginia and Washington, DC. ${formatPackPrice(product, storeConfig.defaultCurrency)}.`;
+      `Buy ${product.name} with cannabis delivery from ${SITE_NAME} in Ohio. ${formatPackPrice(product, storeConfig.defaultCurrency)}.`;
 
     return buildPageMetadata({
-      title: `${product.name} | Weed Delivery NoVA & DC | ${SITE_NAME}`,
+      title: `${product.name} | Wixked Nation Menu`,
       description,
       path: `/products/${slug}`,
     });

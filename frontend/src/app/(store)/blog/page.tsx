@@ -10,9 +10,9 @@ import { buildBreadcrumbJsonLd } from "@/lib/seo/json-ld";
 import { buildPageMetadata } from "@/lib/seo/site-metadata";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Blog | Cannabis Guides & Delivery Tips",
+  title: "The Journal | Wixked Nation",
   description:
-    "Guides, local delivery tips, and product education from GasNation — premium cannabis delivery across Northern Virginia and Washington, DC.",
+    "Guides, local delivery tips, and product education from Wixked Nation — premium cannabis delivery across Ohio.",
   path: "/blog",
 });
 
@@ -41,16 +41,14 @@ export default async function BlogIndexPage({ searchParams }: PageProps) {
       <JsonLd
         data={buildBreadcrumbJsonLd([
           { name: "Home", path: "/" },
-          { name: "Blog", path: "/blog" },
+          { name: "Journal", path: "/blog" },
         ])}
       />
       <Container className="min-w-0 py-10 sm:py-14">
-        <header className="mx-auto max-w-3xl px-0 text-center sm:text-left">
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl md:text-5xl">
-            Blog
-          </h1>
-          <p className="mt-3 text-base text-muted-foreground sm:text-lg">
-            Guides, local tips, and product education from GasNation.
+        <header className="wn-page-head">
+          <h1 className="relative z-[1] text-4xl sm:text-5xl">Journal</h1>
+          <p className="relative z-[1] mt-3 text-base text-muted-foreground sm:text-lg">
+            Guides, local tips, and product education from Wixked Nation.
           </p>
         </header>
 

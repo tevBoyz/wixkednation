@@ -27,9 +27,9 @@ import {
   RULES_EXTRA_NEXT_LINKS,
   RULES_FAQS,
   RULES_QUICK_FACTS,
-} from "@/content/learn/is-weed-delivery-legal-virginia-dc";
+} from "@/content/learn/is-weed-delivery-legal-ohio";
 
-const guide = getLearnGuide("is-weed-delivery-legal-virginia-dc");
+const guide = getLearnGuide("is-weed-delivery-legal-ohio");
 
 export const metadata: Metadata = buildGuideMetadata(guide);
 
@@ -46,18 +46,13 @@ export default function WhoCanOrderPage() {
         <GuideBreadcrumb title={guide.navLabel} />
 
         <GuideHero
-          eyebrow={guide.eyebrow}
           title={guide.title}
           lead={
             <>
               If you are 21 or older with a valid ID and you are at an{" "}
               <GuideLink href="/delivery">address we serve</GuideLink> in{" "}
-              <GuideLink href="/delivery/northern-virginia">
-                Northern Virginia
-              </GuideLink>{" "}
-              or{" "}
-              <GuideLink href="/delivery/washington-dc">Washington, DC</GuideLink>
-              , you can order from <GuideLink href="/">Gas Nation</GuideLink>.
+              <GuideLink href="/delivery/ohio">Ohio</GuideLink>, you can order
+              from <GuideLink href="/">Wixked Nation</GuideLink>.
               Below is what we check at the door, who is eligible, and the limits
               on every order.
             </>
@@ -70,16 +65,14 @@ export default function WhoCanOrderPage() {
 
         <GuideSection id="policy" title="Our policy">
           <GuideProse>
-            Gas Nation delivers to adults 21 and over across Northern Virginia
-            and Washington, DC. You do not need a medical card. You do need a
-            valid government ID, and you need to be the one who receives the
-            order.
+            Wixked Nation delivers to adults 21 and over across Ohio. You do
+            not need a medical card. You do need a valid government ID, and you
+            need to be the one who receives the order.
           </GuideProse>
           <p className="mt-4 rounded-lg border border-border bg-card/50 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
-            This page describes Gas Nation&apos;s ordering policies and is not
-            legal advice. Cannabis rules differ between Virginia and DC and can
-            change, so check current local law if you have questions about your
-            situation.
+            This page describes Wixked Nation&apos;s ordering policies and is not
+            legal advice. Cannabis rules in Ohio can change, so check current
+            local law if you have questions about your situation.
           </p>
         </GuideSection>
 
@@ -141,7 +134,7 @@ export default function WhoCanOrderPage() {
           title="Where you can order to"
           intro={
             <>
-              Same-day delivery across Northern Virginia and into Washington, DC.
+              Same-day delivery to every incorporated city in Ohio.
               Homes, apartments, hotels, and temporary stays all work.{" "}
               <GuideLink href={learnGuidePath("how-delivery-works")}>
                 See how delivery works

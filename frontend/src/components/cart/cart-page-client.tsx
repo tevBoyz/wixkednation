@@ -27,9 +27,9 @@ export function CartPageClient() {
 
   return (
     <Container as="main" className="min-w-0 py-10">
-      <header className="flex min-w-0 flex-wrap items-end justify-between gap-3">
+      <header className="wn-page-head flex min-w-0 flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
-          <h1>Cart</h1>
+          <h1 className="text-4xl">Cart</h1>
           <p className="mt-2 text-muted-foreground">
             {isLoading
               ? "Loading cart…"

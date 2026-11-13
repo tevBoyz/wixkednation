@@ -1,7 +1,7 @@
-# GasNation SEO — Live Audit & 30-Day Checklist
+# WixkedNation SEO — Live Audit & 30-Day Checklist
 
 **Audit date:** August 30, 2026  
-**Property:** https://gasnationweed.com
+**Property:** https://wixkednation.com
 
 ---
 
@@ -9,20 +9,20 @@
 
 | Check | Result |
 |-------|--------|
-| HTTP → HTTPS redirect | ✅ `301` to `https://gasnationweed.com/` (nginx) |
-| Sitemap | ✅ `https://gasnationweed.com/sitemap.xml` — homepage, delivery areas, products, blog |
+| HTTP → HTTPS redirect | ✅ `301` to `https://wixkednation.com/` (nginx) |
+| Sitemap | ✅ `https://wixkednation.com/sitemap.xml` — homepage, delivery areas, products, blog |
 | robots.txt | ✅ Blocks admin/account/checkout/age-gate; points to sitemap |
 | Googlebot access | ✅ Gets `200` + full HTML (age-gate bypass works) |
 | Human age-gate | ✅ Redirects to `/age-gate` without cookie |
 | Blog in sitemap | ✅ `/blog` + published posts listed |
 | Blog SEO meta | ✅ Title, description, canonical, Article JSON-LD |
-| Canonical host | ✅ Pages canonical to `https://gasnationweed.com` (non-www) |
+| Canonical host | ✅ Pages canonical to `https://wixkednation.com` (non-www) |
 
 ## Issues found & status
 
 | Issue | Severity | Status |
 |-------|----------|--------|
-| `www.gasnationweed.com` served same site (split signals) | Medium | **Fix in code:** `proxy.ts` now 301s www → apex (deploy to prod) |
+| `www.wixkednation.com` served same site (split signals) | Medium | **Fix in code:** `proxy.ts` now 301s www → apex (deploy to prod) |
 | GSC shows old `http://` URLs | Low | Historical — HTTP already 301s; set **Preferred domain** in GSC |
 | Google = ~10% of traffic | Info | Normal for new site; not a bug |
 | Only 1–2 blog posts | Info | Content volume, not technical |
@@ -31,21 +31,21 @@
 
 ## Week 1 — Google Search Console setup
 
-- [ ] In GSC → **Settings → Crawling → Preferred domain**, confirm **non-www HTTPS** (`gasnationweed.com`)
+- [ ] In GSC → **Settings → Crawling → Preferred domain**, confirm **non-www HTTPS** (`wixkednation.com`)
 - [ ] **Indexing → Pages** — fix any “Not indexed” errors (Crawl, Redirect, 404)
-- [ ] **Sitemaps** — confirm `https://gasnationweed.com/sitemap.xml` is submitted and “Success”
+- [ ] **Sitemaps** — confirm `https://wixkednation.com/sitemap.xml` is submitted and “Success”
 - [ ] **URL Inspection** — request indexing for:
   - `/`
   - `/delivery/ashburn`
   - `/delivery/manassas` (if page exists)
   - `/blog/complete-cannabis-guide` (or latest published post)
-- [ ] After www redirect deploy: **Validate** that `https://www.gasnationweed.com/` returns `301` → apex
+- [ ] After www redirect deploy: **Validate** that `https://www.wixkednation.com/` returns `301` → apex
 
 ## Week 1 — Google Business Profile (highest ROI for local cannabis)
 
-- [ ] Claim/verify GBP listing matches site name **Gas Nation** (or exact legal name)
+- [ ] Claim/verify GBP listing matches site name **Wixked Nation** (or exact legal name)
 - [ ] Service areas: Northern Virginia cities + DC
-- [ ] Categories, hours, phone, website URL (`https://gasnationweed.com`)
+- [ ] Categories, hours, phone, website URL (`https://wixkednation.com`)
 - [ ] 10+ photos (logo, product, delivery, team)
 - [ ] Ask happy customers for Google reviews (5–10 in month 1)
 
@@ -90,7 +90,7 @@
 
 | Query | Action |
 |-------|--------|
-| `gasnation` | Brand — keep GBP + social consistent |
+| `wixkednation` | Brand — keep GBP + social consistent |
 | `recreational dispensary dc` | Add DC-focused content + delivery page links |
 | `weed delivery ashburn va` | Strengthen `/delivery/ashburn` + blog mention |
 | `weed delivery manassas va` | Ensure Manassas delivery page exists & is linked |
@@ -102,6 +102,6 @@
 After merging **www → apex redirect** in `frontend/src/proxy.ts`, redeploy the frontend. Verify:
 
 ```bash
-curl -sI "https://www.gasnationweed.com/" | head -5
-# Expect: HTTP/1.1 301 ... Location: https://gasnationweed.com/
+curl -sI "https://www.wixkednation.com/" | head -5
+# Expect: HTTP/1.1 301 ... Location: https://wixkednation.com/
 ```

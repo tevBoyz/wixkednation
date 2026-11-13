@@ -1,6 +1,6 @@
 import type { CreateGuestOrderResult } from "@/lib/api/orders.api";
 
-const STORAGE_PREFIX = "gasnation:guest-order-success:";
+const STORAGE_PREFIX = "wixkednation:guest-order-success:";
 
 export type GuestOrderSnapshot = CreateGuestOrderResult;
 

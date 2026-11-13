@@ -45,7 +45,6 @@ export default function IndicaVsSativaVsHybridPage() {
         <GuideBreadcrumb title={guide.navLabel} />
 
         <GuideHero
-          eyebrow={guide.eyebrow}
           title={guide.title}
           lead={
             <>
@@ -57,7 +56,7 @@ export default function IndicaVsSativaVsHybridPage() {
               covers what each is usually chosen for, how to pick one for your
               evening, and where to find each on our{" "}
               <GuideLink href="/products">menu</GuideLink> at{" "}
-              <GuideLink href="/">Gas Nation</GuideLink>.
+              <GuideLink href="/">Wixked Nation</GuideLink>.
             </>
           }
           primary={{ label: "Shop flower", href: "/categories/flower" }}

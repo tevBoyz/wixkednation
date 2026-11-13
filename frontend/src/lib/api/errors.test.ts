@@ -53,7 +53,7 @@ describe("sanitizeUserFacingMessage", () => {
 describe("getOrderSubmitErrorMessage", () => {
   it("returns delivery-area message from 400 ApiError body", () => {
     const deliveryMessage =
-      "This ZIP code is outside our delivery area. We currently deliver in Northern Virginia, Washington DC, and South Maryland.";
+      "This ZIP code is outside our delivery area. We currently deliver throughout Ohio.";
     const error = new ApiError("Request failed", {
       status: 400,
       body: { success: false, message: deliveryMessage },

@@ -8,7 +8,7 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { GasNationLoader } from "@/components/brand/gasnation-loader";
+import { WixkedNationLoader } from "@/components/brand/wixkednation-loader";
 import { CheckoutAddressPicker } from "@/components/checkout/checkout-address-picker";
 import { CheckoutOrderSummary } from "@/components/checkout/checkout-order-summary";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -265,7 +265,7 @@ export function CheckoutPageClient() {
   }
 
   const placingOrderOverlay = submitting ? (
-    <GasNationLoader
+    <WixkedNationLoader
       variant="fullscreen"
       message="Placing your order…"
       className="gn-loader-backdrop bg-background/95"
@@ -599,7 +599,7 @@ export function CheckoutPageClient() {
                 id="guest-postalCode"
                 inputMode="numeric"
                 autoComplete="postal-code"
-                placeholder="22201"
+                placeholder="43215"
                 maxLength={10}
                 aria-invalid={Boolean(errors.postalCode)}
                 disabled={submitting}
@@ -611,7 +611,7 @@ export function CheckoutPageClient() {
                 </p>
               ) : (
                 <p className="text-xs text-muted-foreground">
-                  We deliver in Northern Virginia, Washington DC, and South Maryland.
+                  We deliver to every incorporated city in Ohio.
                 </p>
               )}
             </div>

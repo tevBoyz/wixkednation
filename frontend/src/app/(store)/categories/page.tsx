@@ -10,9 +10,9 @@ import { buildPageMetadata } from "@/lib/seo/site-metadata";
 import type { Category } from "@/lib/api/types";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Cannabis Categories | Flower, Edibles, Vapes & Concentrates",
+  title: "Shop by Kind | Wixked Nation",
   description:
-    "Shop GasNation categories: indica flower delivery, sativa, hybrid, edibles delivery, vape cartridges, disposable vapes, live resin, and rosin. Online dispensary with cannabis delivery in Northern Virginia and DC.",
+    "Shop Wixked Nation categories: indica flower delivery, sativa, hybrid, edibles delivery, vape cartridges, disposable vapes, live resin, and rosin. Online dispensary with cannabis delivery across Ohio.",
   path: "/categories",
 });
 
@@ -45,12 +45,12 @@ export default async function CategoriesIndexPage() {
 
   return (
     <Container as="main" className="min-w-0 py-10">
-      <header className="max-w-2xl min-w-0">
-        <h1>Cannabis categories</h1>
-        <p className="mt-3 text-muted-foreground">
+      <header className="wn-page-head">
+        <h1 className="relative z-[1] text-4xl sm:text-5xl">Shop by kind</h1>
+        <p className="relative z-[1] mt-3 text-muted-foreground">
           Shop flower, edibles, vapes, and concentrates. Parent categories
           include products from their subcategories. Same-day cannabis delivery
-          across Northern Virginia and Washington, DC.
+          across Ohio.
         </p>
       </header>
 

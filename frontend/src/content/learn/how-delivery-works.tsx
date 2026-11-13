@@ -62,21 +62,21 @@ export const DELIVERY_PREP_ITEMS = [
 ] as const;
 
 export const DELIVERY_FEATURED_AREA_SLUGS = [
-  "northern-virginia",
-  "washington-dc",
-  "arlington",
-  "alexandria",
-  "fairfax",
-  "mclean",
-  "reston",
-  "vienna",
+  "ohio",
+  "columbus",
+  "cleveland",
+  "cincinnati",
+  "toledo",
+  "akron",
+  "dayton",
+  "youngstown",
 ] as const;
 
 export const DELIVERY_FAQS: readonly FaqItem[] = [
   {
     question: "Do I need a medical card to order?",
     answer:
-      "No. Gas Nation delivery in Northern Virginia and Washington, DC is for adults 21+ with a valid government ID. You do not need a medical card.",
+      "No. Wixked Nation delivery in Ohio is for adults 21+ with a valid government ID. You do not need a medical card.",
   },
   {
     question: "What ID do you accept at the door?",
@@ -86,7 +86,7 @@ export const DELIVERY_FAQS: readonly FaqItem[] = [
   {
     question: "Is payment really cash only?",
     answer:
-      "Yes. Gas Nation is cash only, and you pay the driver when your order arrives. Every order has a flat $20 delivery fee. Delivery is only free when you redeem a free-delivery coupon from Gas Nation.",
+      "Yes. Wixked Nation is cash only, and you pay the driver when your order arrives. Every order has a flat $20 delivery fee. Delivery is only free when you redeem a free-delivery coupon from Wixked Nation.",
   },
   {
     question: "Do I have to be there to receive the order?",
@@ -109,7 +109,7 @@ export const DELIVERY_EXTRA_NEXT_LINKS: readonly GuideCard[] = [
   {
     href: "/delivery",
     title: "Delivery areas",
-    description: "Every city and neighborhood we cover in NoVA and DC.",
+    description: "Every incorporated city we cover in Ohio.",
   },
   {
     href: "/faqs",

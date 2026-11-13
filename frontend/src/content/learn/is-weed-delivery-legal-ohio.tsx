@@ -33,19 +33,19 @@ export const RULES_ACCEPTED_IDS = [
 ] as const;
 
 export const RULES_AREA_SLUGS = [
-  "northern-virginia",
-  "washington-dc",
-  "arlington",
-  "alexandria",
-  "fairfax",
-  "reston",
+  "ohio",
+  "columbus",
+  "cleveland",
+  "cincinnati",
+  "toledo",
+  "akron",
 ] as const;
 
 export const RULES_FAQS: readonly FaqItem[] = [
   {
-    question: "Who can order Gas Nation delivery?",
+    question: "Who can order Wixked Nation delivery?",
     answer:
-      "Adults 21 and over with a valid government ID, receiving the order in person at an address we serve in Northern Virginia or Washington, DC.",
+      "Adults 21 and over with a valid government ID, receiving the order in person at an address we serve in Ohio.",
   },
   {
     question: "Do I need a medical card?",
@@ -55,7 +55,7 @@ export const RULES_FAQS: readonly FaqItem[] = [
   {
     question: "I am visiting. Can I still order?",
     answer:
-      "Yes. Visitors with a valid ID can place orders for delivery to addresses we serve in Northern Virginia and Washington, DC (including hotels), as long as they are over 21.",
+      "Yes. Visitors with a valid ID can place orders for delivery to addresses we serve in Ohio (including hotels), as long as they are over 21.",
   },
   {
     question: "Can someone else accept my order?",
@@ -70,7 +70,7 @@ export const RULES_FAQS: readonly FaqItem[] = [
   {
     question: "Is this legal advice?",
     answer:
-      "No. This page explains Gas Nation's own ordering policies. Cannabis laws differ between Virginia and DC and can change, so check current local rules if you have questions about your specific situation.",
+      "No. This page explains Wixked Nation's own ordering policies. Cannabis rules in Ohio can change, so check current local rules if you have questions about your specific situation.",
   },
 ];
 
@@ -78,7 +78,7 @@ export const RULES_EXTRA_NEXT_LINKS: readonly GuideCard[] = [
   {
     href: "/delivery",
     title: "Delivery areas",
-    description: "Every city and neighborhood we cover across NoVA and DC.",
+    description: "Every incorporated city we cover in Ohio.",
   },
   {
     href: "/faqs",

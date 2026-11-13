@@ -14,7 +14,7 @@ function buildOrderStatusEmail({
 
   let extraHtml = "";
   if (orderUrl) {
-    extraHtml += `<p style="margin:16px 0 0;"><a href="${escapeHtml(orderUrl)}" style="color:#148547;text-decoration:none;font-weight:600;">View your order</a></p>`;
+    extraHtml += `<p style="margin:16px 0 0;"><a href="${escapeHtml(orderUrl)}" style="color:#48801F;text-decoration:none;font-weight:600;">View your order</a></p>`;
   }
 
   const isDelivered = status === "Delivered";
@@ -53,7 +53,7 @@ function buildOrderStatusEmail({
       ? `Leave a Google review: ${reviewUrl}`
       : null,
     "",
-    "21+ only · gasnationweed.com"
+    "21+ only · wixkednation.com"
   ].filter((line) => line !== null);
 
   return {

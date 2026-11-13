@@ -9,9 +9,9 @@ import { buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "@/lib/seo/json-ld";
 import { buildPageMetadata } from "@/lib/seo/site-metadata";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Delivery FAQ | Hours, Areas, ID & Fees | Gas Nation",
+  title: "Questions Before You Order | Wixked Nation",
   description:
-    "How Gas Nation weed delivery works in Northern Virginia and DC: hours 10 AM–10 PM, flat $20 fee, cash on delivery, 21+ ID, no medical card.",
+    "How Wixked Nation weed delivery works in Ohio: hours 10 AM–10 PM, flat $20 fee, cash on delivery, 21+ ID, no medical card.",
   path: "/faqs",
 });
 
@@ -26,13 +26,13 @@ export default function FaqsPage() {
         ])}
       />
       <Container className="min-w-0 py-10 sm:py-14">
-        <header className="max-w-2xl">
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-            Frequently asked questions
+        <header className="wn-page-head">
+          <h1 className="relative z-[1] text-4xl sm:text-5xl">
+            Questions before you order
           </h1>
-          <p className="mt-3 text-base text-muted-foreground sm:text-lg">
-            Delivery areas, hours, ID rules, fees, and how ordering works at Gas
-            Nation across Northern Virginia and Washington, DC.
+          <p className="relative z-[1] mt-3 text-base text-muted-foreground sm:text-lg">
+            Delivery areas, hours, ID rules, fees, and how ordering works at
+            Wixked Nation across Ohio.
           </p>
         </header>
 

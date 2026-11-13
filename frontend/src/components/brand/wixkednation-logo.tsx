@@ -1,11 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { GasNationMark } from "@/components/brand/gasnation-mark";
+import { WixkedNationMark } from "@/components/brand/wixkednation-mark";
 import { SITE_NAME } from "@/config/brand";
 import { cn } from "@/lib/utils";
 
-type GasNationLogoProps = {
+type WixkedNationLogoProps = {
   className?: string;
   markClassName?: string;
   /** Show animated mark (loader / intro). */
@@ -29,7 +29,7 @@ const sizeMap = {
   lg: { mark: "size-12", markPx: 48, text: "text-xl", gap: "gap-3", stackedW: 200 },
 } as const;
 
-export function GasNationLogo({
+export function WixkedNationLogo({
   className,
   markClassName,
   animated = false,
@@ -37,7 +37,7 @@ export function GasNationLogo({
   variant = "full",
   size = "md",
   priority = false,
-}: GasNationLogoProps) {
+}: WixkedNationLogoProps) {
   const sizing = sizeMap[size];
 
   const content =
@@ -50,12 +50,12 @@ export function GasNationLogo({
         )}
       >
         <Image
-          src="/brand/gasnation-logo-full.png"
+          src="/brand/wixkednation-logo-full.png"
           alt={SITE_NAME}
           width={sizing.stackedW}
           height={Math.round(sizing.stackedW * 0.92)}
           priority={priority}
-          className="h-auto w-full max-w-full object-contain"
+          className="h-auto w-full max-w-full object-contain mix-blend-lighten"
         />
       </span>
     ) : (
@@ -75,7 +75,7 @@ export function GasNationLogo({
               markClassName,
             )}
           >
-            <GasNationMark
+            <WixkedNationMark
               animated={animated}
               size={sizing.markPx}
               priority={priority}
@@ -86,13 +86,13 @@ export function GasNationLogo({
         {variant !== "mark" ? (
           <span
             className={cn(
-              "min-w-0 truncate font-semibold leading-none tracking-tight",
+              "wn-word min-w-0 items-baseline truncate font-semibold leading-none tracking-tight",
               sizing.text,
               animated && "gn-wordmark",
             )}
             aria-label={SITE_NAME}
           >
-            <span className="text-primary">Gas</span>
+            <span className="text-primary">Wixked</span>{" "}
             <span className="text-foreground">Nation</span>
           </span>
         ) : null}
@@ -106,7 +106,7 @@ export function GasNationLogo({
         aria-label={variant === "mark" || variant === "stacked" ? SITE_NAME : undefined}
         className={cn(
           "inline-flex min-w-0 max-w-full items-center rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          variant === "mark" ? "overflow-visible" : "overflow-hidden",
+          variant === "mark" || variant === "stacked" ? "overflow-visible" : "overflow-hidden",
         )}
       >
         {content}

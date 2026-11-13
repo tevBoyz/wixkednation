@@ -38,7 +38,7 @@ export function isAdminRole(role: string | null | undefined): boolean {
   return isStaffRole(role);
 }
 
-const AUTH_REDIRECT_KEY = "gasnation_auth_redirect";
+const AUTH_REDIRECT_KEY = "wixkednation_auth_redirect";
 
 /** Clear any persisted post-login path. */
 export function clearAuthRedirect(): void {

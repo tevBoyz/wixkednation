@@ -99,9 +99,9 @@ const collection = {
     { key: "authHandoffCode", value: "" },
     { key: "ageGateToken", value: "" },
     { key: "setupToken", value: "" },
-    { key: "adminEmail", value: "admin@gasnation.com" },
+    { key: "adminEmail", value: "admin@wixkednation.com" },
     { key: "adminPin", value: "072326" },
-    { key: "superadminEmail", value: "superadmin1@gasnationweed.com" },
+    { key: "superadminEmail", value: "superadmin1@wixkednation.com" },
     { key: "superadminPin", value: "199183" },
     { key: "teamUserId", value: "" }
   ],
@@ -165,7 +165,7 @@ const collection = {
         req("PIN login", "POST", "/api/auth/pin/login", {
           body: { email: "{{adminEmail}}", pin: "{{adminPin}}" },
           description:
-            "Status: implemented\nAuth: none\nBody: { pin, phone? } OR { pin, email? } (exactly one identifier).\nOps admin seed: admin@gasnation.com / 072326.\nSuperadmin seed: superadmin1@gasnationweed.com / 199183.\nNo OTP required."
+            "Status: implemented\nAuth: none\nBody: { pin, phone? } OR { pin, email? } (exactly one identifier).\nOps admin seed: admin@wixkednation.com / 072326.\nSuperadmin seed: superadmin1@wixkednation.com / 199183.\nNo OTP required."
         }),
         req("PIN login (superadmin)", "POST", "/api/auth/pin/login", {
           body: { email: "{{superadminEmail}}", pin: "{{superadminPin}}" },
@@ -305,7 +305,7 @@ const collection = {
           body: {
             title: "Weed delivery in north Virginia",
             slug: "weed-delivery-north-virginia",
-            excerpt: "How same-day delivery works across NoVA.",
+            excerpt: "How same-day delivery works across Ohio.",
             status: "draft",
             showOnHomepage: false,
             bodyJson: {
@@ -313,7 +313,7 @@ const collection = {
               content: [
                 {
                   type: "paragraph",
-                  content: [{ type: "text", text: "Hello from Gas Nation." }]
+                  content: [{ type: "text", text: "Hello from Wixked Nation." }]
                 }
               ]
             }
@@ -508,10 +508,10 @@ const collection = {
             label: "Home",
             fullName: "Test Customer",
             phone: "{{customerPhone}}",
-            addressLine1: "1200 Wilson Blvd",
-            city: "Arlington",
-            state: "VA",
-            postalCode: "22201",
+            addressLine1: "1 Capitol Square",
+            city: "Columbus",
+            state: "OH",
+            postalCode: "43215",
             country: "United States",
             isDefault: true
           }
@@ -539,15 +539,15 @@ const collection = {
             address: {
               fullName: "Guest Customer",
               phone: "{{guestPhone}}",
-              addressLine1: "1200 Wilson Blvd",
-              city: "Arlington",
-              state: "VA",
-              postalCode: "22201",
+              addressLine1: "1 Capitol Square",
+              city: "Columbus",
+              state: "OH",
+              postalCode: "43215",
               country: "United States"
             }
           },
           description:
-            "Status: implemented\nAuth: none (public)\nNo OTP/PIN at checkout.\nBody: { phone, name?, paymentMethod?: \"COD\", items[{ productId, skuId, quantity }], address{ fullName, phone?, addressLine1, city, postalCode, ... } }.\nDelivery ZIP must be in the allowed NoVA/DC/South MD list. Finds/creates User by phone (guest registry). Response: order (placedAsGuest, matchedExistingAccount, risk), smsAlert, customer { hasPin, postOrderCta: register|login }.\nRate limit: >10 orders/hour → 429 code ORDER_PHONE_BLOCKED + blockedUntil + try-again message.\nDoes not clear authenticated server cart / does not break POST /api/cart/merge."
+            "Status: implemented\nAuth: none (public)\nNo OTP/PIN at checkout.\nBody: { phone, name?, paymentMethod?: \"COD\", items[{ productId, skuId, quantity }], address{ fullName, phone?, addressLine1, city, postalCode, ... } }.\nDelivery ZIP must be an Ohio ZIP (43001–45999). Finds/creates User by phone (guest registry). Response: order (placedAsGuest, matchedExistingAccount, risk), smsAlert, customer { hasPin, postOrderCta: register|login }.\nRate limit: >10 orders/hour → 429 code ORDER_PHONE_BLOCKED + blockedUntil + try-again message.\nDoes not clear authenticated server cart / does not break POST /api/cart/merge."
         }),
         req("Create order", "POST", "/api/orders", {
           auth: "customer",

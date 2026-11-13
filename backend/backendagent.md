@@ -109,8 +109,8 @@ Auth header: `Authorization: Bearer <accessToken>` where noted.
 **Roles:** `customer` | `admin` | `superadmin`. Existing `/api/admin/*` = staff (`admin` \| `superadmin`). `/api/admin/team` = superadmin only.
 
 **Seeded staff:**
-- Ops admin: `admin@gasnation.com` / PIN `072326` (`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PIN`) — role `admin`
-- Superadmins: `superadmin1@gasnationweed.com`, `superadmin2@gasnationweed.com` / PIN `199183` (`SEED_SUPERADMIN1_*` / `SEED_SUPERADMIN2_*` / `SEED_SUPERADMIN_PIN`)
+- Ops admin: `admin@wixkednation.com` / PIN `072326` (`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PIN`) — role `admin`
+- Superadmins: `superadmin1@wixkednation.com`, `superadmin2@wixkednation.com` / PIN `199183` (`SEED_SUPERADMIN1_*` / `SEED_SUPERADMIN2_*` / `SEED_SUPERADMIN_PIN`)
 
 ### Store config (1)
 
@@ -507,7 +507,7 @@ Variables: `baseUrl`, `accessToken`, `refreshToken`, `adminPhone`, `customerPhon
 
 ### Manual OTP login flow
 
-1. Admin: `POST /api/auth/pin/login` with `{ "email": "admin@gasnation.com", "pin": "072326" }`
+1. Admin: `POST /api/auth/pin/login` with `{ "email": "admin@wixkednation.com", "pin": "072326" }`
 2. New customer: `POST /api/auth/otp/send` → verify → `POST /api/auth/pin/set` with setupToken
 3. Returning customer: `POST /api/auth/pin/login` with `{ "phone", "pin" }`
 4. Use `data.accessToken` as Bearer

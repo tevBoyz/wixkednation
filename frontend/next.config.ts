@@ -35,6 +35,31 @@ const nextConfig: NextConfig = {
   // Smaller Docker image: copies only the standalone server + traced deps.
   output: "standalone",
 
+  async redirects() {
+    return [
+      {
+        source: "/learn/is-weed-delivery-legal-virginia-dc",
+        destination: "/learn/is-weed-delivery-legal-ohio",
+        permanent: true,
+      },
+      {
+        source: "/delivery/northern-virginia",
+        destination: "/delivery/ohio",
+        permanent: true,
+      },
+      {
+        source: "/delivery/washington-dc",
+        destination: "/delivery/ohio",
+        permanent: true,
+      },
+      {
+        source: "/delivery/virginia",
+        destination: "/delivery/ohio",
+        permanent: true,
+      },
+    ];
+  },
+
   images: {
     remotePatterns: buildRemotePatterns(),
 

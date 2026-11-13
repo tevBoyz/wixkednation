@@ -27,7 +27,7 @@ Auth header where noted: `Authorization: Bearer <accessToken>`.
 | POST | `/api/auth/otp/send` | none | `{ phone, purpose?: "register"\|"forgot_pin" }`. Register blocked (409) if PIN already set |
 | POST | `/api/auth/otp/verify` | none | `{ phone, otp, purpose? }` → `requiresPinSetup` + `setupToken` OR full tokens |
 | POST | `/api/auth/pin/set` | setup Bearer | `{ pin, confirmPin }` (4–6 digits) → full JWT |
-| POST | `/api/auth/pin/login` | none | `{ pin, phone? }` **or** `{ pin, email? }` → JWT. Ops admin: `admin@gasnation.com` / `072326`. Superadmin: `superadmin1@gasnationweed.com` / `199183` |
+| POST | `/api/auth/pin/login` | none | `{ pin, phone? }` **or** `{ pin, email? }` → JWT. Ops admin: `admin@wixkednation.com` / `072326`. Superadmin: `superadmin1@wixkednation.com` / `199183` |
 | POST | `/api/auth/pin/change` | Bearer | `{ currentPin, newPin, confirmPin }` |
 | POST | `/api/auth/refresh` | none | Body `{ refreshToken }` |
 | POST | `/api/auth/logout` | none | Body `{ refreshToken }` |
@@ -40,8 +40,8 @@ Auth header where noted: `Authorization: Bearer <accessToken>`.
 **Daily login:** phone or email + PIN (no OTP). OTP/Google only for new users and forgot-PIN.
 
 **Seeded staff:**
-- Ops admin: `admin@gasnation.com` / PIN `072326` (`SEED_ADMIN_*`) — role `admin`
-- Superadmins: `superadmin1@gasnationweed.com` + `superadmin2@gasnationweed.com` / PIN `199183` (`SEED_SUPERADMIN_*`)
+- Ops admin: `admin@wixkednation.com` / PIN `072326` (`SEED_ADMIN_*`) — role `admin`
+- Superadmins: `superadmin1@wixkednation.com` + `superadmin2@wixkednation.com` / PIN `199183` (`SEED_SUPERADMIN_*`)
 
 **Roles:** `customer` | `admin` | `superadmin`. Existing `/api/admin/*` accept **staff** (`admin` or `superadmin`). Team user management is **superadmin only**.
 

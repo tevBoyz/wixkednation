@@ -51,11 +51,10 @@ export default function FirstDeliveryWhatToOrderPage() {
         <GuideBreadcrumb title={guide.navLabel} />
 
         <GuideHero
-          eyebrow={guide.eyebrow}
           title={guide.title}
           lead={
             <>
-              First time ordering with <GuideLink href="/">Gas Nation</GuideLink>?
+              First time ordering with <GuideLink href="/">Wixked Nation</GuideLink>?
               Pick a{" "}
               <GuideLink href={learnGuidePath("indica-vs-sativa-vs-hybrid")}>
                 strain type
@@ -154,7 +153,7 @@ export default function FirstDeliveryWhatToOrderPage() {
           <GuideProse>
             The $60 is only an example. Your cart shows your actual subtotal.
             Tips are optional and paid in cash. The delivery fee is only waived
-            with a free-delivery coupon from Gas Nation.
+            with a free-delivery coupon from Wixked Nation.
           </GuideProse>
           <GuideActions
             primary={{ label: "Build your order", href: "/products" }}
@@ -179,7 +178,7 @@ export default function FirstDeliveryWhatToOrderPage() {
               how delivery works
             </GuideLink>{" "}
             and who qualifies in{" "}
-            <GuideLink href={learnGuidePath("is-weed-delivery-legal-virginia-dc")}>
+            <GuideLink href={learnGuidePath("is-weed-delivery-legal-ohio")}>
               who can order
             </GuideLink>
             .

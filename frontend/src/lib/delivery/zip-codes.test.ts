@@ -7,8 +7,8 @@ import {
 
 describe("normalizeZip", () => {
   it("extracts the first 5 digits", () => {
-    expect(normalizeZip("22201")).toBe("22201");
-    expect(normalizeZip("22201-1234")).toBe("22201");
+    expect(normalizeZip("43215")).toBe("43215");
+    expect(normalizeZip("43215-1234")).toBe("43215");
     expect(normalizeZip("")).toBe(null);
     expect(normalizeZip("123")).toBe(null);
   });
@@ -16,11 +16,15 @@ describe("normalizeZip", () => {
 
 describe("isAllowedDeliveryZip", () => {
   it("accepts in-area ZIPs", () => {
-    expect(isAllowedDeliveryZip("22201")).toBe(true);
-    expect(isAllowedDeliveryZip("20001")).toBe(true);
+    expect(isAllowedDeliveryZip("43215")).toBe(true);
+    expect(isAllowedDeliveryZip("44114")).toBe(true);
+    expect(isAllowedDeliveryZip("43001")).toBe(true);
+    expect(isAllowedDeliveryZip("45999")).toBe(true);
   });
 
   it("rejects out-of-area ZIPs", () => {
     expect(isAllowedDeliveryZip("90210")).toBe(false);
+    expect(isAllowedDeliveryZip("22201")).toBe(false);
+    expect(isAllowedDeliveryZip("20001")).toBe(false);
   });
 });

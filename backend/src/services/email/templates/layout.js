@@ -1,5 +1,5 @@
-const BRAND_PRIMARY = "#148547";
-const BRAND_NAME = "GasNation";
+const BRAND_PRIMARY = "#48801F";
+const BRAND_NAME = "Wixked Nation";
 
 function escapeHtml(value) {
   return String(value || "")
@@ -11,7 +11,7 @@ function escapeHtml(value) {
 }
 
 /**
- * Shared GasNation-branded HTML email shell.
+ * Shared WixkedNation-branded HTML email shell.
  * @param {{ logoUrl?: string, title: string, preheader?: string, bodyHtml: string, cta?: { href: string, label: string } | null, footerNote?: string }} opts
  */
 function renderBrandedLayout({
@@ -20,7 +20,7 @@ function renderBrandedLayout({
   preheader = "",
   bodyHtml,
   cta = null,
-  footerNote = "21+ only. Premium cannabis delivery across Northern Virginia and Washington, DC."
+  footerNote = "21+ only. Premium cannabis delivery across Ohio."
 }) {
   const safeTitle = escapeHtml(title);
   const safePreheader = escapeHtml(preheader);
@@ -73,7 +73,7 @@ function renderBrandedLayout({
           <tr>
             <td style="padding:24px 28px 28px;font-size:12px;line-height:1.5;color:#6b7280;border-top:1px solid #e8eee9;">
               ${safeFooter}<br />
-              <a href="https://gasnationweed.com" style="color:${BRAND_PRIMARY};text-decoration:none;">gasnationweed.com</a>
+              <a href="https://wixkednation.com" style="color:${BRAND_PRIMARY};text-decoration:none;">wixkednation.com</a>
             </td>
           </tr>
         </table>

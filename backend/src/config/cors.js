@@ -1,8 +1,8 @@
 const env = require("./env");
 
 const DEPLOYED_FRONTEND_ORIGINS = new Set([
-  "https://www.gasnationweed.com",
-  "https://gasnationweed.com"
+  "https://www.wixkednation.com",
+  "https://wixkednation.com"
 ]);
 
 function normalizeOrigin(origin) {

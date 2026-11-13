@@ -243,9 +243,6 @@ export function CategoriesNav({
   if (variant === "stack") {
     return (
       <nav className={cn("space-y-1", className)} aria-label="Categories">
-        <p className="px-3 pb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-          Categories
-        </p>
         <ul className="flex flex-col gap-0.5">
           <li>
             <Link

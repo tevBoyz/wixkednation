@@ -33,7 +33,7 @@ export function BlogPostCard({ post, className }: BlogPostCardProps) {
   return (
     <article
       className={cn(
-        "min-w-0 overflow-hidden rounded-2xl border border-border bg-card/40",
+        "wn-plate min-w-0 overflow-hidden",
         className,
       )}
     >
@@ -46,7 +46,7 @@ export function BlogPostCard({ post, className }: BlogPostCardProps) {
             className="aspect-[16/10] h-auto w-full object-cover"
           />
         ) : (
-          <div className="aspect-[16/10] w-full bg-gradient-to-br from-[color-mix(in_srgb,#148547_18%,transparent)] to-muted" />
+          <div className="aspect-[16/10] w-full bg-[linear-gradient(145deg,#14301c,#070807_55%,#101412)]" />
         )}
         <div className="space-y-2 p-4 sm:p-5">
           {dateLabel ? (

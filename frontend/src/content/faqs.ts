@@ -1,3 +1,5 @@
+import { DELIVERY_CITIES } from "@/content/delivery-areas";
+
 export type FaqItem = {
   question: string;
   answer: string;
@@ -6,13 +8,12 @@ export type FaqItem = {
 export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Where do you deliver?",
-    answer:
-      "We deliver across Northern Virginia and Washington, DC. Areas we commonly serve include McLean, Reston, Vienna, Ashburn, Sterling, Leesburg, Chantilly, Herndon, Fairfax, Manassas, Springfield, Alexandria, Annandale, Woodbridge, Arlington, and DC.\n\nIf we missed your city, reach out — we probably cover it.",
+    answer: `We deliver to every incorporated city in Ohio: ${DELIVERY_CITIES.join(", ")}.`,
   },
   {
     question: "Where can I buy cannabis near me?",
     answer:
-      "Order from Gas Nation’s online menu and get same-day delivery to your door across Northern Virginia and Washington, DC (10 AM–10 PM).",
+      "Order from Wixked Nation’s online menu and get same-day delivery to your door across Ohio (10 AM–10 PM).",
   },
   {
     question: "What are your hours? Are you open now?",
@@ -21,27 +22,22 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     question: "How old do I have to be?",
-    answer: "You must be 21 or older to order from Gas Nation.",
+    answer: "You must be 21 or older to order from Wixked Nation.",
   },
   {
     question: "Do I need a medical card?",
     answer:
-      "No. Gas Nation delivery in Northern Virginia and Washington, DC is for adults 21+ with a valid government ID. A medical card is not required.",
+      "No. Wixked Nation delivery in Ohio is for adults 21+ with a valid government ID. A medical card is not required.",
   },
   {
-    question: "Do you deliver in Northern Virginia?",
+    question: "Do you deliver in Ohio?",
     answer:
-      "Yes. Same-day delivery across Arlington, Alexandria, Fairfax, Loudoun, Prince William, and the wider NoVA / DC metro. Flat $20 fee, cash on delivery, 21+ with valid ID.",
-  },
-  {
-    question: "Do you deliver in Washington, DC?",
-    answer:
-      "Yes. We deliver to Washington, DC addresses with the same hours and flat $20 fee. Cash on delivery and 21+ ID required.",
+      "Yes. Same-day delivery to every incorporated city in the state, including Columbus, Cleveland, Cincinnati, Toledo, Akron, and Dayton. Flat $20 fee, cash on delivery, 21+ with valid ID.",
   },
   {
     question: "Is there a delivery fee?",
     answer:
-      "Yes. Every order includes a flat $20 delivery fee. Free delivery only applies when you redeem a free-delivery coupon issued by Gas Nation.",
+      "Yes. Every order includes a flat $20 delivery fee. Free delivery only applies when you redeem a free-delivery coupon issued by Wixked Nation.",
   },
   {
     question: "How does delivery work?",
@@ -96,16 +92,16 @@ export const FAQ_ITEMS: FaqItem[] = [
     question:
       "I'm visiting from another city/state/country. Can I place an order?",
     answer:
-      "Yes. Visitors with a valid ID can place orders for delivery to addresses we serve in Northern Virginia and Washington, DC (including hotels), as long as they are over 21.",
+      "Yes. Visitors with a valid ID can place orders for delivery to addresses we serve in Ohio (including hotels), as long as they are over 21.",
   },
   {
     question: "Do I need a specific type of address?",
     answer:
-      "No. We deliver to homes, hotels, and temporary stays within our Northern Virginia and DC service area. If you are unsure whether we cover your spot, reach out. We probably do.",
+      "No. We deliver to homes, hotels, and temporary stays in any incorporated Ohio city we list. If you are unsure whether we cover your spot, check the city list.",
   },
   {
     question: "Is payment cash on delivery?",
     answer:
-      "Yes. Gas Nation is cash only. Pay the driver in cash when your order arrives. There is a flat $20 delivery fee on every order.",
+      "Yes. Wixked Nation is cash only. Pay the driver in cash when your order arrives. There is a flat $20 delivery fee on every order.",
   },
 ];

@@ -86,9 +86,9 @@ const BLOG_TAGS = [
 
 function defaultCopy(name) {
   return {
-    description: `Explore Gas Nation guides and posts about ${name}. Same-day cannabis delivery across Northern Virginia and Washington, DC. 21+.`,
-    seoTitle: `${name} | Gas Nation Blog`,
-    seoDescription: `Learn about ${name} with Gas Nation — cannabis delivery guides for Northern Virginia and DC. 21+ with valid ID.`
+    description: `Explore Wixked Nation guides and posts about ${name}. Same-day cannabis delivery across Northern Virginia and Washington, DC. 21+.`,
+    seoTitle: `${name} | Wixked Nation Blog`,
+    seoDescription: `Learn about ${name} with Wixked Nation — cannabis delivery guides for Northern Virginia and DC. 21+ with valid ID.`
   };
 }
 

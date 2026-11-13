@@ -1,5 +1,5 @@
-import { GasNationLoader } from "@/components/brand/gasnation-loader";
+import { WixkedNationLoader } from "@/components/brand/wixkednation-loader";
 
 export default function RootLoading() {
-  return <GasNationLoader variant="fullscreen" />;
+  return <WixkedNationLoader variant="fullscreen" />;
 }

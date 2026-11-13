@@ -48,22 +48,17 @@ export default function HowDeliveryWorksPage() {
         <GuideBreadcrumb title={guide.navLabel} />
 
         <GuideHero
-          eyebrow={guide.eyebrow}
           title={guide.title}
           lead={
             <>
               Order from our <GuideLink href="/products">online menu</GuideLink>,
               meet the driver at your door, and pay in cash. This page covers{" "}
-              <GuideLink href="/">Gas Nation</GuideLink> hours,{" "}
-              <GuideLink href={learnGuidePath("is-weed-delivery-legal-virginia-dc")}>
+              <GuideLink href="/">Wixked Nation</GuideLink> hours,{" "}
+              <GuideLink href={learnGuidePath("is-weed-delivery-legal-ohio")}>
                 ID rules
               </GuideLink>
-              , the flat $20 delivery fee, and how drop-offs work in{" "}
-              <GuideLink href="/delivery/northern-virginia">
-                Northern Virginia
-              </GuideLink>{" "}
-              and{" "}
-              <GuideLink href="/delivery/washington-dc">Washington, DC</GuideLink>.
+              , the flat $20 delivery fee, and how drop-offs work across{" "}
+              <GuideLink href="/delivery/ohio">Ohio</GuideLink>.
             </>
           }
           primary={{ label: "Shop the menu", href: "/products" }}
@@ -84,7 +79,7 @@ export default function HowDeliveryWorksPage() {
           <GuideChecklist items={DELIVERY_PREP_ITEMS} />
           <p className="mt-6 text-sm text-muted-foreground">
             Who can order, visitors, and limits are covered in{" "}
-            <GuideLink href={learnGuidePath("is-weed-delivery-legal-virginia-dc")}>
+            <GuideLink href={learnGuidePath("is-weed-delivery-legal-ohio")}>
               who can order and the rules
             </GuideLink>
             .
@@ -125,10 +120,9 @@ export default function HowDeliveryWorksPage() {
           title="Where we deliver"
           intro={
             <>
-              Same-day coverage across Northern Virginia and into Washington, DC.
-              If your city is nearby but not listed, check{" "}
-              <GuideLink href="/delivery">all delivery areas</GuideLink> or ask
-              us. We probably cover it.
+              Same-day coverage in every incorporated city in Ohio. The full
+              list is on{" "}
+              <GuideLink href="/delivery">delivery areas</GuideLink>.
             </>
           }
         >

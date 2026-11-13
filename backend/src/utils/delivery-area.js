@@ -1,9 +1,10 @@
 const deliveryZipData = require("../data/delivery-zip-codes.json");
 
 const DELIVERY_ZIP_MESSAGE =
-  "This ZIP code is outside our delivery area. We currently deliver in Northern Virginia, Washington DC, and South Maryland.";
+  "This ZIP code is outside our delivery area. We currently deliver throughout Ohio.";
 
-const ALLOWED_ZIP_CODES = new Set(deliveryZipData.zipCodes);
+const ZIP_MIN = Number(deliveryZipData.zipMin);
+const ZIP_MAX = Number(deliveryZipData.zipMax);
 
 function normalizeZip(value) {
   if (value === undefined || value === null) {
@@ -24,7 +25,12 @@ function normalizeZip(value) {
 
 function isAllowedDeliveryZip(value) {
   const zip = normalizeZip(value);
-  return Boolean(zip && ALLOWED_ZIP_CODES.has(zip));
+  if (!zip) {
+    return false;
+  }
+
+  const numeric = Number(zip);
+  return numeric >= ZIP_MIN && numeric <= ZIP_MAX;
 }
 
 function assertDeliveryZip(value, createError) {
@@ -46,7 +52,7 @@ function assertDeliveryZip(value, createError) {
     throw throwError("postalCode must be a valid 5-digit US ZIP code.", 400);
   }
 
-  if (!ALLOWED_ZIP_CODES.has(zip)) {
+  if (!isAllowedDeliveryZip(zip)) {
     throw throwError(DELIVERY_ZIP_MESSAGE, 400);
   }
 
@@ -54,7 +60,6 @@ function assertDeliveryZip(value, createError) {
 }
 
 module.exports = {
-  ALLOWED_ZIP_CODES,
   DELIVERY_ZIP_MESSAGE,
   assertDeliveryZip,
   isAllowedDeliveryZip,

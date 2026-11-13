@@ -2,10 +2,10 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 
-import { GasNationLoader } from "@/components/brand/gasnation-loader";
+import { WixkedNationLoader } from "@/components/brand/wixkednation-loader";
 import { useAuth } from "@/components/providers/auth-provider";
 
-const INTRO_KEY = "gasnation_intro_seen";
+const INTRO_KEY = "wixkednation_intro_seen";
 const INTRO_MS = 3000;
 
 function shouldPlayBrandIntro(): boolean {
@@ -84,7 +84,7 @@ export function BrandSplashGate({ children }: { children: ReactNode }) {
     <>
       {children}
       {showSplash ? (
-        <GasNationLoader variant="fullscreen" className="gn-loader-steady" />
+        <WixkedNationLoader variant="fullscreen" className="gn-loader-steady" />
       ) : null}
     </>
   );

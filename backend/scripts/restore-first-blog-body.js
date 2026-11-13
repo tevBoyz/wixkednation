@@ -94,13 +94,13 @@ const BODY_JSON = {
       { text: "cannabis delivery in Northern Virginia", marks: bold() },
       " or ",
       { text: "Washington, DC", marks: bold() },
-      "? GasNation brings premium flower, edibles, vapes, and concentrates to your door — same day, with a flat ",
+      "? Wixked Nation brings premium flower, edibles, vapes, and concentrates to your door — same day, with a flat ",
       { text: "$20 delivery", marks: bold() },
       " fee and hours from ",
       { text: "10 AM to 10 PM", marks: bold() },
       " daily. This is our first official guide to how ordering works, who we serve, and what to expect."
     ]),
-    h2("Who GasNation delivers to"),
+    h2("Who Wixked Nation delivers to"),
     p(
       "We focus on Northern Virginia and DC neighborhoods where customers want discreet, reliable delivery — including Fairfax, Arlington, Alexandria, Loudoun, Prince William, and Washington, DC. If your address is in our service area, you can browse the menu online and check out in minutes."
     ),
@@ -140,7 +140,7 @@ const BODY_JSON = {
       },
       " or jump into a category that matches your vibe."
     ]),
-    h2("What “premium” means at GasNation"),
+    h2("What “premium” means at Wixked Nation"),
     p(
       "We keep the menu curated — not endless shelves of mystery product. Expect clear strain types (Indica, Sativa, Hybrid), pack pricing you can understand before checkout, and packaging meant for discreet delivery. Whether you want a classic hybrid like Blue Dream or a heavier night-in indica, the goal is simple: quality you can count on, delivered the same day."
     ),
@@ -173,13 +173,13 @@ const BODY_JSON = {
     ),
     h2("Ready to order?"),
     pMixed([
-      "GasNation is built for Northern Virginia and DC customers who want ",
+      "Wixked Nation is built for Northern Virginia and DC customers who want ",
       { text: "same-day cannabis delivery", marks: italic() },
       " without the runaround. Browse the menu, pick your products, and we will bring it to you."
     ]),
     pMixed([
       {
-        text: "Shop the GasNation menu",
+        text: "Shop the Wixked Nation menu",
         marks: [...bold(), ...link("/products")]
       },
       " · ",

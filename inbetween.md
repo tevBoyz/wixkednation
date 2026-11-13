@@ -87,7 +87,7 @@ Deps to add in frontend: `@tiptap/react`, starter-kit, image, link, youtube (or 
 - `(store)/blog/[slug]/page.tsx` — full post:
   - `buildPageMetadata` (`seoTitle` / `seoDescription` fallbacks to title/excerpt)
   - Article JSON-LD + breadcrumbs ([`frontend/src/lib/seo/json-ld.ts`](frontend/src/lib/seo/json-ld.ts))
-  - Default author display **Gas Nation** if `authorName` null
+  - Default author display **Wixked Nation** if `authorName` null
 - [`frontend/src/app/sitemap.ts`](frontend/src/app/sitemap.ts) — add `/blog` + each published slug from public API.
 - Footer + store nav: additive **Blog** link to `/blog`.
 - Age gate / robots: no special cases required (`/blog` allowed; crawlers already bypass age gate).

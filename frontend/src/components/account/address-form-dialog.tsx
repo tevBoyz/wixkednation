@@ -248,7 +248,7 @@ export function AddressFormDialog({
               id="address-postalCode"
               inputMode="numeric"
               autoComplete="postal-code"
-              placeholder="22201"
+              placeholder="43215"
               maxLength={10}
               aria-invalid={Boolean(errors.postalCode)}
               disabled={submitting}
@@ -260,7 +260,7 @@ export function AddressFormDialog({
               </p>
             ) : (
               <p className="text-xs text-muted-foreground">
-                We deliver in Northern Virginia, Washington DC, and South Maryland.
+                We deliver to every incorporated city in Ohio.
               </p>
             )}
           </div>

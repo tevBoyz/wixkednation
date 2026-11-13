@@ -145,29 +145,18 @@ export function PromoBannerCarousel({
           <Button
             type="button"
             size="lg"
-            className="group relative h-12 min-w-[11rem] overflow-hidden border border-white/20 bg-[#7dffa8] px-9 text-base font-semibold text-[#062416] shadow-[0_12px_40px_rgba(125,255,168,0.35)] hover:bg-[#a6ffc4]"
+            className="h-11 w-full px-6 text-sm font-semibold"
             disabled={pendingId === active.id}
             onClick={() => void onAdd()}
           >
-            <span className="relative z-10">
-              {pendingId === active.id ? "Adding…" : "Add to cart"}
-            </span>
-            <span
-              aria-hidden
-              className="pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100"
-              style={{
-                animation: reduceMotion
-                  ? undefined
-                  : "promo-shimmer 2.2s ease-in-out infinite",
-              }}
-            />
+            {pendingId === active.id ? "Adding…" : "Add to cart"}
           </Button>
         }
       />
 
       {banners.length > 1 ? (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20">
-          <div className="mx-auto flex max-w-screen-2xl items-center justify-between gap-4 px-4 pb-4 sm:px-6 lg:px-8">
+        <div className="border-t border-white/10">
+          <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-6">
             <div className="pointer-events-auto flex items-center gap-2">
               {banners.map((banner, i) => (
                 <button

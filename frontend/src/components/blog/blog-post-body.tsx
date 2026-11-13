@@ -63,7 +63,7 @@ export function BlogPostBody({
     resolveCatalogAssetUrl(coverImageUrl) ||
     resolveCatalogAssetUrl(coverImagePath);
   const dateLabel = formatPublishedDate(publishedAt);
-  const author = authorName?.trim() || "Gas Nation";
+  const author = authorName?.trim() || "Wixked Nation";
   const raw = (bodyHtml ?? html)?.trim() || "";
   const clean = sanitizeBlogHtml(raw);
 

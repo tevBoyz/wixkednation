@@ -443,11 +443,11 @@ API source of truth: [`../backend-postman-collection.json`](../backend-postman-c
 - Endpoints: none (uses public catalog)
 - Key files:
   - `lib/seo/site-metadata.ts`, `app/robots.ts`, `app/sitemap.ts`, `app/icon.svg`
-  - `public/brand/gasnation-mark.svg`, `public/brand/gasnation-og.svg`
+  - `public/brand/wixkednation-mark.svg`, `public/brand/wixkednation-og.svg`
 - Your confirmation required: yes
 - Implemented: 2026-07-22
 - Confirmed: 2026-07-22
-- Notes: Favicon = mark only; OG/Twitter = full GasNation logo asset; admin/account/login noindex.
+- Notes: Favicon = mark only; OG/Twitter = full WixkedNation logo asset; admin/account/login noindex.
 
 ### Stage 53: Final test suite + production readiness
 - Status: `done`

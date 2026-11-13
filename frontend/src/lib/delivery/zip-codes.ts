@@ -2,9 +2,10 @@ import deliveryZipData from "@/data/delivery-zip-codes.json";
 import { z } from "zod";
 
 export const DELIVERY_ZIP_MESSAGE =
-  "This ZIP code is outside our delivery area. We currently deliver in Northern Virginia, Washington DC, and South Maryland.";
+  "This ZIP code is outside our delivery area. We currently deliver throughout Ohio.";
 
-export const ALLOWED_ZIP_CODES = new Set<string>(deliveryZipData.zipCodes);
+const ZIP_MIN = Number(deliveryZipData.zipMin);
+const ZIP_MAX = Number(deliveryZipData.zipMax);
 
 export function normalizeZip(value?: string | number | null): string | null {
   if (value === undefined || value === null) {
@@ -21,7 +22,12 @@ export function normalizeZip(value?: string | number | null): string | null {
 
 export function isAllowedDeliveryZip(value?: string | number | null): boolean {
   const zip = normalizeZip(value);
-  return Boolean(zip && ALLOWED_ZIP_CODES.has(zip));
+  if (!zip) {
+    return false;
+  }
+
+  const numeric = Number(zip);
+  return numeric >= ZIP_MIN && numeric <= ZIP_MAX;
 }
 
 export function zipCodeSchema(options?: { required?: boolean }) {

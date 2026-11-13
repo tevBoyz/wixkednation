@@ -98,7 +98,7 @@ async function seedUsers() {
 
   const adminName = process.env.SEED_ADMIN_NAME || "Admin User";
   const adminPhone = process.env.SEED_ADMIN_PHONE || "+251911000000";
-  const adminEmail = process.env.SEED_ADMIN_EMAIL || "admin@gasnation.com";
+  const adminEmail = process.env.SEED_ADMIN_EMAIL || "admin@wixkednation.com";
   const adminPin = process.env.SEED_ADMIN_PIN || "072326";
   const customerName = process.env.SEED_CUSTOMER_NAME || "Test Customer";
   const customerPhone = process.env.SEED_CUSTOMER_PHONE || "+251922000000";
@@ -107,11 +107,11 @@ async function seedUsers() {
   const sharedSuperadminPin =
     process.env.SEED_SUPERADMIN_PIN || "199183";
   const superadmin1Email =
-    process.env.SEED_SUPERADMIN1_EMAIL || "superadmin1@gasnationweed.com";
+    process.env.SEED_SUPERADMIN1_EMAIL || "superadmin1@wixkednation.com";
   const superadmin1Pin =
     process.env.SEED_SUPERADMIN1_PIN || sharedSuperadminPin;
   const superadmin2Email =
-    process.env.SEED_SUPERADMIN2_EMAIL || "superadmin2@gasnationweed.com";
+    process.env.SEED_SUPERADMIN2_EMAIL || "superadmin2@wixkednation.com";
   const superadmin2Pin =
     process.env.SEED_SUPERADMIN2_PIN || sharedSuperadminPin;
 

@@ -9,7 +9,7 @@ export function GuideChipLinks({ links }: { links: readonly GuideCta[] }) {
         <li key={item.label}>
           <Link
             href={item.href}
-            className="inline-flex rounded-full border border-border bg-background px-3 py-1 text-xs font-medium hover:border-primary/40 hover:text-primary"
+            className="wn-plate inline-flex px-3 py-2 text-xs font-medium hover:border-white/30"
           >
             {item.label}
           </Link>

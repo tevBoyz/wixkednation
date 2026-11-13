@@ -3,7 +3,7 @@ const path = require("path");
 
 const sharp = require("sharp");
 
-const PRIMARY = "#148547";
+const PRIMARY = "#48801F";
 const SIZE = 800;
 const assetsDir = path.join(__dirname, "..", "assets");
 const outputPath = path.join(assetsDir, "default-product.webp");

@@ -20,7 +20,15 @@ function buildProductsSearchHref(query: string): string {
   return `/products?${params.toString()}`;
 }
 
-export function ProductSearchDialog() {
+export function ProductSearchDialog({
+  triggerClassName,
+  label,
+}: {
+  /** Optional trigger styling (e.g. the floating dock). */
+  triggerClassName?: string;
+  /** Optional visible label next to the icon. */
+  label?: string;
+} = {}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -57,15 +65,27 @@ export function ProductSearchDialog() {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        aria-label="Search products"
-        onClick={() => setOpen(true)}
-      >
-        <SearchIcon className="size-4" />
-      </Button>
+      {triggerClassName ? (
+        <button
+          type="button"
+          className={triggerClassName}
+          aria-label="Search products"
+          onClick={() => setOpen(true)}
+        >
+          <SearchIcon className="size-4" aria-hidden />
+          {label ? <span>{label}</span> : null}
+        </button>
+      ) : (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Search products"
+          onClick={() => setOpen(true)}
+        >
+          <SearchIcon className="size-4" />
+        </Button>
+      )}
 
       <DialogContent className="top-[38%] gap-5 sm:max-w-xl">
         <DialogHeader className="text-center sm:text-left">

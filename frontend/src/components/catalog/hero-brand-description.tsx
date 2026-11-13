@@ -5,9 +5,12 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 const REGIONS = [
-  "North Virginia",
-  "Washington DC",
-  "South Maryland",
+  "Columbus",
+  "Cleveland",
+  "Cincinnati",
+  "Toledo",
+  "Akron",
+  "Dayton",
 ] as const;
 
 const INTERVAL_MS = 2600;
@@ -41,24 +44,29 @@ export function HeroBrandDescription({ className }: HeroBrandDescriptionProps) {
   }, [reduceMotion]);
 
   return (
-    <p
-      className={cn(
-        "max-w-2xl text-pretty text-lg font-medium leading-snug tracking-tight text-foreground/90 sm:text-xl md:text-2xl",
-        className,
-      )}
-    >
-      Premium cannabis delivered in{" "}
-      <span className="hero-region-rotator" aria-live="polite">
+    <div className={cn("flex items-center gap-4", className)}>
+      <span className="relative flex size-3 shrink-0" aria-hidden>
         <span
-          key={index}
           className={cn(
-            "hero-region-rotator-item font-bold text-primary",
-            !reduceMotion && "hero-region-rotator-animate",
+            "absolute inset-0 rounded-full bg-[#7dff3c]/50",
+            !reduceMotion && "animate-ping",
           )}
-        >
-          {REGIONS[index]}
-        </span>
+        />
+        <span className="relative size-3 rounded-full bg-[#7dff3c]" />
       </span>
-    </p>
+      <p className="min-w-0 text-foreground">
+        <span className="block font-semibold tracking-tight" aria-live="polite">
+          <span
+            key={index}
+            className={cn(
+              "inline-block text-primary",
+              !reduceMotion && "hero-region-rotator-animate",
+            )}
+          >
+            {REGIONS[index]}
+          </span>
+        </span>
+      </p>
+    </div>
   );
 }

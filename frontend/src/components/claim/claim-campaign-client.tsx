@@ -113,7 +113,7 @@ export function ClaimCampaignClient() {
     <Container as="main" className="py-14">
       <div className="mx-auto max-w-lg space-y-6">
         <header className="space-y-2">
-          <p className="text-sm font-medium text-primary">Gas Nation offer</p>
+          <p className="text-sm font-medium text-primary">Wixked Nation offer</p>
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
             {campaign.name}
           </h1>

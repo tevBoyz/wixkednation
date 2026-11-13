@@ -27,13 +27,13 @@ export async function generateMetadata({
       description:
         post.seoDescription?.trim() ||
         post.excerpt?.trim() ||
-        `Read ${post.title} on the GasNation blog.`,
+        `Read ${post.title} on the Wixked Nation blog.`,
       path: `/blog/${post.slug}`,
     });
   } catch {
     return buildPageMetadata({
       title: "Blog post",
-      description: "GasNation blog post",
+      description: "Wixked Nation blog post",
       path: `/blog/${slug}`,
     });
   }

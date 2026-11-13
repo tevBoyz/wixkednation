@@ -1,5 +1,5 @@
-const SETUP_TOKEN_KEY = "gasnation_setup_token";
-const SETUP_TOKEN_EXPIRES_KEY = "gasnation_setup_token_expires";
+const SETUP_TOKEN_KEY = "wixkednation_setup_token";
+const SETUP_TOKEN_EXPIRES_KEY = "wixkednation_setup_token_expires";
 
 /** Backend setupToken TTL is 15 minutes; clear a bit early. */
 const SETUP_TOKEN_TTL_MS = 14 * 60 * 1000;

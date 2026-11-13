@@ -9,7 +9,6 @@ export type LearnGuide = {
   title: string;
   /** Short label for breadcrumbs and cards. */
   navLabel: string;
-  eyebrow: string;
   metaTitle: string;
   metaDescription: string;
   /** One-line pitch used on the hub and sibling cards. */
@@ -19,45 +18,41 @@ export type LearnGuide = {
 export const LEARN_GUIDES: readonly LearnGuide[] = [
   {
     slug: "how-delivery-works",
-    title: "How same-day weed delivery works with Gas Nation",
-    navLabel: "How delivery works",
-    eyebrow: "Guide · Same-day delivery",
-    metaTitle: "How Same-Day Weed Delivery Works in NoVA & DC | Gas Nation",
+    title: "How a Wixked Nation run gets to your door",
+    navLabel: "How a run works",
+    metaTitle: "How a Wixked Nation Run Gets to Your Door",
     metaDescription:
-      "Order online from 10 AM to 10 PM. Flat $20 delivery, cash at the door, 21+ ID, no medical card. How Gas Nation delivery works in Northern Virginia and DC.",
+      "Order online from 10 AM to 10 PM. Flat $20 delivery, cash at the door, 21+ ID, no medical card. How Wixked Nation delivery works in Ohio.",
     summary:
       "Hours, the flat $20 fee, cash at the door, ID rules, and what happens from checkout to doorstep.",
   },
   {
     slug: "first-delivery-what-to-order",
-    title: "Your first weed delivery: what to order and how much",
-    navLabel: "What to order first",
-    eyebrow: "Guide · First order",
-    metaTitle: "First Weed Delivery? What to Order & How Much | Gas Nation",
+    title: "What to put on your first Wixked Nation order",
+    navLabel: "Your first order",
+    metaTitle: "What to Put on Your First Wixked Nation Order",
     metaDescription:
-      "New to Gas Nation? Pick indica, sativa, or hybrid based on your plans, see how much to buy, and work out your cash total with the $20 delivery fee.",
+      "New to Wixked Nation? Pick indica, sativa, or hybrid based on your plans, see how much to buy, and work out your cash total with the $20 delivery fee.",
     summary:
       "Picking by your plans for the night, how much to buy, and a sample first order with the cash total.",
   },
   {
     slug: "indica-vs-sativa-vs-hybrid",
-    title: "Indica vs sativa vs hybrid: how to choose",
-    navLabel: "Indica vs sativa vs hybrid",
-    eyebrow: "Guide · Strain types",
-    metaTitle: "Indica vs Sativa vs Hybrid: Which to Order | Gas Nation",
+    title: "Indica, sativa, or hybrid for tonight",
+    navLabel: "Indica, sativa, or hybrid",
+    metaTitle: "Indica, Sativa, or Hybrid for Tonight | Wixked Nation",
     metaDescription:
-      "What indica, sativa, and hybrid strains are usually chosen for, how to pick one for your evening, and where to find each on the Gas Nation menu.",
+      "What indica, sativa, and hybrid strains are usually chosen for, how to pick one for your evening, and where to find each on the Wixked Nation menu.",
     summary:
       "What each strain type is usually chosen for and how to match one to your evening.",
   },
   {
-    slug: "is-weed-delivery-legal-virginia-dc",
-    title: "Weed delivery in Virginia and DC: who can order and the rules",
+    slug: "is-weed-delivery-legal-ohio",
+    title: "Who can order from Wixked Nation in Ohio",
     navLabel: "Who can order",
-    eyebrow: "Guide · Ordering rules",
-    metaTitle: "Weed Delivery in Virginia & DC: Who Can Order | Gas Nation",
+    metaTitle: "Who Can Order from Wixked Nation in Ohio",
     metaDescription:
-      "Who can order Gas Nation delivery in Northern Virginia and DC: 21+ with valid ID, no medical card, visitors welcome, 8 oz per 30 days, and you must be there in person.",
+      "Who can order Wixked Nation delivery in Ohio: 21+ with valid ID, no medical card, visitors welcome, 8 oz per 30 days, and you must be there in person.",
     summary:
       "Age and ID requirements, visitors and hotels, order limits, and receiving the order in person.",
   },

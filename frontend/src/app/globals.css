@@ -48,73 +48,49 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-:root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: #148547;
-  --primary-foreground: #ffffff;
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: color-mix(in srgb, #148547 12%, white);
-  --accent-foreground: #0f5c32;
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: #148547;
-  --chart-1: #148547;
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: #148547;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: color-mix(in srgb, #148547 12%, white);
-  --sidebar-accent-foreground: #0f5c32;
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: #148547;
-}
-
+:root,
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: #1a9a52;
-  --primary-foreground: #ffffff;
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: color-mix(in srgb, #148547 28%, black);
-  --accent-foreground: #e8f6ee;
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: #1a9a52;
-  --chart-1: #1a9a52;
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: #1a9a52;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: color-mix(in srgb, #148547 28%, black);
-  --sidebar-accent-foreground: #e8f6ee;
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: #1a9a52;
+  color-scheme: dark;
+  --background: #070807;
+  --foreground: #ffffff;
+  --card: #0e110f;
+  --card-foreground: #ffffff;
+  --popover: #0e110f;
+  --popover-foreground: #ffffff;
+  --primary: #6dff4a;
+  --primary-foreground: #061006;
+  --secondary: #1a221c;
+  --secondary-foreground: #e7eee9;
+  --muted: #161c18;
+  --muted-foreground: #9aa69f;
+  --accent: #14301c;
+  --accent-foreground: #e7ffe8;
+  --destructive: #ef5b5b;
+  --border: rgb(255 255 255 / 12%);
+  --input: rgb(255 255 255 / 16%);
+  --ring: #6dff4a;
+  --chart-1: #6dff4a;
+  --chart-2: #8ea097;
+  --chart-3: #5e6d64;
+  --chart-4: #3d4a43;
+  --chart-5: #24302a;
+  --radius: 0.625rem;
+  --sidebar: #0c100e;
+  --sidebar-foreground: #e7eef3;
+  --sidebar-primary: #6dff4a;
+  --sidebar-primary-foreground: #061006;
+  --sidebar-accent: #14301c;
+  --sidebar-accent-foreground: #e7ffe8;
+  --sidebar-border: rgb(255 255 255 / 12%);
+  --sidebar-ring: #6dff4a;
+  /* Green-only hues: lime -> neon -> mid green. No white stops. */
+  --metal-green: linear-gradient(
+    180deg,
+    #c8ff3d 0%,
+    #7dff3c 45%,
+    #4fe02a 100%
+  );
+  --wn-green-line: linear-gradient(90deg, #4fe02a, #7dff3c 50%, #c8ff3d);
 }
 
 @layer base {
@@ -153,6 +129,55 @@
   }
   small {
     @apply text-sm text-muted-foreground;
+  }
+
+  /* White and muted type stay solid. Only brand green is a green-hue gradient. */
+  :where(.text-primary):not(svg):not(button):not([data-slot="button"]) {
+    background-image: var(--metal-green);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  :where(.text-white, .text-black, .text-primary-foreground, .text-destructive) {
+    background-image: none;
+    -webkit-text-fill-color: currentColor;
+  }
+
+  :where(input, textarea, select) {
+    background-image: none;
+    -webkit-text-fill-color: currentColor;
+    filter: none;
+  }
+
+  :where(button, [data-slot="button"]) {
+    -webkit-text-fill-color: currentColor;
+    filter: none;
+  }
+
+  svg {
+    background-image: none;
+    -webkit-text-fill-color: currentColor;
+    filter: none;
+  }
+
+  svg.text-primary,
+  .text-primary > svg {
+    color: var(--primary);
+  }
+
+  svg.text-muted-foreground,
+  .text-muted-foreground > svg {
+    color: var(--muted-foreground);
+  }
+
+  svg.text-destructive,
+  .text-destructive > svg {
+    color: var(--destructive);
+  }
+
+  :where(h1, h2, h3, h4, h5, h6, p, li, a) svg:not(.text-primary):not(.text-destructive):not(.text-muted-foreground) {
+    color: var(--foreground);
   }
 }
 
@@ -246,6 +271,194 @@
   animation: hero-region-rotate-in 0.45s ease-out both;
 }
 
+/* Homepage delivery run: van arrives, drops the order, leaves. */
+.delivery-run {
+  --delivery-run-duration: 11s;
+  --truck-w: clamp(3.875rem, 16vw, 16rem);
+  --house-w: clamp(8.625rem, 27vw, 20rem);
+  --house-gap: clamp(0.65rem, 2vw, 2.25rem);
+  --lane-end: calc(var(--house-w) + var(--house-gap) + max(0.75rem, 3.5vw));
+  --ground: 16%;
+}
+
+.delivery-run-lane {
+  right: var(--lane-end);
+  z-index: 20;
+}
+
+.delivery-run-house {
+  width: var(--house-w);
+  right: max(0.75rem, 3.5vw);
+}
+
+.delivery-run-van {
+  width: var(--truck-w);
+  animation: delivery-run-van var(--delivery-run-duration) linear infinite;
+}
+
+.delivery-run-wheel {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: delivery-run-wheel var(--delivery-run-duration) linear infinite;
+}
+
+.delivery-run-road {
+  background-image: linear-gradient(90deg, #7dff3c 0 14px, transparent 14px 32px);
+  background-size: 32px 2px;
+  animation: delivery-run-road var(--delivery-run-duration) linear infinite;
+}
+
+.delivery-run-cargo {
+  animation: delivery-run-cargo var(--delivery-run-duration) linear infinite;
+}
+
+.delivery-run-drop {
+  animation: delivery-run-drop var(--delivery-run-duration) cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.delivery-run-porch {
+  animation: delivery-run-porch var(--delivery-run-duration) ease-in-out infinite;
+}
+
+.delivery-run-beam {
+  animation: delivery-run-beam var(--delivery-run-duration) ease-in-out infinite;
+}
+
+@keyframes delivery-run-van {
+  0% {
+    left: calc(var(--truck-w) * -1.2);
+    animation-timing-function: cubic-bezier(0.45, 0, 0.2, 1);
+  }
+  30% {
+    left: calc(100% - var(--truck-w));
+    animation-timing-function: linear;
+  }
+  72% {
+    left: calc(100% - var(--truck-w));
+    animation-timing-function: linear;
+  }
+  100% {
+    left: calc(100% + var(--lane-end) + var(--truck-w));
+  }
+}
+
+@keyframes delivery-run-wheel {
+  0% {
+    rotate: 0deg;
+  }
+  30% {
+    rotate: 720deg;
+  }
+  72% {
+    rotate: 720deg;
+  }
+  100% {
+    rotate: 1440deg;
+  }
+}
+
+@keyframes delivery-run-road {
+  0% {
+    background-position-x: 0;
+  }
+  30% {
+    background-position-x: -280px;
+  }
+  72% {
+    background-position-x: -280px;
+  }
+  100% {
+    background-position-x: -620px;
+  }
+}
+
+@keyframes delivery-run-cargo {
+  0%,
+  32% {
+    opacity: 1;
+  }
+  40%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes delivery-run-drop {
+  0%,
+  36% {
+    opacity: 0;
+    transform: translateY(-35%) scale(0.82);
+  }
+  48% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  78% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  90%,
+  100% {
+    opacity: 0;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes delivery-run-porch {
+  0%,
+  32% {
+    opacity: 0.28;
+  }
+  46%,
+  74% {
+    opacity: 1;
+  }
+  88%,
+  100% {
+    opacity: 0.28;
+  }
+}
+
+@keyframes delivery-run-beam {
+  0%,
+  26% {
+    opacity: 0.85;
+  }
+  34%,
+  72% {
+    opacity: 0.15;
+  }
+  82%,
+  100% {
+    opacity: 0.85;
+  }
+}
+
+.delivery-run-still .delivery-run-van {
+  animation: none;
+  left: calc(100% - var(--truck-w));
+}
+
+.delivery-run-still .delivery-run-wheel,
+.delivery-run-still .delivery-run-road,
+.delivery-run-still .delivery-run-cargo,
+.delivery-run-still .delivery-run-drop,
+.delivery-run-still .delivery-run-porch,
+.delivery-run-still .delivery-run-beam {
+  animation: none;
+}
+
+.delivery-run-still .delivery-run-cargo,
+.delivery-run-still .delivery-run-beam {
+  opacity: 0;
+}
+
+.delivery-run-still .delivery-run-drop,
+.delivery-run-still .delivery-run-porch {
+  opacity: 1;
+  transform: none;
+}
+
 /* FAQ delivery-radius map background */
 @keyframes faq-map-orbit {
   from {
@@ -321,7 +534,7 @@
   }
 }
 
-/* GasNation brand mark + loader */
+/* WixkedNation brand mark + loader */
 @keyframes gn-core-pulse {
   0%,
   100% {
@@ -895,6 +1108,109 @@
   animation: promo-ring-spin 28s linear infinite;
 }
 
+/* Chrome chamber: gradient neon and metal plates, not a flat green fill. */
+.wn-neon-fill {
+  background-image: linear-gradient(135deg, #c8ff3d 0%, #7dff3c 48%, #4fe02a 100%);
+  color: #061006;
+  -webkit-text-fill-color: #061006;
+  box-shadow: 0 0 24px rgb(110 255 60 / 20%);
+}
+
+.wn-neon-fill:hover {
+  filter: brightness(1.06);
+}
+
+.wn-sheen {
+  background-image: linear-gradient(100deg, #c8ff3d 0%, #7dff3c 50%, #4fe02a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.wn-plate {
+  background-color: #0e110f;
+  border: 1px solid rgb(255 255 255 / 11%);
+}
+
+@layer components {
+  .wn-stage {
+    position: relative;
+    overflow: hidden;
+    background-color: #0b0e0c;
+    border: 1px solid rgb(255 255 255 / 11%);
+  }
+}
+
+.wn-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background-image: linear-gradient(180deg, #c8ff3d, #7dff3c 50%, #4fe02a);
+}
+
+/* Thin green rule (green hues only). */
+.wn-rule {
+  height: 2px;
+  background-image: var(--wn-green-line);
+}
+
+/* Dotted leader between a label and a value, menu-board style. */
+.wn-leader {
+  flex: 1 1 auto;
+  min-width: 1.5rem;
+  align-self: end;
+  margin-bottom: 0.45em;
+  border-bottom: 1px dotted rgb(255 255 255 / 22%);
+}
+
+/* Ticket edge: perforated divider. */
+.wn-perf {
+  background-image: radial-gradient(circle, rgb(255 255 255 / 22%) 1px, transparent 1.5px);
+  background-size: 8px 2px;
+  background-repeat: repeat-x;
+  height: 2px;
+}
+
+/* Floating dock glass. */
+.wn-dock {
+  background-color: rgb(14 17 15 / 88%);
+  border: 1px solid rgb(255 255 255 / 12%);
+  box-shadow: 0 18px 50px rgb(0 0 0 / 55%);
+  backdrop-filter: blur(16px);
+}
+
+.wn-page-head {
+  position: relative;
+  max-width: none;
+  padding-top: 2.25rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+}
+
+.wn-page-head::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3.5rem;
+  height: 3px;
+  border-radius: 2px;
+  background-image: var(--wn-green-line);
+}
+
+.wn-page-head h1 {
+  font-size: clamp(2.4rem, 5.5vw, 4.25rem);
+  line-height: 1.02;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  max-width: 20ch;
+}
+
+.wn-page-head p {
+  max-width: 44rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .gn-mark-core,
   .gn-mark-pulse,
@@ -913,6 +1229,13 @@
   .animate-hero-deal-2,
   .animate-order-banner-marquee,
   .hero-region-rotator-animate,
+  .delivery-run-van,
+  .delivery-run-wheel,
+  .delivery-run-road,
+  .delivery-run-cargo,
+  .delivery-run-drop,
+  .delivery-run-porch,
+  .delivery-run-beam,
   .faq-map-orbit-spin,
   .faq-map-radius-pulse,
   .faq-map-radius-pulse-delay,
@@ -972,4 +1295,162 @@
   height: auto;
   max-width: 100%;
   width: 100%;
+}
+
+/* ---------- Dispatch dial loader (.wn-ld-*) ---------- */
+.wn-ld-tick,
+.wn-ld-tick-major {
+  stroke-linecap: round;
+  animation: wn-ld-tick 2.4s linear infinite;
+}
+
+.wn-ld-tick {
+  stroke: rgb(255 255 255 / 18%);
+  stroke-width: 1;
+}
+
+.wn-ld-tick-major {
+  stroke: rgb(255 255 255 / 38%);
+  stroke-width: 1.6;
+}
+
+/* A tick lights green as the sweep passes, then fades back. */
+@keyframes wn-ld-tick {
+  0% {
+    stroke: #7dff3c;
+  }
+  18% {
+    stroke: rgb(255 255 255 / 22%);
+  }
+  100% {
+    stroke: rgb(255 255 255 / 22%);
+  }
+}
+
+.wn-ld-orbit {
+  fill: none;
+  stroke: rgb(255 255 255 / 9%);
+  stroke-width: 1;
+  stroke-dasharray: 2 5;
+}
+
+/* Green-only radar wedge, fading to transparent. */
+.wn-ld-sweep {
+  background: conic-gradient(
+    from 0deg,
+    rgb(125 255 60 / 0%) 0deg,
+    rgb(125 255 60 / 0%) 290deg,
+    rgb(79 224 42 / 14%) 330deg,
+    rgb(200 255 61 / 32%) 360deg
+  );
+  mask: radial-gradient(circle, transparent 54%, #000 55%);
+  -webkit-mask: radial-gradient(circle, transparent 54%, #000 55%);
+  animation: wn-ld-spin 2.4s linear infinite;
+}
+
+.wn-ld-driver {
+  animation: wn-ld-spin 4.8s linear infinite reverse;
+}
+
+.wn-ld-driver-dot {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-left: -0.275rem;
+  margin-top: -0.275rem;
+  border-radius: 9999px;
+  background: #c8ff3d;
+  box-shadow: 0 0 14px rgb(125 255 60 / 70%);
+}
+
+@keyframes wn-ld-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.wn-ld-logo {
+  animation: wn-ld-breathe 2.4s ease-in-out infinite;
+}
+
+@keyframes wn-ld-breathe {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 10px rgb(110 255 60 / 22%));
+  }
+  50% {
+    filter: drop-shadow(0 0 22px rgb(110 255 60 / 42%));
+  }
+}
+
+/* Split-flap reel: 7 rows (last repeats the first), 6 stops per loop. */
+.wn-ld-flap-reel {
+  animation: wn-ld-flap 3s cubic-bezier(0.7, 0, 0.3, 1) infinite;
+}
+
+@keyframes wn-ld-flap {
+  0%,
+  12% {
+    transform: translateY(0);
+  }
+  16.67%,
+  28.67% {
+    transform: translateY(-14.2857%);
+  }
+  33.33%,
+  45.33% {
+    transform: translateY(-28.5714%);
+  }
+  50%,
+  62% {
+    transform: translateY(-42.8571%);
+  }
+  66.67%,
+  78.67% {
+    transform: translateY(-57.1429%);
+  }
+  83.33%,
+  95.33% {
+    transform: translateY(-71.4286%);
+  }
+  100% {
+    transform: translateY(-85.7143%);
+  }
+}
+
+/* The hinge line across the middle of the flap. */
+.wn-ld-flap-split {
+  position: absolute;
+  inset: 50% 0 auto;
+  height: 1px;
+  background: rgb(0 0 0 / 70%);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 6%);
+  pointer-events: none;
+}
+
+.wn-ld-flap::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgb(0 0 0 / 45%),
+    transparent 30%,
+    transparent 70%,
+    rgb(0 0 0 / 45%)
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wn-ld-tick,
+  .wn-ld-tick-major,
+  .wn-ld-sweep,
+  .wn-ld-driver,
+  .wn-ld-logo,
+  .wn-ld-flap-reel {
+    animation: none;
+  }
 }

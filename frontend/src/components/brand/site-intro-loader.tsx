@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 
-import { GasNationLoader } from "@/components/brand/gasnation-loader";
+import { WixkedNationLoader } from "@/components/brand/wixkednation-loader";
 
-const INTRO_KEY = "gasnation_intro_seen";
+const INTRO_KEY = "wixkednation_intro_seen";
 const INTRO_MS = 3000;
 
 function shouldPlayIntro(): boolean {
@@ -65,5 +65,5 @@ export function SiteIntroLoader() {
     return null;
   }
 
-  return <GasNationLoader />;
+  return <WixkedNationLoader />;
 }

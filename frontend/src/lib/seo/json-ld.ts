@@ -19,7 +19,7 @@ export function buildOrganizationJsonLd() {
     name: SITE_NAME,
     alternateName: [...SITE_ALTERNATE_NAMES],
     url: absoluteUrl("/"),
-    logo: absoluteUrl("/brand/gasnation-mark-v3.png"),
+    logo: absoluteUrl("/brand/wixkednation-mark-v3.png"),
     description: SITE_DESCRIPTION,
     areaServed: DELIVERY_CITIES.map((name) => ({
       "@type": "City",
@@ -59,7 +59,7 @@ export function buildLocalBusinessJsonLd() {
     name: SITE_NAME,
     alternateName: [...SITE_ALTERNATE_NAMES],
     url: absoluteUrl("/"),
-    image: absoluteUrl("/brand/gasnation-og.png"),
+    image: absoluteUrl("/brand/wixkednation-og.png"),
     description: SITE_DESCRIPTION,
     priceRange: "$$",
     openingHoursSpecification: {
@@ -77,8 +77,7 @@ export function buildLocalBusinessJsonLd() {
       closes: "22:00",
     },
     areaServed: [
-      { "@type": "AdministrativeArea", name: "Northern Virginia" },
-      { "@type": "City", name: "Washington, DC" },
+      { "@type": "State", name: "Ohio" },
       ...DELIVERY_CITIES.map((name) => ({
         "@type": "City" as const,
         name,
@@ -144,7 +143,7 @@ export function buildArticleJsonLd(input: {
     url: absoluteUrl(`/blog/${input.slug}`),
     image: input.imageUrl
       ? [input.imageUrl]
-      : [absoluteUrl("/brand/gasnation-og.png")],
+      : [absoluteUrl("/brand/wixkednation-og.png")],
     datePublished: input.publishedAt || undefined,
     dateModified: input.modifiedAt || input.publishedAt || undefined,
     author: {
@@ -156,7 +155,7 @@ export function buildArticleJsonLd(input: {
       name: SITE_NAME,
       logo: {
         "@type": "ImageObject",
-        url: absoluteUrl("/brand/gasnation-mark-v3.png"),
+        url: absoluteUrl("/brand/wixkednation-mark-v3.png"),
       },
     },
     mainEntityOfPage: {
@@ -238,7 +237,7 @@ export function buildProductJsonLd(input: {
     name: input.name,
     description: input.description,
     url: absoluteUrl(`/products/${input.slug}`),
-    image: input.imageUrl ? [input.imageUrl] : [absoluteUrl("/brand/gasnation-og.png")],
+    image: input.imageUrl ? [input.imageUrl] : [absoluteUrl("/brand/wixkednation-og.png")],
     brand: {
       "@type": "Brand",
       name: SITE_NAME,

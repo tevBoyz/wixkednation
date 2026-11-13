@@ -13,9 +13,9 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   return buildPageMetadata({
-    title: "Claim your Gas Nation coupon",
+    title: "Claim your Wixked Nation coupon",
     description:
-      "Enter your email to receive a Gas Nation coupon code for same-day cannabis delivery in Northern Virginia and DC.",
+      "Enter your email to receive a Wixked Nation coupon code for same-day cannabis delivery in Ohio.",
     path: `/claim/${slug}`,
   });
 }

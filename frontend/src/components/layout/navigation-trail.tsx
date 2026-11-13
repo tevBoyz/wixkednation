@@ -3,8 +3,8 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
-const CURRENT_KEY = "gasnation_nav_current";
-const PREVIOUS_KEY = "gasnation_nav_previous";
+const CURRENT_KEY = "wixkednation_nav_current";
+const PREVIOUS_KEY = "wixkednation_nav_previous";
 
 export function getPreviousAppPath(): string | null {
   if (typeof window === "undefined") {

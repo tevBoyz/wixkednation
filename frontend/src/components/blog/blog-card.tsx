@@ -38,7 +38,7 @@ export function BlogCard({ post, className }: BlogCardProps) {
     <Link
       href={`/blog/${post.slug}`}
       className={cn(
-        "group flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border bg-background transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "group wn-plate flex min-w-0 flex-col overflow-hidden transition-colors hover:border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         className,
       )}
     >

@@ -4,19 +4,15 @@ import Link from "next/link";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { JsonLd } from "@/components/seo/json-ld";
-import {
-  DELIVERY_CITIES,
-  DELIVERY_COUNTIES,
-  DELIVERY_NEIGHBORHOODS,
-} from "@/content/delivery-areas";
+import { DELIVERY_CITIES, DELIVERY_COUNTIES } from "@/content/delivery-areas";
 import { locationHrefByName, PRODUCT_SEO_LINKS } from "@/content/seo-locations";
 import { buildBreadcrumbJsonLd } from "@/lib/seo/json-ld";
 import { buildPageMetadata } from "@/lib/seo/site-metadata";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Weed Delivery Areas | Northern Virginia & DC | Gas Nation",
+  title: "Cities We Cover in Ohio | Wixked Nation",
   description:
-    "See where Gas Nation delivers same-day in Northern Virginia and Washington, DC — Arlington, Alexandria, Fairfax, Reston, McLean, Tysons, and more. Flat $20. 10 AM–10 PM. 21+.",
+    "See every incorporated Ohio city Wixked Nation delivers to, including Columbus, Cleveland, Cincinnati, Toledo, Akron, and Dayton. Flat $20. 10 AM–10 PM. 21+.",
   path: "/delivery",
 });
 
@@ -30,14 +26,13 @@ export default function DeliveryPage() {
         ])}
       />
       <Container className="min-w-0 py-10 sm:py-14">
-        <header className="max-w-3xl">
-          <p className="text-sm font-medium text-primary">Local delivery</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-            Same-day weed delivery in Northern Virginia and DC
+        <header className="wn-page-head">
+          <h1 className="relative z-[1] text-4xl sm:text-5xl">
+            Cities we cover in Ohio
           </h1>
           <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Gas Nation delivers same-day across Northern Virginia and Washington,
-            DC. Order flower, edibles, vapes, and concentrates online — flat $20
+            Wixked Nation delivers same-day to every incorporated city in Ohio.
+            Order flower, edibles, vapes, and concentrates online — flat $20
             fee, 10 AM–10 PM, cash on delivery, 21+ with valid ID. No medical
             card needed.
           </p>
@@ -55,36 +50,41 @@ export default function DeliveryPage() {
           </div>
           <p className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm">
             <Link
-              href="/delivery/virginia"
+              href="/delivery/ohio"
               className="font-medium text-primary underline-offset-4 hover:underline"
             >
-              Weed delivery Virginia
+              Weed delivery in Ohio
             </Link>
             <Link
-              href="/delivery/northern-virginia"
+              href="/delivery/columbus"
               className="font-medium text-primary underline-offset-4 hover:underline"
             >
-              North Virginia delivery
+              Columbus delivery
             </Link>
             <Link
-              href="/delivery/washington-dc"
+              href="/delivery/cleveland"
               className="font-medium text-primary underline-offset-4 hover:underline"
             >
-              DC weed delivery
+              Cleveland delivery
+            </Link>
+            <Link
+              href="/delivery/cincinnati"
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Cincinnati delivery
             </Link>
           </p>
         </header>
 
-        <section className="mt-12 max-w-3xl" aria-labelledby="cities-heading">
+        <section className="mt-12" aria-labelledby="cities-heading">
           <h2 id="cities-heading" className="text-xl font-semibold tracking-tight">
             Cities we deliver to
           </h2>
           <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-            Same-day coverage across Northern Virginia hubs like McLean, Reston,
-            Ashburn, Fairfax, Arlington, Alexandria, Vienna, and Washington, DC.
-            If your city is nearby, ask — we likely cover it.
+            Every incorporated city in Ohio, from Akron and Athens through
+            Columbus, Cleveland, Cincinnati, Toledo, and Zanesville.
           </p>
-          <ul className="mt-6 grid gap-2 sm:grid-cols-2 md:grid-cols-3">
+          <ul className="mt-6 grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {DELIVERY_CITIES.map((city) => {
               const href = locationHrefByName(city);
               return (
@@ -113,7 +113,7 @@ export default function DeliveryPage() {
             id="counties-heading"
             className="text-xl font-semibold tracking-tight"
           >
-            Counties and metro areas
+            Ohio counties
           </h2>
           <ul className="mt-4 grid gap-2 sm:grid-cols-2">
             {DELIVERY_COUNTIES.map((county) => (
@@ -121,44 +121,6 @@ export default function DeliveryPage() {
                 {county}
               </li>
             ))}
-          </ul>
-        </section>
-
-        <section
-          className="mt-12 max-w-3xl"
-          aria-labelledby="neighborhoods-heading"
-        >
-          <h2
-            id="neighborhoods-heading"
-            className="text-xl font-semibold tracking-tight"
-          >
-            Neighborhoods and landmarks nearby
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Serving areas around Tysons Corner, Mosaic District, Old Town
-            Alexandria, Ballston, Rosslyn, Clarendon, Reston Town Center, and
-            more.
-          </p>
-          <ul className="mt-4 flex flex-wrap gap-2">
-            {DELIVERY_NEIGHBORHOODS.map((place) => {
-              const href = locationHrefByName(place);
-              return (
-                <li key={place}>
-                  {href ? (
-                    <Link
-                      href={href}
-                      className="inline-flex rounded-full border border-border px-3 py-1 text-xs text-muted-foreground hover:border-primary/40 hover:text-primary"
-                    >
-                      {place}
-                    </Link>
-                  ) : (
-                    <span className="inline-flex rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
-                      {place}
-                    </span>
-                  )}
-                </li>
-              );
-            })}
           </ul>
         </section>
 
@@ -176,7 +138,7 @@ export default function DeliveryPage() {
               <li key={item.label}>
                 <Link
                   href={item.href}
-                  className="inline-flex rounded-full border border-border bg-background px-3 py-1 text-xs font-medium hover:border-primary/40 hover:text-primary"
+                  className="wn-plate inline-flex px-3 py-2 text-xs font-medium hover:border-white/30"
                 >
                   {item.label}
                 </Link>
@@ -191,7 +153,7 @@ export default function DeliveryPage() {
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Browse the menu, place your order, and get discreet weed delivery in
-            north Virginia and DC today.
+            Ohio today.
           </p>
           <Button
             className="mt-4"

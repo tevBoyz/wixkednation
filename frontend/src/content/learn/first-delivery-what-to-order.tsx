@@ -102,7 +102,7 @@ export const FIRST_ORDER_FAQS: readonly FaqItem[] = [
   {
     question: "Is the first delivery free?",
     answer:
-      "No. Every order includes a flat $20 delivery fee. Free delivery applies only when you redeem a free-delivery coupon issued by Gas Nation.",
+      "No. Every order includes a flat $20 delivery fee. Free delivery applies only when you redeem a free-delivery coupon issued by Wixked Nation.",
   },
   {
     question: "What should I order if I have never tried cannabis?",
@@ -112,7 +112,7 @@ export const FIRST_ORDER_FAQS: readonly FaqItem[] = [
   {
     question: "How do I pay?",
     answer:
-      "Gas Nation is cash only. Pay the driver when your order arrives. Tips are cash too and always appreciated.",
+      "Wixked Nation is cash only. Pay the driver when your order arrives. Tips are cash too and always appreciated.",
   },
   {
     question: "What if something is wrong with my order?",

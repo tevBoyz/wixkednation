@@ -77,7 +77,7 @@ function downloadLeadsCsv(leads: AdminLead[]) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = `gas-nation-leads-${format(new Date(), "yyyy-MM-dd")}.csv`;
+  anchor.download = `wixked-nation-leads-${format(new Date(), "yyyy-MM-dd")}.csv`;
   anchor.click();
   URL.revokeObjectURL(url);
 }

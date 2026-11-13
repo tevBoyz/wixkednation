@@ -10,7 +10,7 @@ import {
 import { cn } from "@/lib/utils";
 
 export const navMenuTriggerClassName =
-  "inline-flex h-auto items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-foreground/80 transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-popup-open:bg-muted data-popup-open:text-foreground";
+  "inline-flex h-auto items-center gap-1 px-3 py-2 text-[0.7rem] font-medium tracking-[0.18em] text-foreground/80 uppercase transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-popup-open:text-primary";
 
 type NavHoverMenuProps = {
   label: ReactNode;

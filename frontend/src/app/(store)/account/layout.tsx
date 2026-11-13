@@ -6,7 +6,10 @@ import { AuthGuard } from "@/components/guards/auth-guard";
 import { Container } from "@/components/layout/container";
 import { NO_INDEX_METADATA } from "@/lib/seo/site-metadata";
 
-export const metadata: Metadata = NO_INDEX_METADATA;
+export const metadata: Metadata = {
+  ...NO_INDEX_METADATA,
+  title: "Your account",
+};
 
 function GuardFallback() {
   return (

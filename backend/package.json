@@ -18,6 +18,8 @@
     "seed:test-products:list": "node scripts/manage-test-products.js list",
     "seed:test-products:clean": "node scripts/manage-test-products.js clean",
     "seed:test-products:restore": "node scripts/manage-test-products.js restore",
+    "seed:temp-catalog": "node scripts/seed-temp-catalog.js",
+    "seed:temp-catalog:clean": "node scripts/seed-temp-catalog.js clean",
     "seed:blog-tags": "node scripts/seed-blog-tags.js",
     "postman:generate": "node scripts/generate-postman-collection.js",
     "assets:default-product": "node scripts/generate-default-product-image.js",

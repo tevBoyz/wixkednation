@@ -92,7 +92,7 @@
     },
     {
       "key": "adminEmail",
-      "value": "admin@gasnation.com"
+      "value": "admin@wixkednation.com"
     },
     {
       "key": "adminPin",
@@ -100,7 +100,7 @@
     },
     {
       "key": "superadminEmail",
-      "value": "superadmin1@gasnationweed.com"
+      "value": "superadmin1@wixkednation.com"
     },
     {
       "key": "superadminPin",
@@ -411,7 +411,7 @@
                 "value": "application/json"
               }
             ],
-            "description": "Status: implemented\nAuth: none\nBody: { pin, phone? } OR { pin, email? } (exactly one identifier).\nOps admin seed: admin@gasnation.com / 072326.\nSuperadmin seed: superadmin1@gasnationweed.com / 199183.\nNo OTP required.",
+            "description": "Status: implemented\nAuth: none\nBody: { pin, phone? } OR { pin, email? } (exactly one identifier).\nOps admin seed: admin@wixkednation.com / 072326.\nSuperadmin seed: superadmin1@wixkednation.com / 199183.\nNo OTP required.",
             "url": {
               "raw": "{{baseUrl}}/api/auth/pin/login",
               "host": [

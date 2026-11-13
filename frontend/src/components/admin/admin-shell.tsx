@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 import { AdminSidebarNav } from "@/components/admin/admin-sidebar-nav";
 import { adminTitleFromPath } from "@/components/admin/admin-nav";
-import { GasNationLogo } from "@/components/brand/gasnation-logo";
+import { WixkedNationLogo } from "@/components/brand/wixkednation-logo";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -93,7 +93,7 @@ export function AdminSidebar() {
   return (
     <aside className="hidden h-dvh w-60 shrink-0 flex-col border-r border-border bg-muted/20 lg:flex">
       <div className="shrink-0 border-b border-border px-4 py-4">
-        <GasNationLogo asLink size="sm" />
+        <WixkedNationLogo asLink size="sm" />
         <p className="mt-2 text-xs font-medium text-muted-foreground">
           Admin console
         </p>

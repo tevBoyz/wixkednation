@@ -1,5 +1,5 @@
 /**
- * Phone helpers for GasNation.
+ * Phone helpers for WixkedNation.
  *
  * Default customer/admin format: US E.164 (+1XXXXXXXXXX).
  * Ethiopian (+251…) remains valid for login/PIN access so existing test

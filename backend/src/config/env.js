@@ -108,19 +108,19 @@ const env = {
     smtpPass: (process.env.SMTP_PASS || "").replace(/\s+/g, ""),
     from:
       process.env.EMAIL_FROM ||
-      "GasNation <noreply@gasnationweed.com>",
+      "Wixked Nation <noreply@wixkednation.com>",
     logoUrl: process.env.EMAIL_LOGO_URL || "",
     // Optional override for links in emails (defaults to FRONTEND_URL, never localhost)
     appUrl: process.env.EMAIL_APP_URL || "",
     adminOrderNotificationEmails: (
       process.env.ADMIN_ORDER_NOTIFICATION_EMAILS ||
-      "orders@gasnationweed.com"
+      "orders@wixkednation.com"
     )
       .split(",")
       .map((entry) => entry.trim())
       .filter(Boolean),
     systemAlertEmails: (
-      process.env.SYSTEM_ALERT_EMAILS || "info@gasnationweed.com"
+      process.env.SYSTEM_ALERT_EMAILS || "info@wixkednation.com"
     )
       .split(",")
       .map((entry) => entry.trim())

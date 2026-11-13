@@ -11,9 +11,9 @@ import { getErrorMessage } from "@/lib/api/errors";
 import { buildPageMetadata } from "@/lib/seo/site-metadata";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Cannabis Menu | Flower, Edibles, Vapes & Concentrates Delivery",
+  title: "Full Menu | Wixked Nation",
   description:
-    "Browse GasNation’s online cannabis menu: buy flower online, indica and sativa, edibles, THC gummies, vape cartridges, disposable vapes, live resin, and rosin. Same-day delivery in Northern Virginia and DC.",
+    "Browse Wixked Nation’s online cannabis menu: buy flower online, indica and sativa, edibles, THC gummies, vape cartridges, disposable vapes, live resin, and rosin. Same-day delivery across Ohio.",
   path: "/products",
 });
 
@@ -57,9 +57,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
   return (
     <Container as="main" className="min-w-0 py-10">
-      <header className="max-w-2xl min-w-0">
-        <h1>Products</h1>
-        <p className="mt-2 text-muted-foreground">
+      <header className="wn-page-head">
+        <h1 className="relative z-[1] text-4xl sm:text-5xl">Full menu</h1>
+        <p className="relative z-[1] mt-3 text-muted-foreground">
           Browse the catalog. Filter by category or search - hidden products are
           not listed.
         </p>

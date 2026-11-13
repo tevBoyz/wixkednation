@@ -1,85 +1,121 @@
 "use client";
 
-import type { CSSProperties } from "react";
-
 import { useOrderContactPhones } from "@/components/providers/store-config-provider";
 import { phoneTelHref } from "@/lib/phone";
+import { cn } from "@/lib/utils";
 
-/** Enough copies so the strip always fills wide viewports with no gap. */
-const MARQUEE_COPIES = 6;
+const OPEN_HOURS_LABEL = "10:00 AM – 10:00 PM";
 
-const OPEN_HOURS_LABEL = "Open from 10:00 AM to 10:00 PM";
+type OrderPhone = { id: string; phone: string };
 
-function BannerMessage({ phones }: { phones: { id: string; phone: string }[] }) {
+function PhoneLinks({
+  phones,
+  className,
+  separator = " / ",
+}: {
+  phones: OrderPhone[];
+  className?: string;
+  separator?: string;
+}) {
   return (
     <>
-      {phones.length > 0 ? (
-        <>
-          Call or Text{" "}
-          {phones.map((entry, index) => (
-            <span key={entry.id} className="whitespace-nowrap">
-              {index > 0 ? <span className="text-white/80"> · </span> : null}
-              <a
-                href={phoneTelHref(entry.phone)}
-                className="font-bold text-white underline decoration-white/60 underline-offset-2 transition-colors hover:decoration-white"
-              >
-                {entry.phone}
-              </a>
+      {phones.map((entry, index) => (
+        <span key={entry.id} className="whitespace-nowrap">
+          {index > 0 ? (
+            <span className="text-muted-foreground" aria-hidden>
+              {separator}
             </span>
-          ))}{" "}
-          for orders
-          <span className="mx-3 inline-block text-white/50" aria-hidden>
-            |
-          </span>
-        </>
-      ) : null}
-      <span className="whitespace-nowrap rounded-sm bg-white/20 px-2.5 py-0.5 font-extrabold tracking-wide text-white uppercase shadow-sm ring-1 ring-white/35">
-        {OPEN_HOURS_LABEL}
-      </span>
+          ) : null}
+          <a
+            href={phoneTelHref(entry.phone)}
+            className={cn(
+              "underline decoration-white/25 underline-offset-4 transition-colors hover:decoration-current",
+              className,
+            )}
+          >
+            {entry.phone}
+          </a>
+        </span>
+      ))}
     </>
   );
 }
 
 /**
- * Primary strip under the nav: order phones + open hours.
- * Seamless looping marquee.
+ * Order phones + hours from store config.
+ * - masthead: stacked block on the left of the desktop masthead
+ * - line: one static line (phones · hours) for small screens
+ * - panel: labelled rows, used inside the homepage dispatch panel
  */
-export function OrderContactBanner() {
+export function OrderContactBanner({
+  placement = "line",
+  className,
+}: {
+  placement?: "masthead" | "line" | "panel";
+  className?: string;
+}) {
   const phones = useOrderContactPhones();
 
-  return (
-    <div className="border-b border-white/15 bg-primary">
-      {/* Static for reduced motion */}
-      <div className="hidden px-4 py-2.5 text-center text-sm font-bold tracking-wide text-white motion-reduce:block sm:py-3 sm:text-base">
-        <p>
-          <BannerMessage phones={phones} />
+  if (placement === "masthead") {
+    return (
+      <div className={cn("min-w-0", className)}>
+        <p className="flex items-center gap-2 text-xs leading-4 font-medium text-foreground xl:text-sm">
+          <span className="size-1.5 shrink-0 rounded-full bg-[#7dff3c]" aria-hidden />
+          <span className="whitespace-nowrap">Open daily {OPEN_HOURS_LABEL}</span>
+        </p>
+        <p className="text-xs leading-4 text-muted-foreground xl:text-sm">
+          {phones.length > 0 ? (
+            <>
+              Call or text{" "}
+              <PhoneLinks phones={phones} className="text-foreground" />
+            </>
+          ) : (
+            "Call or text to order"
+          )}
         </p>
       </div>
+    );
+  }
 
-      {/* Continuous marquee */}
-      <div className="relative overflow-hidden py-2.5 motion-reduce:hidden sm:py-3">
-        <div
-          className="flex w-max animate-order-banner-marquee hover:[animation-play-state:paused]"
-          style={
-            {
-              "--order-banner-copies": String(MARQUEE_COPIES),
-            } as CSSProperties
-          }
-        >
-          {Array.from({ length: MARQUEE_COPIES }, (_, copyIndex) => (
-            <p
-              key={copyIndex}
-              className="shrink-0 px-10 text-sm font-bold tracking-wide text-white sm:px-14 sm:text-base"
-              aria-hidden={copyIndex > 0 ? true : undefined}
-            >
-              <BannerMessage phones={phones} />
-              <span className="mx-10 text-white/45" aria-hidden>
-                •
-              </span>
-            </p>
-          ))}
+  if (placement === "panel") {
+    return (
+      <dl className={cn("grid gap-3 text-sm", className)}>
+        <div className="flex items-baseline gap-3">
+          <dt className="shrink-0 text-xs text-muted-foreground">Hours</dt>
+          <span className="wn-leader" aria-hidden />
+          <dd className="text-foreground">{OPEN_HOURS_LABEL}</dd>
         </div>
-      </div>
+        <div className="flex items-baseline gap-3">
+          <dt className="shrink-0 text-xs text-muted-foreground">Call / text</dt>
+          <span className="wn-leader" aria-hidden />
+          <dd className="text-right text-foreground">
+            {phones.length > 0 ? (
+              <PhoneLinks phones={phones} className="text-primary" />
+            ) : (
+              <span className="text-muted-foreground">See store desk</span>
+            )}
+          </dd>
+        </div>
+      </dl>
+    );
+  }
+
+  return (
+    <div className={cn("text-center", className)}>
+      <p className="text-xs leading-4 text-foreground sm:text-sm">
+        <span className="text-muted-foreground">Open daily </span>
+        <span className="whitespace-nowrap">{OPEN_HOURS_LABEL}</span>
+      </p>
+      <p className="text-xs leading-4 sm:text-sm">
+        {phones.length > 0 ? (
+          <>
+            <span className="text-muted-foreground">Call or text </span>
+            <PhoneLinks phones={phones} className="text-foreground" />
+          </>
+        ) : (
+          <span className="text-muted-foreground">Call or text to order</span>
+        )}
+      </p>
     </div>
   );
 }

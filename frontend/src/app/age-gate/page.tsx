@@ -4,16 +4,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { toast } from "sonner";
 
-import { GasNationLogo } from "@/components/brand/gasnation-logo";
+import { WixkedNationLogo } from "@/components/brand/wixkednation-logo";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { blockAgeGate, verifyAgeGate } from "@/lib/api/age-gate";
 import { getErrorMessage } from "@/lib/api/errors";
 import { persistAgeGateToken } from "@/lib/age-gate/storage";
@@ -54,54 +46,88 @@ function AgeGateForm() {
   }
 
   return (
-    <Card className="w-full max-w-xl shadow-lg ring-1 ring-foreground/10 sm:max-w-2xl">
-      <CardHeader className="items-center gap-4 px-6 pt-8 text-center sm:px-10 sm:pt-10">
-        <GasNationLogo
-          variant="mark"
-          size="lg"
-          className="mx-auto"
-          markClassName="size-20 sm:size-24"
+    <div className="grid w-full max-w-5xl items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-14">
+      {/* Lockup */}
+      <div className="relative flex justify-center">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute top-1/2 left-1/2 size-[120%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(110,255,60,0.12),transparent_62%)]"
         />
-        <div className="space-y-2">
-          <CardTitle className="text-2xl sm:text-3xl">Age verification</CardTitle>
-          <CardDescription className="text-base text-balance sm:text-lg">
-            You must confirm you are over 21 to enter this store.
-          </CardDescription>
+        <WixkedNationLogo
+          variant="stacked"
+          size="lg"
+          priority
+          className="relative w-44 sm:w-56 lg:w-80"
+        />
+      </div>
+
+      {/* Door-check ticket */}
+      <section
+        aria-labelledby="age-gate-heading"
+        className="overflow-hidden rounded-2xl border border-white/12 bg-[#0b0e0c]"
+      >
+        <div className="wn-rule" aria-hidden />
+        <div className="px-6 pt-7 pb-6 sm:px-9 sm:pt-9">
+          <div className="flex items-center justify-between gap-4">
+            <span className="rounded-full border border-white/15 px-3 py-1 text-xs font-semibold tracking-[0.14em] text-foreground">
+              21+
+            </span>
+          </div>
+          <h1
+            id="age-gate-heading"
+            className="mt-5 text-4xl leading-[1.05] font-semibold tracking-tight sm:text-5xl"
+          >
+            Are you 21 or older?
+          </h1>
+          <p className="mt-4 text-base text-muted-foreground">
+            You must confirm you are over 21 to enter this store. Our drivers
+            check a valid government ID at the door.
+          </p>
         </div>
-      </CardHeader>
-      <CardContent className="px-6 pb-2 text-center sm:px-10">
-        <p className="text-xl font-semibold tracking-tight sm:text-2xl">
-          Are you over 21?
-        </p>
-      </CardContent>
-      <CardFooter className="flex flex-col gap-3 px-6 py-8 sm:flex-row sm:justify-center sm:gap-4 sm:px-10 sm:pb-10">
-        <Button
-          type="button"
-          size="lg"
-          className="h-12 w-full min-w-[10rem] text-base sm:w-auto"
-          disabled={pending !== null}
-          onClick={() => void onYes()}
-        >
-          {pending === "yes" ? "Checking…" : "Yes, I am 21+"}
-        </Button>
-        <Button
-          type="button"
-          size="lg"
-          variant="outline"
-          className="h-12 w-full min-w-[10rem] text-base sm:w-auto"
-          disabled={pending !== null}
-          onClick={() => void onNo()}
-        >
-          {pending === "no" ? "Please wait…" : "No"}
-        </Button>
-      </CardFooter>
-    </Card>
+
+        <div className="relative px-6 sm:px-9" aria-hidden>
+          <span className="absolute top-1/2 -left-3 size-6 -translate-y-1/2 rounded-full bg-background" />
+          <span className="absolute top-1/2 -right-3 size-6 -translate-y-1/2 rounded-full bg-background" />
+          <div className="border-t border-dashed border-white/20" />
+        </div>
+
+        <div className="flex flex-col gap-3 px-6 pt-6 pb-7 sm:px-9 sm:pb-9">
+          <Button
+            type="button"
+            size="lg"
+            className="h-13 w-full justify-between px-6 text-base font-semibold"
+            disabled={pending !== null}
+            onClick={() => void onYes()}
+          >
+            <span>{pending === "yes" ? "Checking…" : "Yes, I am 21+"}</span>
+            <span aria-hidden>→</span>
+          </Button>
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            className="h-13 w-full justify-between px-6 text-base"
+            disabled={pending !== null}
+            onClick={() => void onNo()}
+          >
+            <span>{pending === "no" ? "Please wait…" : "No, I am under 21"}</span>
+            <span aria-hidden className="text-muted-foreground">
+              ×
+            </span>
+          </Button>
+          <p className="mt-2 text-center text-xs leading-5 text-muted-foreground">
+            Same-day delivery across Ohio ·{" "}
+            <span className="whitespace-nowrap">10:00 AM – 10:00 PM</span>
+          </p>
+        </div>
+      </section>
+    </div>
   );
 }
 
 export default function AgeGatePage() {
   return (
-    <div className="flex min-h-dvh w-full flex-col items-center justify-center bg-background px-4 py-10 sm:px-6">
+    <div className="flex min-h-dvh w-full flex-col items-center justify-center bg-background px-4 py-10 sm:px-8">
       <Suspense
         fallback={
           <p className="text-sm text-muted-foreground">Loading…</p>

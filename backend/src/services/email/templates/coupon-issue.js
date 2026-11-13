@@ -44,13 +44,13 @@ function buildCouponIssueEmail({
   const text = [
     title,
     "",
-    `Campaign: ${campaignName || "Gas Nation offer"}`,
+    `Campaign: ${campaignName || "Wixked Nation offer"}`,
     `Your code: ${couponCode}`,
     expiresLabel ? `Valid until: ${expiresLabel}` : null,
     checkoutUrl ? `Checkout: ${checkoutUrl}` : null,
     "",
     "Enter this code at checkout. One use per customer.",
-    "21+ only · gasnationweed.com",
+    "21+ only · wixkednation.com",
   ]
     .filter(Boolean)
     .join("\n");

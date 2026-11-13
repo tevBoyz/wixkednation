@@ -647,7 +647,7 @@ export function AdminBlogEditorClient({ postId }: AdminBlogEditorClientProps) {
                     setSlug(slugify(next));
                   }
                 }}
-                placeholder="Weed delivery in north Virginia"
+                placeholder="Weed delivery in Ohio"
               />
             </div>
             <div className="space-y-2">

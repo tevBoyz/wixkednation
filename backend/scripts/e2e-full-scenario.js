@@ -682,7 +682,7 @@ async function runScenario() {
   );
 
   console.log("\n2) Auth (admin PIN + customer email OTP → PIN setup)");
-  const adminEmail = process.env.SEED_ADMIN_EMAIL || "admin@gasnation.com";
+  const adminEmail = process.env.SEED_ADMIN_EMAIL || "admin@wixkednation.com";
   const adminPin = process.env.SEED_ADMIN_PIN || "072326";
   const admin = await loginWithPin({ email: adminEmail, pin: adminPin });
 
@@ -755,7 +755,7 @@ async function runScenario() {
 
   console.log("\n2b) Superadmin team management");
   const superadminEmail =
-    process.env.SEED_SUPERADMIN1_EMAIL || "superadmin1@gasnationweed.com";
+    process.env.SEED_SUPERADMIN1_EMAIL || "superadmin1@wixkednation.com";
   const superadminPin =
     process.env.SEED_SUPERADMIN1_PIN ||
     process.env.SEED_SUPERADMIN_PIN ||
@@ -1383,10 +1383,10 @@ async function runScenario() {
         label: `E2E ${stamp}`,
         fullName: "E2E Customer",
         phone: deliveryPhone,
-        addressLine1: "1200 Wilson Blvd",
-        city: "Arlington",
-        state: "VA",
-        postalCode: "22201",
+        addressLine1: "1 Capitol Square",
+        city: "Columbus",
+        state: "OH",
+        postalCode: "43215",
         country: "United States",
         isDefault: true
       }
@@ -1626,10 +1626,10 @@ async function runScenario() {
         address: {
           fullName: "E2E Guest",
           phone: guestPhone,
-          addressLine1: "1200 Wilson Blvd",
-          city: "Arlington",
-          state: "VA",
-          postalCode: "22201",
+          addressLine1: "1 Capitol Square",
+          city: "Columbus",
+          state: "OH",
+          postalCode: "43215",
           country: "United States"
         }
       }
@@ -1694,10 +1694,10 @@ async function runScenario() {
         items: [{ productId, skuId: productSkuId, quantity: 1 }],
         address: {
           fullName: "E2E Guest",
-          addressLine1: "1200 Wilson Blvd",
-          city: "Arlington",
-          state: "VA",
-          postalCode: "22201",
+          addressLine1: "1 Capitol Square",
+          city: "Columbus",
+          state: "OH",
+          postalCode: "43215",
           country: "United States"
         }
       }

@@ -26,7 +26,7 @@ export type PublicEnv = {
 /**
  * Public storefront env.
  * - API URL: always from NEXT_PUBLIC_API_URL in `.env` (no hardcoded fallback).
- * - App URL: NEXT_PUBLIC_APP_URL, else https://gasnationweed.com (never localhost).
+ * - App URL: NEXT_PUBLIC_APP_URL, else https://wixkednation.com (never localhost).
  */
 export function getPublicEnv(): PublicEnv {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();

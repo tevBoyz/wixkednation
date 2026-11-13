@@ -54,8 +54,7 @@ export default async function DeliveryLocationPage({
   }
 
   const nearbyGroups = nearbySeoLocationGroups(location.slug);
-  const placeLabel =
-    location.name === "Washington, DC" ? "Washington DC" : location.name;
+  const placeLabel = location.name;
 
   return (
     <main className="min-w-0 overflow-x-clip">
@@ -84,7 +83,7 @@ export default async function DeliveryLocationPage({
           <span className="text-foreground">{location.name}</span>
         </nav>
 
-        <header className="mt-6 max-w-3xl">
+        <header className="wn-page-head mt-6">
           <p className="text-sm font-medium text-primary">
             {location.area} · {SITE_NAME}
           </p>
@@ -95,7 +94,7 @@ export default async function DeliveryLocationPage({
             {location.blurb}
           </p>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-            Order online from Gas Nation for {placeLabel}: flower, pre-rolls,
+            Order online from Wixked Nation for {placeLabel}: flower, pre-rolls,
             edibles, vapes, and concentrates. Flat $20 delivery, 10 AM–10 PM
             daily, cash on delivery. 21+ with valid ID in person. No medical
             card needed.
@@ -123,7 +122,7 @@ export default async function DeliveryLocationPage({
               <li key={item.label}>
                 <Link
                   href={item.href}
-                  className="inline-flex rounded-full border border-border bg-background px-3 py-1 text-xs font-medium hover:border-primary/40 hover:text-primary"
+                  className="wn-plate inline-flex px-3 py-2 text-xs font-medium hover:border-white/30"
                 >
                   {item.label}
                 </Link>

@@ -32,7 +32,7 @@ function buildOtpEmail({ logoUrl, otpCode, expiresMinutes, purpose }) {
     "",
     "If you did not request this, you can ignore this email.",
     "",
-    "21+ only · gasnationweed.com"
+    "21+ only · wixkednation.com"
   ].join("\n");
 
   return {

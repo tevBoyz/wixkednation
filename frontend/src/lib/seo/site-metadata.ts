@@ -87,7 +87,7 @@ export function buildDefaultMetadata(): Metadata {
     icons: {
       icon: [
         { url: BRAND_MARK_PATH, type: "image/png", sizes: "512x512" },
-        { url: "/brand/gasnation-mark-32.png", type: "image/png", sizes: "32x32" },
+        { url: "/brand/wixkednation-mark-32.png", type: "image/png", sizes: "32x32" },
       ],
       apple: [{ url: BRAND_APPLE_ICON_PATH, type: "image/png", sizes: "180x180" }],
     },

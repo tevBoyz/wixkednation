@@ -47,8 +47,8 @@ function isEmailConfigured() {
   return name === "mock" || name === "smtp";
 }
 
-const PRODUCTION_SITE_ORIGIN = "https://gasnationweed.com";
-const DEFAULT_EMAIL_LOGO_PATH = "/brand/gasnation-logo-full.png";
+const PRODUCTION_SITE_ORIGIN = "https://wixkednation.com";
+const DEFAULT_EMAIL_LOGO_PATH = "/brand/wixkednation-logo-full.png";
 
 function isLoopbackOrigin(value) {
   try {
@@ -329,7 +329,7 @@ async function sendSystemAlert({ subject, text, metadata }) {
     try {
       const result = await sendEmail({
         to,
-        subject: subject || "GasNation system alert",
+        subject: subject || "Wixked Nation system alert",
         text: text || "",
         purpose: "system_alert",
         metadata: metadata && typeof metadata === "object" ? metadata : {}

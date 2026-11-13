@@ -26,17 +26,17 @@ export async function generateMetadata({
     const data = await fetchPublicBlogTagPage(slug, { page: 1, limit: 1 });
     const tag = data.tag;
     return buildPageMetadata({
-      title: tag.seoTitle?.trim() || `${tag.name} | GasNation Blog`,
+      title: tag.seoTitle?.trim() || `${tag.name} | Wixked Nation Blog`,
       description:
         tag.seoDescription?.trim() ||
         tag.description?.trim() ||
-        `Browse GasNation posts about ${tag.name}.`,
+        `Browse Wixked Nation posts about ${tag.name}.`,
       path: `/tag/${tag.slug}`,
     });
   } catch {
     return buildPageMetadata({
       title: "Blog tag",
-      description: "GasNation blog tag",
+      description: "Wixked Nation blog tag",
       path: `/tag/${slug}`,
     });
   }
@@ -63,7 +63,7 @@ export default async function BlogTagPage({ params, searchParams }: PageProps) {
   const description =
     tag.description?.trim() ||
     tag.seoDescription?.trim() ||
-    `Guides and posts about ${tag.name} from GasNation.`;
+    `Guides and posts about ${tag.name} from Wixked Nation.`;
 
   return (
     <main className="min-w-0 overflow-x-clip">
@@ -86,7 +86,7 @@ export default async function BlogTagPage({ params, searchParams }: PageProps) {
         })}
       />
       <Container className="min-w-0 py-10 sm:py-14">
-        <header className="mx-auto max-w-3xl px-0 text-center sm:text-left">
+        <header className="wn-page-head">
           <p className="text-sm text-muted-foreground">
             <Link href="/blog" className="hover:underline">
               Blog
