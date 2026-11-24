@@ -1,13 +1,12 @@
 "use client";
 
-import { ShoppingBagIcon, UserIcon } from "lucide-react";
+import { HomeIcon, ShoppingBagIcon, UserIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { ProductSearchDialog } from "@/components/catalog/product-search-dialog";
 import { OrderContactBanner } from "@/components/layout/order-contact-banner";
-import { SiteIndex } from "@/components/layout/mobile-nav";
 import { SiteMenuBar } from "@/components/layout/store-nav-links";
 import { NotificationsNavButton } from "@/components/notifications/notifications-nav-button";
 import { NavHoverMenu } from "@/components/layout/nav-hover-menu";
@@ -66,7 +65,7 @@ const dockItemClassName =
   "relative inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full px-3 text-xs font-medium text-foreground transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-4 sm:text-sm";
 
 /**
- * Floating control dock (all widths): Index, Search, Cart, Account,
+ * Floating control dock (all widths): Home, Search, Cart, Account,
  * and notifications when signed in.
  */
 export function StoreDock() {
@@ -88,12 +87,17 @@ export function StoreDock() {
         aria-label="Store controls"
         className="wn-dock pointer-events-auto flex max-w-full items-center gap-0.5 overflow-x-auto rounded-full p-1.5"
       >
-        <SiteIndex
-          triggerClassName={cn(
+        <Link
+          href="/"
+          aria-label="Home"
+          className={cn(
             dockItemClassName,
             "wn-neon-fill px-4 font-semibold hover:bg-transparent sm:px-5",
           )}
-        />
+        >
+          <HomeIcon className="size-4" aria-hidden />
+          <span>Home</span>
+        </Link>
 
         <ProductSearchDialog triggerClassName={dockItemClassName} label="Search" />
 
